@@ -60,13 +60,3 @@ class Triangle:
 
         return "{}\n{}\n{}\n".format(str_points,str_angles,str_sides)
 
-
-
-
-a=(0,0)
-b=(0,10)
-c=(5,5)
-
-luis = Triangle(a,b,c)
-
-print(luis)
