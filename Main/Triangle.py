@@ -34,7 +34,13 @@ class Triangle:
         self.BC_dist = euler_distance(self.B, self.C)
         self.AC_dist = euler_distance(self.A, self.C)
             
-               
+    def calculate_centroid(self):
+        x = (self.A[0] + self.B[0] + self.C[0])  / 3.0
+        y = (self.A[1] + self.B[1] + self.C[1])  / 3.0
+        return (x,y)
+
+    def calculate_area(self):
+        return ((self.B[1] - self.A[1]) * (self.C[0] - self.A[0] )) / 0.5
 
     def get_all_points(self):
         return self.A,self.B,self.C
@@ -51,6 +57,8 @@ class Triangle:
         self.C = new_c
         self.calculate_distance()
 
+    def copy(self):
+        return Triangle(self.A,self.B,self.C)
 
 
     def __str__(self):
