@@ -6,13 +6,13 @@ import math
 # GIVEN ASSUMPTIONS:
 # 'A' IS THE CHARGING STATION AND IS LOCATED AT THE ORIGIN 
 # 'B' IS THE LONGEST DISTANCE AND IS LOCATED ON THE Y-AXIS, X=0
-# 'C' IS THE SHORTEST DISTANCE AND IS IN THE FIRST QUADRANT 
-# All Angles are acute
+# 'C' IS THE SHORTEST DISTANCE 
+# TRIANGLE IS IN THE FIRST QUADRANT 
 #######################
 class Drone_Path():
 
 
-    def __init__(self,triangle,drone):
+    def __init__(self, triangle, drone):
 
         self.triangle = triangle
         self.drone = drone
@@ -141,7 +141,6 @@ class Drone_Path():
         return (t1 and t2)
 
 
-
     def canTravel(self,p1,p2):
         def dist(p1,p2):
             return math.sqrt( (p2[1]-p1[1])**2 +(p2[0]-p1[0])**2)
@@ -162,11 +161,9 @@ class Drone_Path():
         return False
             
 
-
-
     # algorithm is still kinda funky
     # some revisions will be made later
-    def algorithm(self, frame = 1):
+    def algorithm(self):
 
         seq = [0,1,2] # represents A,B,C
         index = 0 # HELPS DETERMINE WHICH POINT I AM IN
