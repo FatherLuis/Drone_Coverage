@@ -23,6 +23,7 @@ class Transformation:
         self.matrix = None 
         self.transition = None 
         self.negX = False 
+        self.BC_switch = False 
 
     ##############################################
     # Method Name: transform_triangle_prime
@@ -63,6 +64,17 @@ class Transformation:
             sin = ( B[0] - A[0] ) / dist_AB
             cos = ( B[1] - A[1] ) / dist_AB
 
+
+            # CREATE A TRANSFORMATION MATRIX
+            # WILL BE USED IN THE LINEAR TRANSFORMATION METHOD
+            self.matrix = np.array( [ [ cos , -sin ] , [ sin , cos] ] )
+
+            # GET THE TRANSFORMED POINTS
+            A_prime = linear_trans(A-A) 
+            B_prime = linear_trans(B-A)
+            C_prime = linear_trans(C-A)
+            self.BC_switch = False # IN CASE YOU WANT TO KNOW WHAT B' AND C ', BUT NOT NECESSARY FOR ALGORITHM
+
         else:
 
             # C WILL MOVE TO ( 0, dist(A,B) )
@@ -70,19 +82,25 @@ class Transformation:
             sin = ( C[0] - A[0] ) / dist_AC
             cos = ( C[1] - A[1] ) / dist_AC
 
-        # CREATE A TRANSFORMATION MATRIX
-        # WILL BE USED IN THE LINEAR TRANSFORMATION METHOD
-        self.matrix = np.array( [ [ cos , -sin ] , [ sin , cos] ] )
+            # CREATE A TRANSFORMATION MATRIX
+            # WILL BE USED IN THE LINEAR TRANSFORMATION METHOD
+            self.matrix = np.array( [ [ cos , -sin ] , [ sin , cos] ] )
 
-        # GET THE TRANSFORMED POINTS
-        A_prime = linear_trans(A-A) 
-        B_prime = linear_trans(B-A)
-        C_prime = linear_trans(C-A)
+            # GET THE TRANSFORMED POINTS
+            A_prime = linear_trans(A-A) 
+            B_prime = linear_trans(C-A)
+            C_prime = linear_trans(B-A)
+            self.BC_switch = True # IN CASE YOU WANT TO KNOW WHAT B' AND C ', BUT NOT NECESSARY FOR ALGORITHM
+
+
 
 
         # WE WANT TO REASSURE THAT THE TRIANGLE WILL END IN THE FIRST QUADRAINT
         # SINCE WE KNOW THAT A WILL END IN THE ORIGIN AND THAT B/C WILL END
         # ON THE Y-AXIS, THEN HE HAVE TO ASSURE THAT B/C END IN THE FIRST QUADRANT
+
+
+
         if( B_prime[0] < -0.001 ):
             # WE APPLIED A NEGATIVE ON THE X 
             self.negX = True

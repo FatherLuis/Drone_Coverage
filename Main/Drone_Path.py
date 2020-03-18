@@ -165,6 +165,41 @@ class Drone_Path():
 
 
     ##############################################
+    # Method Name: dist()
+    # Purpose: Calculate eucledian distance between two points
+    # Parameter: two tuples-like objects (x,y)
+    # Method used: None
+    # Return Value: Float
+    # Date:  3/2/2020
+    ##############################################  
+    def dist(self,p1,p2):
+        return np.sqrt( (p2[1]-p1[1])**2 +(p2[0]-p1[0])**2)
+
+    ##############################################
+    # Method Name: calculate_total_distance_travel
+    # Purpose: Calculate total distance drone travelled
+    # Parameter: list of points (x,y)
+    # Method used: dist()
+    # Return Value: Float
+    # Date:  3/2/2020
+    ##############################################  
+    def calculate_total_distance_travel(self,lst_pts):
+
+        sum = 0
+        
+        for i in range( len(lst_pts) - 1 ):
+
+            # SELECT i ELEMENT FROM THE LIST
+            p1 = lst_pts[i]
+
+            # SELECT i+1 ELEMENT FROM THE LIST
+            p2 = lst_pts[i+1]
+
+            sum += self.dist(p1,p2)
+
+        return sum
+
+    ##############################################
     # Method Name: canTravel()
     # Purpose: Check if the drone is able to travel to the next point
     # Parameter: tuples (x,y)
@@ -174,9 +209,6 @@ class Drone_Path():
     ##############################################  
     def canTravel(self,p1,p2):
 
-        # CALCULATE EUCLEDIAN DISTANCE BETWEEN TWO POINTS
-        def dist(p1,p2):
-            return np.sqrt( (p2[1]-p1[1])**2 +(p2[0]-p1[0])**2)
 
         # CHECK IF THE POINT IS IN THE REGION OF THE TRIANGLE
         # SOME TOLERANCE IS ADDED FOR ROUND OFF ERRORS
@@ -198,14 +230,14 @@ class Drone_Path():
 
             # FIND THE DISTANCE FROM THE CURRENT POINT TO P1 PLUS THE DISTANCE FROM P1 TO P2
             # RECALL THAT P1 IS WHERE I AM GOING TO TRAVEL AND P2 IS WHERE I AM ENDING AT
-            dist_curPoint_finalPoint = dist(self.drone.curPoint, p1) + dist(p1,p2)
+            dist_curPoint_finalPoint = self.dist(self.drone.curPoint, p1) + self.dist(p1,p2)
 
             # FIND THE DISTANCE FROM P2 TO THE VERTEX A
             # REASON: I WANT TO MAKE SURE THE DRONE CAN RETURN BACK TO PRIME A FROM P2
-            dist_p2_A = dist(p2,self.curTriangle.A)
+            dist_p2_A = self.dist(p2,self.curTriangle.A)
 
             # FIND THE DISTANCE FROM PRIME A TO THE CHARGING STATION
-            dist_chargeStation_A = dist(self.triangle.A, self.curTriangle.A)
+            dist_chargeStation_A = self.dist(self.triangle.A, self.curTriangle.A)
 
             # IF I AM ABLE TO TRAVEL TO P2 AND BE ABLE TO GO BACK TO THE CHARGING STATION
             # THEN I WILL GO TO P2, OTHERWISE, I CANT TRAVEL
@@ -235,7 +267,7 @@ class Drone_Path():
             # REASON FOR 2.4 : THE 2 IS BECAUSE OF THE DISTANCE TO AND BACK FROM THE GIVEN VERTEX TO A
             #                  THE 0.4 IS BECAUSE WE DONT DIRECTLY GO STRAIGHT TO THE GIVEN VERTEX
             #                  SINCE WE MAKE SMALL ADJUSTMENTS IN THE CODE.
-            return self.drone.max_distance > 2.4*self.triangle.AB_dist and self.drone.max_distance > 2.4*self.triangle.AC_dist 
+            return self.drone.max_distance > (2*self.triangle.AB_dist + 3* self.drone.radius) and (self.drone.max_distance > 2*self.triangle.AC_dist+ 3* self.drone.radius) 
 
         # IN THE ALGORITHM, WE'LL GO FROM 0,1,2,1,2,.... BACK TO 0 DEPENDING ON THE SITUATION
         seq = [0,1,2] # represents A,B,C
@@ -254,8 +286,9 @@ class Drone_Path():
             while True:
 
                 # CHECK IF THE DRONE AREA COVERAGE IS BIGGER THAN THE TRIANGLE NEEDED TO COVERED
+
                 if(self.drone.calculate_area() <= self.curTriangle.calculate_area() ):
-                    
+
                     # DETERMINE WHERE I WANT TO GO       
                     # CREATE A TUPLE TO REPRESENT THE POINTS LABELS
                     # FROM WHERE I AM STARTING AND ENDING
@@ -352,6 +385,7 @@ class Drone_Path():
                     path.append(self.triangle.A)
 
                     # END THE ALGORITHM SINCE WE COVERED THE AREA OF THE TRIANGLE 
+                    self.drone.total_distance_travel = self.calculate_total_distance_travel(path)
                     break
 
         # RETURN A LIST OF TUPLES (X,Y)
