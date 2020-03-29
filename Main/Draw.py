@@ -83,6 +83,14 @@ class Draw():
             x2 = path_pts[i+1][0]
             y2 = path_pts[i+1][1]  
 
+            ############################################################
+            # PATH_PTS OF LEN 2: THIS IS THE DRONE TRAVELING FROM CS TO CS
+            if(len(path_pts) == 2):
+
+                self.ax.plot( (x1,x2) , (y1,y2) , c = 'k' , linewidth = 2 )
+                break 
+            ############################################################
+
             # IF i ELEMENT IS IN THE ORIGIN, CHANGE COLORS
             # THIS HELPS IDENTIFY NEW PATHS FROM THE DRONE PROJECT
             if ( (x1==path_pts[0][0] and y1==path_pts[0][1])):

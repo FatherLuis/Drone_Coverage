@@ -19,7 +19,7 @@ class Drone:
     ##############################################
     def __init__(self,radius=1, max_distance = 10000):
         self.radius= radius
-        self.max_distance = max_distance
+        self.MAX_DISTANCE = max_distance
         self.total_distance_travel = 0
 
         self.curMax_distance = max_distance 
@@ -46,14 +46,22 @@ class Drone:
     ##############################################
     def __str__(self):
         str_DR = "Drone Radius: {}".format(self.radius)
-        str_MD = "Max Distance to Travel: {}".format(self.max_distance)
+        str_MD = "Max Distance to Travel: {}".format(self.MAX_DISTANCE)
         str_TDT = "Total Distance Travel: {}".format(self.total_distance_travel)
 
         return "{}\n{}\n{}\n".format(str_DR,str_MD,str_TDT) 
 
 
-
-
+    ##############################################
+    # Method Name: add_distance()
+    # Purpose: Calculate eucledian distance between two points, add to total distance
+    # Parameter: two tuples-like objects (x,y)
+    # Method used: None
+    # Return Value: Float
+    # Date:  3/2/2020
+    ############################################## 
+    def add_distance(self,p1,p2):
+        self.total_distance_travel += np.sqrt( (p2[1]-p1[1])**2 +(p2[0]-p1[0])**2)
 
 
 
