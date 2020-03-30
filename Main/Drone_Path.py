@@ -337,8 +337,7 @@ class Drone_Path():
                     # ADD THE DISTANCE TRAVELED TO THE DRONE TOTAL_DISTANCE_TRAVEL
                     self.drone.total_distance_travel += dist_curPos_pi + dist_pi_pf
                     break
-
-            
+           
             # IF DRONE IS IN A, THEN WE MUST GO FROM A TO B   
             if(start_end == [1,2]):
                 
@@ -370,19 +369,18 @@ class Drone_Path():
                 ppi,ppf = self.segment_AB( vertexB = pNf , reverse = True , info = "path")         
 
 
+
             # DISTANCE FROM CURRENT POSITION TO DRONE INITIAL PATH POINT
             dist_curPos_pi = self.dist(self.drone.curPoint , pi)
             # DISTANCE FROM DRONE INITIAL PATH POINT TO DRONE FINAL PATH POINT
             dist_pi_pf = self.dist(pi,pf)  
+
             # DISTANCE FROM THE DRONE FINAL PATH POINT TO THE DRONE PRIME INITIAL POINT
             dist_pf_ppi = self.dist(pf,ppi)   
             # DISTANCE FORM THE DRONE PRIME INITIAL POINT TO THE DRONE PRIME FINAL POINT
             dist_ppi_ppf = self.dist(ppi,ppf)
             # DISTANCE FROM THE DRONE PRIME FINAL POINT TO THE CHARGING STATION
             dist_ppf_CS = self.dist( pNf, CS)
-          
-
-        
 
 
             # CALCULATE THE REQUIRE DISTANCE TO TRAVEL 

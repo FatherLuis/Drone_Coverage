@@ -99,7 +99,7 @@ class Draw():
                 colors = np.random.rand(3,)
           
             # DRAW A LINE FROM i ELEMENT TO i+1 ELEMENT
-            self.ax.plot( (x1,x2) , (y1,y2) , c = colors , linewidth = 2 )
+            self.ax.plot( (x1,x2) , (y1,y2) , c = colors , linewidth = 1 )
 
     ##############################################
     # Method Name: show_plot()
