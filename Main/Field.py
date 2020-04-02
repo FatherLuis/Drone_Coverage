@@ -1,5 +1,6 @@
-
 import numpy as np 
+from Triangle import Triangle
+
 
 ########################################
 # Class name: Edge
@@ -98,20 +99,6 @@ class Edge():
 class Field():
 
     ##############################################
-    # Method Name: __init__
-    # Purpose: Class Constructor
-    # Parameter: None
-    # Method used: None
-    # Return Value: A list of tuples (x,y)
-    # Date: 3/18/2020
-    ##############################################
-    def __init__(self,poly_list):
-
-        self.poly = poly_list
-
-        self.edges = self.create_edges()
-
-    ##############################################
     # Method Name: create_edges()
     # Purpose: From the given list of boundary points, create edge objects
     # Parameter: None
@@ -119,10 +106,10 @@ class Field():
     # Return Value: None
     # Date: 3/18/2020
     ##############################################
-    def create_edges(self):
+    def create_edges(self,poly):
 
         # GET SIZE OF THE ARRAY
-        N = len(self.poly)
+        N = len(poly)
         # CREATE EMPTY LIST TO STORE EDGE OBJECTS
         edges = []
 
@@ -130,9 +117,9 @@ class Field():
         for i in range(N):
 
             if( i == N-1):
-                edge = Edge(self.poly[i] , self.poly[0])
+                edge = Edge(poly[i] , poly[0])
             else:      
-                edge = Edge(self.poly[i] , self.poly[i+1])
+                edge = Edge(poly[i] , poly[i+1])
 
             edges.append(edge)
 
@@ -146,13 +133,13 @@ class Field():
     # Return Value: list of tuples (x1,x2) or(x1,x1)
     # Date: 3/18/2020
     ##############################################
-    def domain_set(self,y_value):
+    def domain_set(self,y_value,edges):
 
         # CREATE A EMPTY LIST TO STORE TUPLES ( REPRESENTS DOMAINS)
         border_domain = []
 
         # LOOP THROUGH ALL THE EDGES
-        for edge in self.edges:
+        for edge in edges:
 
             # STORE VALUE RETURNED FROM THE METHOD
             x_value = edge.intersect_horizontal_line(y_value)
@@ -250,37 +237,43 @@ class Field():
     # Return Value: binary 2D array
     # Date: 3/18/2020
     ##############################################
-    def create_matrix_field(self, pixel = 100):
+    def create_matrix_field(self, poly , step = 0.1):
+
+        edges = self.create_edges(poly)
 
         # CREATE A LIST THAT HOLDS THE X-VALUES FROM THE POINTS
-        x_lst = [x[0] for x in self.poly]
+        x_lst = [x[0] for x in poly]
         # CREATE A LIST THAT HOLDS THE Y-VALUES FROM THE POINTS
-        y_lst = [y[1] for y in self.poly]
+        y_lst = [y[1] for y in poly]
 
         # STORE THE MIN VALUE FROM X-LIST
-        xmin = np.min(x_lst)
+        xmin = np.min(x_lst) - step
         # STORE THE MAX VALUE FROM THE X-LIST
-        xmax = np.max(x_lst)
+        xmax = np.max(x_lst) + step
 
         # STORE THE MIN VALUE FROM THE Y-LIST
-        ymin = np.min(y_lst)
+        ymin = np.min(y_lst) - step
         # STORE THE MAX VALUE FROM THE Y-LIST
-        ymax = np.max(y_lst)
+        ymax = np.max(y_lst) + step
 
-        # CREATE A 2D ARRAY OF SIZE PIXEL X PIXEL
-        matrix = np.zeros( (pixel,pixel) )
 
         # CREATE AN ARRAY WITH EVENLY SPACED VALUES FROM MIN TO MAX, QUANTITY BEING THE NUMBER OF PIXELS
-        x_values = np.linspace(xmin,xmax,pixel)
-        y_values = np.linspace(ymin,ymax,pixel)
+        x_values = np.arange(xmin,xmax,step)
+        y_values = np.arange(ymin,ymax,step)
+        
+        nx = len(x_values)
+        ny = len(y_values)
+        
+        # CREATE A 2D ARRAY OF SIZE PIXEL X PIXEL
+        matrix = np.zeros( (nx,ny) )
 
         # ITERATE THROUGH EACH COLUMN
-        for i in range(pixel):
+        for i in range(ny):
 
             #print("")
             #print("Index: ", i , "Y-Value: ", y_values[i] )
             # STORE THE DOMAINS THAT ARE INSIDE THE SHAPE FROM THE GIVEN Y-VALUE
-            domain_set = self.domain_set(y_values[i])
+            domain_set = self.domain_set(y_values[i],edges)
 
             # CHECK IF THERE EXIST DOMAINS THAT ARE VALID FOR Y-VALUE
             if(not (domain_set == None)):
@@ -294,7 +287,88 @@ class Field():
                     matrix[inDomain,i] = 1
 
 
-        return matrix.astype(int)   
+        return matrix.astype(int), xmin, xmax, ymin, ymax, nx, ny  
+
+
+    ##############################################
+    # Method Name: create_triangle()
+    # Purpose: Given a polygon, split the polygon into triangles from a given point within the polygon
+    # Parameter: poly: a list of points that define the perimeter of a polygon
+    #            vertex: a point inside the polygon that will be used to split the polygon into triangles
+    #            vertex_acute_angle: allows user split the triangle vertex angle into two triangles if vertex angle is bigger than 90 degrees
+    # Method used: none
+    # Return Value: return a list of triangles
+    # Date: 3/26/2020
+    ##############################################
+    def create_triangle(self,poly, vertex , vertex_acute_angle = False):
+
+        # THE VERTEX WILL BE THE POINT WE'LL USE TO SPLIT THE POLYGON INTO TRIANGLES
+        A = vertex
+        B = None
+        C = None
+        triangles = []
+
+        # GET THE NUMBER OF POINTS IN THE LIST
+        N = len(poly)
+        # ITERATE THROUGH ALL THE POINTS
+        for i in range(N):
+
+            # IF THIS IS THE LAST POINT IN THE LIST, THEN WE'LL CREATE A TRIANGLE
+            # USING THE LAST POINT, VERTEX, AND THE FIRST POINT
+            if(i == N-1):
+                
+                # VERTEX B IS THE LAST POINT IN THE LIST
+                B = np.array(poly[i])
+                # VERTEX C IS THE FIRST POINT IN THE LIST
+                C = np.array(poly[0])
+             
+            else:
+                # VERTEX B IS THE CURRENT POINT IN THE LIST
+                B = np.array(poly[i])
+                # VERTEX C IS THE NEXT POINT IN THE LIST
+                C = np.array(poly[i+1])
+
+            # CREATE A TRIANGLE BASED ON THE THREE POINTS GIVEN
+            curTriangle =  Triangle(A,B,C)
+
+            # IF THE PARAMETER VERTEX_ACUTE_ANGLE IS TRUE, THAT IS, THE USER
+            # WANTS THE ANGLE IN A TO BE ACUTE, THEN WE'LL SPLIT THE CURRENT TRIANGLE
+            # BY HALF, CREATING TWO TRIANGLES
+            if( vertex_acute_angle and curTriangle.A_angle > np.pi/2):
+
+                # CREATE AN ARRAY WITH THE X-VALUES
+                x = np.array(  [ B[0],C[0]  ]    )
+                # CREATE AN ARRAY WITH THE Y-VALUES
+                y = np.array(  [ B[1],C[1]  ]    )
+
+                # GET THE MEAN OF THE VALUES IN X, Y
+                x_mean = np.mean(x)
+                y_mean = np.mean(y)
+
+                # CREATE A 2X1 ARRAY USING THE MEAN VALUES
+                xy_mean = np.array( [x_mean , y_mean] )
+
+                # CREATE A TRIANGLE USING A, B, XY_MEAN
+                triangle1 = Triangle(A , B , xy_mean)
+                # CREATE A TRIANGLE USING A, XY_MEAN, C
+                triangle2 = Triangle(A , xy_mean , C)
+
+                # ADD THESE TWO TRIANGLES IN THE ARRAY
+                triangles.append(triangle1)
+                triangles.append(triangle2)
+            
+            else:
+                # ADD THE TRIANGLE IN THE ARRAY
+                triangles.append(curTriangle)
+
+            
+            
+        # RETURN ARRAY OF TRIANGLES
+        return triangles
+
+
+
+
 
 
 
@@ -313,11 +387,3 @@ class Field():
 # #print(matrix)
 
 # np.savetxt("field.txt" ,matrix, fmt='%0.f' )
-
-
-
-
-
-
-
-

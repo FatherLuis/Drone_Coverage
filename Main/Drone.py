@@ -19,7 +19,7 @@ class Drone:
     ##############################################
     def __init__(self,radius=1, max_distance = 10000):
         self.radius= radius
-        self.max_distance = max_distance
+        self.MAX_DISTANCE = max_distance
         self.total_distance_travel = 0
 
         self.curMax_distance = max_distance 
@@ -32,6 +32,7 @@ class Drone:
     # Method used: None
     # Return Value: None
     # Date:  3/2/2020
+    # 3/27/2020 : METHOD NO LONGER BEING USED
     ##############################################
     def calculate_area(self):
         return np.pi * self.radius ** 2
@@ -46,13 +47,10 @@ class Drone:
     ##############################################
     def __str__(self):
         str_DR = "Drone Radius: {}".format(self.radius)
-        str_MD = "Max Distance to Travel: {}".format(self.max_distance)
+        str_MD = "Max Distance to Travel: {}".format(self.MAX_DISTANCE)
         str_TDT = "Total Distance Travel: {}".format(self.total_distance_travel)
 
         return "{}\n{}\n{}\n".format(str_DR,str_MD,str_TDT) 
-
-
-
 
 
 

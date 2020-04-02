@@ -1,5 +1,6 @@
 import numpy as np
 import math 
+from Triangle import Triangle
 
 ########################################
 # Class name: Transformation
@@ -33,7 +34,7 @@ class Transformation:
     # Return Value: Three points (x,y) based on the assumption described
     # Date:  3/13/2020
     ##############################################
-    def transform_triangle_prime(self,A,B,C):
+    def transform_triangle(self,triangle):
         # GIVEN ASSUMPTIONS:
         # 'A prime' IS THE CHARGING STATION AND IS LOCATED AT THE ORIGIN 
         # 'B prime' IS THE LONGEST DISTANCE AND IS LOCATED ON THE Y-AXIS, X=0
@@ -48,6 +49,10 @@ class Transformation:
         def linear_trans(P):
             return np.dot(self.matrix , np.transpose(P))
         
+
+        A,B,C = np.array(triangle.get_all_points())
+
+
         # A WILL BE MY TRANSITION... SINCE I WANT A TO BE IN THE ORIGIN
         self.transition = A
 
@@ -94,7 +99,6 @@ class Transformation:
 
 
 
-
         # WE WANT TO REASSURE THAT THE TRIANGLE WILL END IN THE FIRST QUADRAINT
         # SINCE WE KNOW THAT A WILL END IN THE ORIGIN AND THAT B/C WILL END
         # ON THE Y-AXIS, THEN HE HAVE TO ASSURE THAT B/C END IN THE FIRST QUADRANT
@@ -112,7 +116,7 @@ class Transformation:
             C_prime[0] = -C_prime[0] 
 
         # RETURN THE TRANSFORMED POINTS
-        return A_prime,B_prime,C_prime
+        return Triangle(A_prime,B_prime,C_prime)
 
 
     ##############################################

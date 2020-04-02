@@ -1,4 +1,5 @@
 import numpy as np 
+from Utilities import dist
 
 
 ########################################
@@ -19,9 +20,9 @@ class Triangle:
     # Date:  3/2/2020
     ##############################################
     def __init__(self,A_p,B_p,C_p):
-        self.A = A_p
-        self.B = B_p
-        self.C = C_p
+        self.A = np.array(A_p)
+        self.B = np.array(B_p)
+        self.C = np.array(C_p)
 
         self.AB_dist = 0
         self.BC_dist = 0
@@ -32,6 +33,9 @@ class Triangle:
         self.B_angle = 0
         self.C_angle = 0
         self.find_angles()
+
+        self.centroid = 0
+        self.calculate_centroid()
 
     ##############################################
     # Method Name: find_angles()
@@ -59,13 +63,10 @@ class Triangle:
     # Date:  3/2/2020
     ##############################################
     def calculate_distance(self):
-
-        def euler_distance(p1,p2):
-            return np.sqrt( (p2[1]-p1[1])**2 +(p2[0]-p1[0])**2)
         
-        self.AB_dist = euler_distance(self.A, self.B)
-        self.BC_dist = euler_distance(self.B, self.C)
-        self.AC_dist = euler_distance(self.A, self.C)
+        self.AB_dist = dist(self.A, self.B)
+        self.BC_dist = dist(self.B, self.C)
+        self.AC_dist = dist(self.A, self.C)
 
     ##############################################
     # Method Name: calculate_centroid()
@@ -79,7 +80,30 @@ class Triangle:
         #x = (self.A[0] + self.B[0] + self.C[0])  / 3.0
         #y = (self.A[1] + self.B[1] + self.C[1])  / 3.0
 
-        return ( self.A + self.B + self.C ) / 3.0
+        self.centroid =  ( self.A + self.B + self.C ) / 3.0
+
+
+    ##############################################
+    # Method Name: calculate_centroid()
+    # Purpose: Find the centroid of the triangle with specified vertices
+    #          This method will not act on an object.
+    # Parameter: None
+    # Method used: None
+    # Return Value: tuple (x,y)
+    # Date:  3/30/2020
+    ##############################################
+    def calculate_centroid_prime(A = None, B = None , C = None):
+        A = A if A is not None else None
+        B = B if B is not None else None
+        C = C if C is not None else None
+
+        if(A is None or B is None or C is None):
+            return None
+        else:
+            return ( A + B + C ) / 3.0
+
+
+
 
     ##############################################
     # Method Name: calculate_area()
@@ -114,6 +138,7 @@ class Triangle:
     def set_A(self,new_a):
         self.A = new_a
         self.calculate_distance()
+        self.calculate_centroid()
 
     ##############################################
     # Method Name: set_B()
@@ -126,6 +151,7 @@ class Triangle:
     def set_B(self,new_b):
         self.B = new_b
         self.calculate_distance()
+        self.calculate_centroid()
 
     ##############################################
     # Method Name: set_C()
@@ -138,6 +164,7 @@ class Triangle:
     def set_C(self,new_c):
         self.C = new_c
         self.calculate_distance()
+        self.calculate_centroid()
 
     ##############################################
     # Method Name: copy()
