@@ -292,61 +292,78 @@ class Field():
 
     ##############################################
     # Method Name: create_triangle()
-    # Purpose: 
-    # Parameter: None
-    # Method used: 
+    # Purpose: Given a polygon, split the polygon into triangles from a given point within the polygon
+    # Parameter: poly: a list of points that define the perimeter of a polygon
+    #            vertex: a point inside the polygon that will be used to split the polygon into triangles
+    #            vertex_acute_angle: allows user split the triangle vertex angle into two triangles if vertex angle is bigger than 90 degrees
+    # Method used: none
     # Return Value: return a list of triangles
     # Date: 3/26/2020
     ##############################################
     def create_triangle(self,poly, vertex , vertex_acute_angle = False):
 
-
+        # THE VERTEX WILL BE THE POINT WE'LL USE TO SPLIT THE POLYGON INTO TRIANGLES
         A = vertex
         B = None
         C = None
         triangles = []
 
+        # GET THE NUMBER OF POINTS IN THE LIST
         N = len(poly)
+        # ITERATE THROUGH ALL THE POINTS
         for i in range(N):
 
+            # IF THIS IS THE LAST POINT IN THE LIST, THEN WE'LL CREATE A TRIANGLE
+            # USING THE LAST POINT, VERTEX, AND THE FIRST POINT
             if(i == N-1):
                 
+                # VERTEX B IS THE LAST POINT IN THE LIST
                 B = np.array(poly[i])
+                # VERTEX C IS THE FIRST POINT IN THE LIST
                 C = np.array(poly[0])
              
             else:
-
+                # VERTEX B IS THE CURRENT POINT IN THE LIST
                 B = np.array(poly[i])
+                # VERTEX C IS THE NEXT POINT IN THE LIST
                 C = np.array(poly[i+1])
 
-
+            # CREATE A TRIANGLE BASED ON THE THREE POINTS GIVEN
             curTriangle =  Triangle(A,B,C)
 
+            # IF THE PARAMETER VERTEX_ACUTE_ANGLE IS TRUE, THAT IS, THE USER
+            # WANTS THE ANGLE IN A TO BE ACUTE, THEN WE'LL SPLIT THE CURRENT TRIANGLE
+            # BY HALF, CREATING TWO TRIANGLES
             if( vertex_acute_angle and curTriangle.A_angle > np.pi/2):
 
+                # CREATE AN ARRAY WITH THE X-VALUES
                 x = np.array(  [ B[0],C[0]  ]    )
+                # CREATE AN ARRAY WITH THE Y-VALUES
                 y = np.array(  [ B[1],C[1]  ]    )
 
+                # GET THE MEAN OF THE VALUES IN X, Y
                 x_mean = np.mean(x)
                 y_mean = np.mean(y)
 
+                # CREATE A 2X1 ARRAY USING THE MEAN VALUES
                 xy_mean = np.array( [x_mean , y_mean] )
 
-  
-
+                # CREATE A TRIANGLE USING A, B, XY_MEAN
                 triangle1 = Triangle(A , B , xy_mean)
+                # CREATE A TRIANGLE USING A, XY_MEAN, C
                 triangle2 = Triangle(A , xy_mean , C)
 
+                # ADD THESE TWO TRIANGLES IN THE ARRAY
                 triangles.append(triangle1)
                 triangles.append(triangle2)
             
             else:
-
+                # ADD THE TRIANGLE IN THE ARRAY
                 triangles.append(curTriangle)
 
             
             
-        
+        # RETURN ARRAY OF TRIANGLES
         return triangles
 
 

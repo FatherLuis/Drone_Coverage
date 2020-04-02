@@ -5,6 +5,7 @@ from Drone_Path import Drone_Path
 from Draw import Draw
 from Transformation import Transformation 
 from Field import Field
+from Utilities import dist
 
 import numpy as np 
 
@@ -17,7 +18,7 @@ Canvas = Draw()
 ### INITIALIZE DRONE PROPERTIES ###
 
 rad = 1
-mxDist = 200 # MUST BE ABLE TO REACH A VERTEX AND RETURN TO CHARGING STATION
+mxDist = 75 # MUST BE ABLE TO REACH A VERTEX AND RETURN TO CHARGING STATION
 drone = Drone(radius=rad, max_distance = mxDist)
 
 
@@ -47,10 +48,6 @@ field_boundary = [ (60,5), (45,15), (30,25), (30,50), (45,60), (60,70), (80,70),
 # EACH CHARGING STATION HAS A POLYGON FIELD, WHICH WILL BE SPLIT INTO TRIANGLES, 
 # WHERE THE CHARGING STATION IS A VERTEX AND THE BOUNDARIES ARE THE OTHER VERTICES
 
-
-
-
-
 vononili_poly1 = [ [ (45,15), (30,25), (30,50), (45,60), (60,50), (60,30)   ] , ( 45,40 ) ]
 vononili_poly2 = [ [ (45,60), (60,70), (80,70), (95,60), (80,50), (60,50)  ] ,  ( 70,60 ) ]
 vononili_poly3 = [ [ (95,60), (110,50), (110,25), (95,15), (80,30), (80,50)  ] ,( 95,40 ) ]
@@ -68,6 +65,7 @@ N = len(vononili_polys)
 i = 0
 for vononili_poly in vononili_polys:
 
+    # CREATE TRIANGLES FROM THE POLYGON, STORE AS LIST
     triangle_lst = field.create_triangle(poly = vononili_poly[0] , vertex = vononili_poly[1] )
 
     # LOOP THROUGH A LIST OF TRIANGLES, FIND PATH THAT COVERS THE AREA OF EACH
@@ -96,12 +94,12 @@ for vononili_poly in vononili_polys:
     if(not(i==0)):
 
         CS_to_CS = [ vononili_polys[i-1][1] ,vononili_polys[i][1] ]
-        drone.add_distance(CS_to_CS[0],CS_to_CS[1])
+        drone.total_distance_travel += dist(CS_to_CS[0],CS_to_CS[1])
         path_lst.append(CS_to_CS)
 
         if( i == N-1):
             CS_to_CS = [ vononili_polys[i][1] ,vononili_polys[0][1] ]
-            drone.add_distance(CS_to_CS[0],CS_to_CS[1])
+            drone.total_distance_travel += dist(CS_to_CS[0],CS_to_CS[1])
             path_lst.append(CS_to_CS)
         
         

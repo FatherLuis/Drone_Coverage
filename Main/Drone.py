@@ -32,6 +32,7 @@ class Drone:
     # Method used: None
     # Return Value: None
     # Date:  3/2/2020
+    # 3/27/2020 : METHOD NO LONGER BEING USED
     ##############################################
     def calculate_area(self):
         return np.pi * self.radius ** 2
@@ -51,17 +52,6 @@ class Drone:
 
         return "{}\n{}\n{}\n".format(str_DR,str_MD,str_TDT) 
 
-
-    ##############################################
-    # Method Name: add_distance()
-    # Purpose: Calculate eucledian distance between two points, add to total distance
-    # Parameter: two tuples-like objects (x,y)
-    # Method used: None
-    # Return Value: Float
-    # Date:  3/2/2020
-    ############################################## 
-    def add_distance(self,p1,p2):
-        self.total_distance_travel += np.sqrt( (p2[1]-p1[1])**2 +(p2[0]-p1[0])**2)
 
 
 

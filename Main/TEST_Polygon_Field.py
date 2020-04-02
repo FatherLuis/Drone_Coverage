@@ -70,12 +70,12 @@ for vononili_poly in vononili_polys:
     if(not(i==0)):
 
         CS_to_CS = [ vononili_polys[i-1][1] ,vononili_polys[i][1] ]
-        drone.add_distance(CS_to_CS[0],CS_to_CS[1])
+        drone.total_distance_travel += dist(CS_to_CS[0],CS_to_CS[1])
         path_lst.append(CS_to_CS)
 
         if( i == N-1):
             CS_to_CS = [ vononili_polys[i][1] ,vononili_polys[0][1] ]
-            drone.add_distance(CS_to_CS[0],CS_to_CS[1])
+            drone.total_distance_travel += dist(CS_to_CS[0],CS_to_CS[1])
             path_lst.append(CS_to_CS)
         
         
