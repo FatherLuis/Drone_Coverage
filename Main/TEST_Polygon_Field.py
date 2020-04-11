@@ -4,6 +4,7 @@ from Drone_Path import Drone_Path
 from Draw import Draw
 from Transformation import Transformation 
 from Field import Field
+from Utilities import dist
 
 import numpy as np 
 
@@ -23,15 +24,10 @@ drone = Drone(radius=rad, max_distance = mxDist)
 # EACH CHARGING STATION HAS A POLYGON FIELD, WHICH WILL BE SPLIT INTO TRIANGLES, 
 # WHERE THE CHARGING STATION IS A VERTEX AND THE BOUNDARIES ARE THE OTHER VERTICES
 
-field_boundary = [ (60,5), (45,15), (30,25), (30,50), (45,60), (60,70), (80,70), (95,60), (110,50), (110,25), (95,15), (80,5)  ]
 
-vononili_poly1 = [ [ (45,15), (30,25), (30,50), (45,60), (60,50), (60,30)   ] , ( 45,40 ) ]
-vononili_poly2 = [ [ (45,60), (60,70), (80,70), (95,60), (80,50), (60,50)  ] ,  ( 70,60 ) ]
-vononili_poly3 = [ [ (95,60), (110,50), (110,25), (95,15), (80,30), (80,50)  ] ,( 95,40 ) ]
-vononili_poly4 = [ [ (45,15), (60,30), (80,30), (95,15), (80,5), (60,5)  ] ,  ( 70,15 ) ]
-vononili_poly5 = [ [ (60,30), (60,50), (80,50), (80,30)  ] ,  ( 70,40 ) ]
+sites = [( 45,40 ), ( 70,60 ) , ( 95,40 ) , ( 70,15 ) ,  ( 70,40 ) ]
 
-vononili_polys = [ vononili_poly1 , vononili_poly2 , vononili_poly3 , vononili_poly4 , vononili_poly5    ]
+vononili_polys = field.create_voronoi_polygons(site=sites, boundary=field_boundary)
 
 
 
