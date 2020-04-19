@@ -1,0 +1,13 @@
+
+Source: https://stackoverflow.com/questions/46009925/how-to-install-cvxopt-on-on-windows-10-on-python-3-6
+
+Install both the numpy+mkl package and the appropriate cvxopt from:
+
+http://www.lfd.uci.edu/~gohlke/pythonlibs/
+
+Note: 'cp' stands for the python version you're running.
+
+Once you download the appropriate file for numpy+mkl and cvxopt
+
+Open your CMD, go to the folder the file downloaded, type 'pip install [file name]'
+

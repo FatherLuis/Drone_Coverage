@@ -1,5 +1,8 @@
 import numpy as np 
 from Triangle import Triangle
+from scipy.spatial import Voronoi
+from shapely.geometry import Polygon
+
 
 
 ########################################
@@ -23,6 +26,7 @@ class Edge():
     def __init__(self,p1,p2):
 
         # SAVES THE EDGE END POINTS
+        
         self.a = np.array( p1 )
         self.b = np.array( p2 )
 
@@ -88,6 +92,98 @@ class Edge():
             return (x_val,x_val)
         
         return None
+
+    
+    def intersect_edge(self, edge):
+
+        isVertical = lambda x: x.a[0] == x.b[0]
+
+        edge1 = self
+        edge2 = edge 
+
+        if not(isVertical(edge1)) and not(isVertical(edge2)):
+
+            slope1 =  ( edge1.b[1] - edge1.a[1]  ) / ( edge1.b[0] - edge1.a[0]  )
+            slope2 =  ( edge2.b[1] - edge2.a[1]  ) / ( edge2.b[0] - edge2.a[0]  )
+        
+            diff_slope = slope2 - slope1 
+
+            if not(diff_slope == 0):
+
+                x = ( edge1.a[0]*slope1 - edge1.a[1] - edge2.a[0]*slope2 + edge2.a[1] ) / (slope1 - slope2)
+                y = slope1*(x - edge1.a[0]) + edge1.a[1]
+
+
+                if edge1.in_domain(x) and edge1.in_range(y) and edge2.in_domain(x) and edge2.in_range(y):
+                    return (x,y)
+
+                return None
+                
+            else: 
+                # same slope, means lines are parallel
+                return None
+
+        elif( isVertical(edge1) and  not(isVertical(edge2)) ):
+
+            slope2 =  ( edge2.b[1] - edge2.a[1]  ) / ( edge2.b[0] - edge2.a[0]  )
+
+            x = edge1.a[0]
+
+            y = slope2*(x - edge2.a[0]) + edge2.a[1]
+
+            if edge1.in_domain(x) and edge1.in_range(y) and edge2.in_domain(x) and edge2.in_range(y):
+                return (x,y)
+
+            return None
+
+
+        elif(not(isVertical(edge1) and isVertical(edge2)) ):
+
+            slope1 =  ( edge1.b[1] - edge1.a[1]  ) / ( edge1.b[0] - edge1.a[0]  )
+            x = edge2.a[0]
+            y = slope1*(x - edge1.a[0]) + edge1.a[1]
+            
+            if edge1.in_domain(x) and edge1.in_range(y) and edge2.in_domain(x) and edge2.in_range(y):
+                return (x,y)
+
+            return None
+
+        return None 
+
+
+    def intersect(self,edge):
+        
+        """ 
+        Returns the point of intersection of the lines passing through a2,a1 and b2,b1.
+        a1: [x, y] a point on the first line
+        a2: [x, y] another point on the first line
+        b1: [x, y] a point on the second line
+        b2: [x, y] another point on the second line
+        """
+        s = np.vstack([self.a,self.b,edge.a,edge.b])        # s for stacked
+        h = np.hstack((s, np.ones((4, 1)))) # h for homogeneous
+        l1 = np.cross(h[0], h[1])           # get first line
+        l2 = np.cross(h[2], h[3])           # get second line
+        x, y, z = np.cross(l1, l2)          # point of intersection
+        if z == 0:                          # lines are parallel
+            return None
+        return (x/z, y/z)
+
+    ##############################################
+    # Method Name: __str__()
+    # Purpose: overrides the default print() method used on this object. When print() is used, information of the triangle is printed
+    # Parameter: None
+    # Method used: None
+    # Return Value: None
+    # Date:  3/2/2020
+    ##############################################
+    def __str__(self):
+        str_points = "Edge Points: a:{}, b:{}".format(self.a,self.b)
+        str_domain = "Domain: {}".format(self.xdomain)
+        str_range = "Range: {}".format(self.yrange)
+
+        return "{}\n{}\n{}\n".format(str_points,str_domain,str_range)
+
 
 ########################################
 # Class name: Field
@@ -251,6 +347,7 @@ class Field():
         # STORE THE MAX VALUE FROM THE X-LIST
         xmax = np.max(x_lst) + step
 
+
         # STORE THE MIN VALUE FROM THE Y-LIST
         ymin = np.min(y_lst) - step
         # STORE THE MAX VALUE FROM THE Y-LIST
@@ -287,7 +384,7 @@ class Field():
                     matrix[inDomain,i] = 1
 
 
-        return matrix.astype(int), xmin, xmax, ymin, ymax, nx, ny  
+        return matrix.astype(int), xmin,xmax,ymin,ymax,nx, ny
 
 
     ##############################################
@@ -369,10 +466,146 @@ class Field():
 
 
 
+    # https://ipython-books.github.io/145-computing-the-voronoi-diagram-of-a-set-of-points/
+    # https://stackoverflow.com/questions/34968838/python-finite-boundary-voronoi-cells
+    def voronoi_finite_polygons_2d(self,vor, radius=None):
+        
+        """Reconstruct infinite Voronoi regions in a
+        2D diagram to finite regions.
+        Source:
+        [https://stackoverflow.com/a/20678647/1595060](https://stackoverflow.com/a/20678647/1595060)
+        """
+        if vor.points.shape[1] != 2:
+            raise ValueError("Requires 2D input")
+        
+        new_regions = []
+        new_vertices = vor.vertices.tolist()
+        center = vor.points.mean(axis=0)
+
+        if radius is None:
+            radius = vor.points.ptp().max()*10
+        
+        # Construct a map containing all ridges for a
+        # given point
+        all_ridges = {}
+        
+        for (p1, p2), (v1, v2) in zip(vor.ridge_points,vor.ridge_vertices):
+            all_ridges.setdefault( p1, []).append((p2, v1, v2))
+            all_ridges.setdefault(p2, []).append((p1, v1, v2))
+        
+        # Reconstruct infinite regions
+        for p1, region in enumerate(vor.point_region):
+            
+            vertices = vor.regions[region]
+            
+            if all(v >= 0 for v in vertices):
+                # finite region
+                new_regions.append(vertices)
+                continue
+
+
+            # reconstruct a non-finite region
+            ridges = all_ridges[p1]
+            new_region = [v for v in vertices if v >= 0]
+            
+            for p2, v1, v2 in ridges:
+                if v2 < 0:
+                    v1, v2 = v2, v1
+                if v1 >= 0:
+                    # finite ridge: already in the region
+                    continue
+                # Compute the missing endpoint of an
+                # infinite ridge
+                t = vor.points[p2] - \
+                    vor.points[p1]  # tangent
+                
+                t /= np.linalg.norm(t)
+                
+                n = np.array([-t[1], t[0]])  # normal
+                
+                midpoint = vor.points[[p1, p2]]. \
+                    mean(axis=0)
+                
+                direction = np.sign(
+                    np.dot(midpoint - center, n)) * n
+                
+                far_point = vor.vertices[v2] + \
+                    direction * radius
+                
+                new_region.append(len(new_vertices))
+                new_vertices.append(far_point.tolist())
+            
+            # Sort region counterclockwise.
+            vs = np.asarray([new_vertices[v] for v in new_region])
+            
+            c = vs.mean(axis=0)
+
+            angles = np.arctan2( vs[:, 1] - c[1], vs[:, 0] - c[0])
+            new_region = np.array(new_region)[np.argsort(angles)]
+            new_regions.append(new_region.tolist())
+
+        return new_regions, np.asarray(new_vertices)
+
+    # Note: Number of sites n>3
+    def create_voronoi_polygons(self,site=None,boundary = None):
+        # site is a list
+
+        if len(site) == 1:
+            return [ [boundary, site[0]] ]
+
+        outer_region = [ [-1000,-1000] , [-1000,1000] , [1000,1000] , [1000,-1000]  ]
+
+        vor = Voronoi(site+outer_region)
+        regions, vertices = self.voronoi_finite_polygons_2d(vor)
+
+
+        voronois = []
+        for region in regions:
+            voronois.append(vertices[region])
+
+        boundary_poly = Polygon(boundary)
+
+        voronoi_lst = []
+        for voronoi in voronois:
+            voronoi_poly = Polygon(voronoi)
+            result = boundary_poly.intersection(voronoi_poly)
+            result_lst = list(result.exterior.coords)
+            result_lst = result_lst[:-1]
+
+            voronoi_lst.append(result_lst)
+
+
+        
+
+        return [ item  for item in zip(voronoi_lst,site)    ]
 
 
 
-########### Testing the Class ###################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#field = np.array( [ (0,0),(0,5),(5,5),(5,0) ] )
+#points = np.array( [  [1, 2], [2, 1], [2, 3] ] )
+#lst_voronoi = create_voronoi_polygons(sites=points , boundary=field)
+#
+
+
+
+
+########### Testing the Field Class ###################################################
 
 #poly = [ (1,1) , (5,1) , (5,5) ]
 #poly = [ (1,1), (1,5),(5,5),(5,1) ]
