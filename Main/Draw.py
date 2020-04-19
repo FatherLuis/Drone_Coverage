@@ -95,7 +95,7 @@ class Draw():
             self.ax.plot( (x1,x2) , (y1,y2) , c = colors , linewidth = 1, alpha = 0.7 )
 
 
-    def draw_sites(self,site_pts):
+    def draw_sites_path(self,site_pts):
 
         # GET THE SIZE OF THE LIST
         N = len(site_pts)
@@ -120,7 +120,14 @@ class Draw():
 
                 # DRAW A LINE FROM i ELEMENT TO i+1 ELEMENT
                 self.ax.arrow(x1, y1, x2-x1, y2-y1, linewidth = 2,head_width=1, head_length=1, fc='k', ec='k')
-            
+
+
+    def draw_sites(self,sites):
+
+        for p in sites:
+            self.ax.plot(p[0],p[1],'ro')
+
+
     ##############################################
     # Method Name: show_plot()
     # Purpose: Show the plots created (if any), otherwise, show a blank GUI

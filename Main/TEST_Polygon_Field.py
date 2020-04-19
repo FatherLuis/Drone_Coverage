@@ -24,8 +24,9 @@ drone = Drone(radius=rad, max_distance = mxDist)
 # EACH CHARGING STATION HAS A POLYGON FIELD, WHICH WILL BE SPLIT INTO TRIANGLES, 
 # WHERE THE CHARGING STATION IS A VERTEX AND THE BOUNDARIES ARE THE OTHER VERTICES
 
+field_boundary = [ (60,5), (45,15), (30,25), (30,50),(60,70), (80,70),(110,50), (110,25), (95,15), (80,5)  ]
 
-sites = [( 45,40 ), ( 70,60 ) , ( 95,40 ) , ( 70,15 ) ,  ( 70,40 ) ]
+sites = [( 70,60 ) , ( 95,40 ) , ( 70,15 ) ,  ( 70,40 ) ]
 
 vononili_polys = field.create_voronoi_polygons(site=sites, boundary=field_boundary)
 
@@ -88,10 +89,19 @@ print(drone)
 # DRAW SHAPE BOUNDARY
 Canvas.boundary(field_boundary)
 
+for vononili_poly in vononili_polys:
+    #print(vononili_poly)
+    Canvas.boundary(vononili_poly[0],col='b')
+    pass
+
+
 for path in path_lst:
     # DRAW PATH 
-    Canvas.path(path)
+    #Canvas.path(path)
+    pass
 
+
+Canvas.draw_sites(sites)
 
 # SHOW PLOT
 Canvas.show_plot()

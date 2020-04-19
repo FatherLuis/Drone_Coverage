@@ -347,6 +347,7 @@ class Field():
         # STORE THE MAX VALUE FROM THE X-LIST
         xmax = np.max(x_lst) + step
 
+
         # STORE THE MIN VALUE FROM THE Y-LIST
         ymin = np.min(y_lst) - step
         # STORE THE MAX VALUE FROM THE Y-LIST
@@ -383,7 +384,7 @@ class Field():
                     matrix[inDomain,i] = 1
 
 
-        return matrix.astype(int), xmin, xmax, ymin, ymax, nx, ny  
+        return matrix.astype(int), xmin,xmax,ymin,ymax,nx, ny
 
 
     ##############################################
@@ -466,6 +467,7 @@ class Field():
 
 
     # https://ipython-books.github.io/145-computing-the-voronoi-diagram-of-a-set-of-points/
+    # https://stackoverflow.com/questions/34968838/python-finite-boundary-voronoi-cells
     def voronoi_finite_polygons_2d(self,vor, radius=None):
         
         """Reconstruct infinite Voronoi regions in a
@@ -544,11 +546,18 @@ class Field():
 
         return new_regions, np.asarray(new_vertices)
 
-
+    # Note: Number of sites n>3
     def create_voronoi_polygons(self,site=None,boundary = None):
+        # site is a list
 
-        vor = Voronoi(site)
+        if len(site) == 1:
+            return [ [boundary, site[0]] ]
+
+        outer_region = [ [-1000,-1000] , [-1000,1000] , [1000,1000] , [1000,-1000]  ]
+
+        vor = Voronoi(site+outer_region)
         regions, vertices = self.voronoi_finite_polygons_2d(vor)
+
 
         voronois = []
         for region in regions:
@@ -565,7 +574,27 @@ class Field():
 
             voronoi_lst.append(result_lst)
 
+
+        
+
         return [ item  for item in zip(voronoi_lst,site)    ]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #field = np.array( [ (0,0),(0,5),(5,5),(5,0) ] )

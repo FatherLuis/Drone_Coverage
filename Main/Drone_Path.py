@@ -546,6 +546,7 @@ class Drone_Path():
                 # IF I AM ON VERTEX A AND I CANNOT TRAVEL, THEN TERMINATE ALGORITHM
                 # REASON: THE ONLY TIME THE DRONE IS IN THIS POINT IS WHEN COMING FROM THE CHARGING STATION
                 if(start_end == [1,2]):
+                    print('Cannot Complete Path')
                     return path
                     #return None
 
