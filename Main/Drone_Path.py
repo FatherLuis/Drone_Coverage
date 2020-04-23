@@ -292,6 +292,8 @@ class Drone_Path():
     ##############################################  
     def algorithm(self):
 
+        req_dist_travel = 0
+
         # Store paths
         path = [self.drone.curPoint]
 
@@ -546,8 +548,9 @@ class Drone_Path():
                 # IF I AM ON VERTEX A AND I CANNOT TRAVEL, THEN TERMINATE ALGORITHM
                 # REASON: THE ONLY TIME THE DRONE IS IN THIS POINT IS WHEN COMING FROM THE CHARGING STATION
                 if(start_end == [1,2]):
-                    print('Cannot Complete Path')
-                    return path
+                    #print('Cannot Complete Path')
+                    #print('req dist: ',req_dist_travel)
+                    return []
                     #return None
 
                 # IF DRONE IS IN B, THEN WE MUST GO FROM B TO A

@@ -93,81 +93,6 @@ class Edge():
         
         return None
 
-    
-    def intersect_edge(self, edge):
-
-        isVertical = lambda x: x.a[0] == x.b[0]
-
-        edge1 = self
-        edge2 = edge 
-
-        if not(isVertical(edge1)) and not(isVertical(edge2)):
-
-            slope1 =  ( edge1.b[1] - edge1.a[1]  ) / ( edge1.b[0] - edge1.a[0]  )
-            slope2 =  ( edge2.b[1] - edge2.a[1]  ) / ( edge2.b[0] - edge2.a[0]  )
-        
-            diff_slope = slope2 - slope1 
-
-            if not(diff_slope == 0):
-
-                x = ( edge1.a[0]*slope1 - edge1.a[1] - edge2.a[0]*slope2 + edge2.a[1] ) / (slope1 - slope2)
-                y = slope1*(x - edge1.a[0]) + edge1.a[1]
-
-
-                if edge1.in_domain(x) and edge1.in_range(y) and edge2.in_domain(x) and edge2.in_range(y):
-                    return (x,y)
-
-                return None
-                
-            else: 
-                # same slope, means lines are parallel
-                return None
-
-        elif( isVertical(edge1) and  not(isVertical(edge2)) ):
-
-            slope2 =  ( edge2.b[1] - edge2.a[1]  ) / ( edge2.b[0] - edge2.a[0]  )
-
-            x = edge1.a[0]
-
-            y = slope2*(x - edge2.a[0]) + edge2.a[1]
-
-            if edge1.in_domain(x) and edge1.in_range(y) and edge2.in_domain(x) and edge2.in_range(y):
-                return (x,y)
-
-            return None
-
-
-        elif(not(isVertical(edge1) and isVertical(edge2)) ):
-
-            slope1 =  ( edge1.b[1] - edge1.a[1]  ) / ( edge1.b[0] - edge1.a[0]  )
-            x = edge2.a[0]
-            y = slope1*(x - edge1.a[0]) + edge1.a[1]
-            
-            if edge1.in_domain(x) and edge1.in_range(y) and edge2.in_domain(x) and edge2.in_range(y):
-                return (x,y)
-
-            return None
-
-        return None 
-
-
-    def intersect(self,edge):
-        
-        """ 
-        Returns the point of intersection of the lines passing through a2,a1 and b2,b1.
-        a1: [x, y] a point on the first line
-        a2: [x, y] another point on the first line
-        b1: [x, y] a point on the second line
-        b2: [x, y] another point on the second line
-        """
-        s = np.vstack([self.a,self.b,edge.a,edge.b])        # s for stacked
-        h = np.hstack((s, np.ones((4, 1)))) # h for homogeneous
-        l1 = np.cross(h[0], h[1])           # get first line
-        l2 = np.cross(h[2], h[3])           # get second line
-        x, y, z = np.cross(l1, l2)          # point of intersection
-        if z == 0:                          # lines are parallel
-            return None
-        return (x/z, y/z)
 
     ##############################################
     # Method Name: __str__()
@@ -397,7 +322,27 @@ class Field():
     # Return Value: return a list of triangles
     # Date: 3/26/2020
     ##############################################
-    def create_triangle(self,poly, vertex , vertex_acute_angle = False):
+    def create_triangle(self, poly, vertex , vertex_acute_angle = False):
+
+        if vertex in poly:
+
+            poly = list(poly)
+            
+            for i in range(len(poly)):
+
+                if not(vertex == poly[0]):
+
+                    poly.append( poly.pop( poly.index(i)   )  )
+
+                else:
+                    
+                    break
+
+            start = 1
+
+        else:
+            start = 0
+
 
         # THE VERTEX WILL BE THE POINT WE'LL USE TO SPLIT THE POLYGON INTO TRIANGLES
         A = vertex
@@ -408,17 +353,17 @@ class Field():
         # GET THE NUMBER OF POINTS IN THE LIST
         N = len(poly)
         # ITERATE THROUGH ALL THE POINTS
-        for i in range(N):
+        for i in range(start,N-start):
 
             # IF THIS IS THE LAST POINT IN THE LIST, THEN WE'LL CREATE A TRIANGLE
             # USING THE LAST POINT, VERTEX, AND THE FIRST POINT
-            if(i == N-1):
+            if(i == N-1 and start == 0):
                 
                 # VERTEX B IS THE LAST POINT IN THE LIST
                 B = np.array(poly[i])
                 # VERTEX C IS THE FIRST POINT IN THE LIST
                 C = np.array(poly[0])
-             
+            
             else:
                 # VERTEX B IS THE CURRENT POINT IN THE LIST
                 B = np.array(poly[i])
