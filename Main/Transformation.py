@@ -34,7 +34,7 @@ class Transformation:
     # Return Value: Three points (x,y) based on the assumption described
     # Date:  3/13/2020
     ##############################################
-    def transform_triangle(self,triangle):
+    def transform_triangle(self,triangle , vertices):
         # GIVEN ASSUMPTIONS:
         # 'A prime' IS THE CHARGING STATION AND IS LOCATED AT THE ORIGIN 
         # 'B prime' IS THE LONGEST DISTANCE AND IS LOCATED ON THE Y-AXIS, X=0
@@ -115,8 +115,25 @@ class Transformation:
             self.negX = True
             C_prime[0] = -C_prime[0] 
 
+
+        ## 5/12/2020
+
+        prime_vertices = []
+        for p in vertices:
+
+            pp = np.array(p)
+
+            if np.array_equal(pp,B):
+
+                prime_vertices.append(B_prime)
+
+            elif np.array_equal(pp,C):
+
+                prime_vertices.append(C_prime)
+
+
         # RETURN THE TRANSFORMED POINTS
-        return Triangle(A_prime,B_prime,C_prime)
+        return Triangle(A_prime,B_prime,C_prime), prime_vertices
 
 
     ##############################################

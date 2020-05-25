@@ -154,9 +154,18 @@ def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad ,solMax
         
         bestVal,bestIx = min(distStat), np.argmin(distStat) #Choose best solution
         #iBest = bestIx[0];
-        csLocs = locs[:,tf.logicalFn(solMx[bestIx,:])] #select charging station locs. for best solution
+
+        
+
+        csLocs = locs[:, np.asarray(list(map(lambda x: bool(x), solMx[bestIx,:] ))) ] #select charging station locs. for best solution
+        
+
+
         startConjT = np.array(np.matrix(start).H)
         csLocs = np.append(startConjT,csLocs, axis = 1) #add starting point
+
+
+
 
 
         # print(csLocs)
@@ -203,10 +212,10 @@ if __name__ == '__main__':
     inclVec = inclVec > theta_g
     inclMx = np.reshape(inclVec, ng) # Matrix for inclusion in region (used in plotting)
 
-    #plt.pcolor(inclMx)
-    #plt.show()
+    plt.pcolor(inclMx)
+    plt.show()
 
-    CS = linear_program(inclVec,0,200,0,200,200,200,ns,1,rad,solMax,start)
+    CS = linear_program(inclMx,0,200,0,200,200,200,ns,1,rad,solMax,start)
 
     print(CS)
 

@@ -25,12 +25,12 @@ class Drone_Path():
     # Return Value: None
     # Date:  3/2/2020
     ##############################################
-    def __init__(self, triangle, drone):
+    def __init__(self, triangle, drone, entry_exit):
 
         self.triangle = triangle # SAVES THE ORIGINAL TRIANGLE IN WHICH THE ALGORITHM WILL THE FIND THE PATH TO
         self.drone = drone # SAVE THE DRONE
         self.curTriangle = triangle.copy() # CREATES A COPY OF THE TRIANGLE AND WILL BE EDITED THROUGHOUT THE CODE
-
+        self.entryExit = np.array(entry_exit)
     ##############################################
     # Method Name: segment_AB
     # Purpose: Contains the computations needed to calculate the next path/prime_vertex from point A to point B
@@ -281,6 +281,25 @@ class Drone_Path():
         return endAlg,(pi,pf)
 
 
+    def reserve_path(self):
+
+
+        for p in self.entryExit:
+
+            if( np.array_equal(p,self.triangle.B) ):
+
+                pA,pB = self.segment_AB(info = 'path')
+                self.curTriangle.set_A(pA)
+                self.curTriangle.set_B(pB)
+
+            elif( np.array_equal(p,self.triangle.C) ):
+
+                pA,pC = self.segment_AC(info = 'path')
+                self.curTriangle.set_A(pA)
+                self.curTriangle.set_C(pC)
+
+
+
     ##############################################
     # Method Name: algorithm()
     # Purpose: creates the path needed to cover a triangle, given the limitations of the drone
@@ -314,6 +333,14 @@ class Drone_Path():
         # LOOKING AT A FUTURE PATH
         start_end = [0,0]
         
+
+        ## 5/12/2020 Reserve Paths
+        self.reserve_path()
+
+
+
+
+        #########################
 
         # LOOP WILL CONTINUE UNTIL IT BREAKS BY:
         # PATH IS FOUND TO COVER TRIANGLE
