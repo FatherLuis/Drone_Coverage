@@ -114,17 +114,23 @@ rad = 60 #coverage radius
 
 ##############################################################################################
 
-
-def tourFn(startP, locsTmp, rad):
+# argument for my matrix
+def tourFn(startP, locsTmp, rad, adjMatrix):
     
     ncs = locsTmp.shape[1] #size(locsTmp,2)
     
     #Create link matrix with acceptable distances
     # compute all distances
+
+    print(np.ones((ncs,1)))
+    print(locsTmp[0, range(ncs)])
+
+
     xTmp = np.ones((ncs,1))*locsTmp[0, range(ncs)] # Create x matrix
     yTmp = np.ones((ncs,1))*locsTmp[1,range(ncs)] #Create y matrix
     dMxTmp = np.sqrt((xTmp - xTmp.conj().transpose()) **2 + (yTmp - yTmp.conj().transpose())**2) # Mx of mutual dists
-    dMxTmp = dMxTmp - dMxTmp * (dMxTmp >= 2*rad) # possible edges
+    #dMxTmp = dMxTmp - dMxTmp * (dMxTmp >= 2*rad) # possible edges
+    dMxTmp = dMxTmp * adjMatrix  # dMxTmp = dMxTmp * (my matrix) # replace 127
     
 
     # Check whether any singletons that are connected to only 1 site
@@ -213,12 +219,13 @@ def tourFn(startP, locsTmp, rad):
             
             path.append(startNode)
             path = np.asarray(path)
-#            print("path: ", path)
+
+    #print("path: ", path)
            
     if status == 'optimal':
         
-#        rows = np.arange(edgeTmp.shape[0])[:, np.newaxis] #get all rows of edgeTmp w/ new axes
-#        edgeMx = edgeTmp[rows,logicalFn(xNew)] # Edges from which cycle is drawn
+        #rows = np.arange(edgeTmp.shape[0])[:, np.newaxis] #get all rows of edgeTmp w/ new axes
+        #edgeMx = edgeTmp[rows,logicalFn(xNew)] # Edges from which cycle is drawn
         tourDist = fmin + 2*sum(sum(dMxSingleTmp)) # Distance for solution
         
         print("\nsingLmx: \n", singLmx)
@@ -233,12 +240,14 @@ def tourFn(startP, locsTmp, rad):
         print("****************************************************************************\n")
         
         return locsTmp, fPath, tourDist
+    
+    return None
         
            
   
     
     
     
-print(tourFn(startP, locs, rad))
+#print(tourFn(startP, locs, rad))
 
-t = tourFn(startP, locs, rad)
+#t = tourFn(startP, locs, rad)

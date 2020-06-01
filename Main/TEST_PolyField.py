@@ -6,6 +6,7 @@ from Transformation import Transformation
 from Field import Field
 from Utilities import dist
 from Travel import traveling
+from minCharge_LUIS import linear_program,tour
 
 import numpy as np 
 
@@ -27,9 +28,12 @@ drone = Drone(radius=rad, max_distance = mxDist)
 
 field_boundary = [ (0,0) , (0,20) , (20,20), (20,0)  ]
 
-sites = [( 5,5 ) , ( 5,15 ) , ( 15,15 ) ,  ( 15,5 ) ]
+sites = [( 0,0 ) , ( 5,15 ) , ( 15,15 ) ,  ( 15,5 ) ]
 
-vononili_polys = field.create_voronoi_polygons(site=sites, boundary=field_boundary)
+vononili_lst = field.create_voronoi_polygons(site=sites, boundary=field_boundary)
+
+# ordered
+vononili_polys = tour(sites[0],rad , vononili_lst)
 
 vertices , entryExitLst = traveling(vononili_polys)
 

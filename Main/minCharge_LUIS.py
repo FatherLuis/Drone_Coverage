@@ -174,6 +174,51 @@ def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad ,solMax
     return None
 
 
+def tour(start,rad,voronoi_lst):
+
+    csLocs = [x[1] for x in voronoi_lst]
+
+    n = len(csLocs)
+    mtx = np.zeros( (n,n) )
+
+    for i in range(n):
+
+        vor_set = set(voronoi_lst[i][0])
+
+        for j in range(n):
+
+            vor_set2 = set(voronoi_lst[j][0])
+
+            has_intersection = 1 if len(vor_set.intersection(vor_set2)) > 0 else 0
+
+            mtx[i][j] = has_intersection
+            mtx[j][i] = has_intersection
+
+        if( i > (n/2) ):
+            break
+
+    
+
+
+    
+    #Get tour information
+
+    locsTmp = np.array( [ [x[0] for x in csLocs ] , [y[1] for y in csLocs ]  ] )
+
+    tour = tf.tourFn(start, locsTmp, rad , mtx)
+
+    if tour is not None:
+        [locsTmp, coor, tourDist] = tour
+
+    ordered_voronoiLst = [voronoi_lst[i] for i in coor[:-1]]
+
+    #print([x[1] for x in ordered_voronoiLst])
+
+    return ordered_voronoiLst
+
+
+
+
 if __name__ == '__main__':
 
     # IF THIS FILE IS RUN, THE FOLLOWING CODE WILL BE READ

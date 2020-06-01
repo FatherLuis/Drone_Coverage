@@ -114,7 +114,7 @@ class Triangle:
     # Date:  3/2/2020
     ##############################################
     def calculate_area(self):
-        return ((self.B[1] - self.A[1]) * (self.C[0] - self.A[0] )) / 0.5
+        return np.abs(((self.B[1] - self.A[1]) * (self.C[0] - self.A[0] ))) / 0.5
 
     ##############################################
     # Method Name: get_all_points()

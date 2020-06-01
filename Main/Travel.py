@@ -29,10 +29,6 @@ def traveling(voronoi_lst):
             set2 = set(voronoi)
 
             interPts = set1.intersection(set2)
-            print('------------------------------')
-            print(set1)
-            print('\n')
-            print(set2)
 
             for p in interPts:
 
@@ -45,11 +41,6 @@ def traveling(voronoi_lst):
 
 
             if( i == N-1 ):
-                print('------------------------------')
-                print(set1)
-                print('\n')
-                print(set2)
-                print('\n\n\n')
 
                 set2 = set(voronoi_lst[0][0])
 
