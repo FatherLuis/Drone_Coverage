@@ -24,6 +24,7 @@ class Draw():
         self.fig = plt.figure()
         # CREATE A SUBPLOT IN THE FIGURE 
         self.ax = self.fig.add_subplot(111)
+        #self.ax.set_facecolor('black')
         
     ##############################################
     # Method Name: boundary()

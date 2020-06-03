@@ -208,7 +208,7 @@ def tour(start,rad,voronoi_lst):
     tour = tf.tourFn(start, locsTmp, rad , mtx)
 
     if tour is not None:
-        [locsTmp, coor, tourDist] = tour
+        locsTmp, coor, tourDist = tour
 
     ordered_voronoiLst = [voronoi_lst[i] for i in coor[:-1]]
 

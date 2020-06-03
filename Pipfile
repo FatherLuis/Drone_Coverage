@@ -12,6 +12,8 @@ shapely = "*"
 cvxpy = "*"
 numpy = "*"
 cvxopt = {path = "./Windows/cvxopt-1.2.4-cp37-cp37m-win32.whl"}
+panda = "*"
+pandas = "*"
 
 [requires]
 python_version = "3.7"
