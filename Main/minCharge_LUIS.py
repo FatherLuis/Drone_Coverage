@@ -154,15 +154,71 @@ def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad ,solMax
         
         bestVal,bestIx = min(distStat), np.argmin(distStat) #Choose best solution
         #iBest = bestIx[0];
-        csLocs = locs[:,tf.logicalFn(solMx[bestIx,:])] #select charging station locs. for best solution
+
+        
+
+        csLocs = locs[:, np.asarray(list(map(lambda x: bool(x), solMx[bestIx,:] ))) ] #select charging station locs. for best solution
+        
+
+
         startConjT = np.array(np.matrix(start).H)
         csLocs = np.append(startConjT,csLocs, axis = 1) #add starting point
+
+
+
 
 
         # print(csLocs)
         return csLocs
 
     return None
+
+
+def tour(start,rad,voronoi_lst):
+
+    csLocs = [x[1] for x in voronoi_lst]
+
+    n = len(csLocs)
+    mtx = np.zeros( (n,n) )
+
+    for i in range(n):
+
+        vor_set = set(voronoi_lst[i][0])
+
+        for j in range(n):
+
+            vor_set2 = set(voronoi_lst[j][0])
+
+            has_intersection = 1 if len(vor_set.intersection(vor_set2)) > 0 else 0
+
+            mtx[i][j] = has_intersection
+            mtx[j][i] = has_intersection
+
+        if( i > (n/2) ):
+            break
+
+    
+
+
+    
+    #Get tour information
+
+    locsTmp = np.array( [ [x[0] for x in csLocs ] , [y[1] for y in csLocs ]  ] )
+
+    tour = tf.tourFn(start, locsTmp, rad , mtx)
+
+    ordered_voronoiLst = None
+
+    if tour is not None:
+        locsTmp, coor, tourDist = tour
+
+        ordered_voronoiLst = [voronoi_lst[i] for i in coor[:-1]]
+
+    #print([x[1] for x in ordered_voronoiLst])
+
+    return ordered_voronoiLst
+
+
 
 
 if __name__ == '__main__':
@@ -203,10 +259,10 @@ if __name__ == '__main__':
     inclVec = inclVec > theta_g
     inclMx = np.reshape(inclVec, ng) # Matrix for inclusion in region (used in plotting)
 
-    #plt.pcolor(inclMx)
-    #plt.show()
+    plt.pcolor(inclMx)
+    plt.show()
 
-    CS = linear_program(inclVec,0,200,0,200,200,200,ns,1,rad,solMax,start)
+    CS = linear_program(inclMx,0,200,0,200,200,200,ns,1,rad,solMax,start)
 
     print(CS)
 

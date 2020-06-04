@@ -25,11 +25,12 @@ class Drone_Path():
     # Return Value: None
     # Date:  3/2/2020
     ##############################################
-    def __init__(self, triangle, drone):
+    def __init__(self, triangle, drone, entry_exit):
 
         self.triangle = triangle # SAVES THE ORIGINAL TRIANGLE IN WHICH THE ALGORITHM WILL THE FIND THE PATH TO
         self.drone = drone # SAVE THE DRONE
         self.curTriangle = triangle.copy() # CREATES A COPY OF THE TRIANGLE AND WILL BE EDITED THROUGHOUT THE CODE
+        self.entryExit = np.array(entry_exit)
 
     ##############################################
     # Method Name: segment_AB
@@ -281,6 +282,42 @@ class Drone_Path():
         return endAlg,(pi,pf)
 
 
+    def reserve_path(self,BC_switch):
+
+
+        for p in self.entryExit:
+
+            if( np.allclose(p,self.triangle.B)  ):
+
+
+                if not(BC_switch) :
+                    pA,pB = self.segment_AB(info = 'path')
+                    self.curTriangle.set_A(pA)
+                    self.curTriangle.set_B(pB)
+                else:
+
+                    pA,pC = self.segment_AC(info = 'path')
+                    self.curTriangle.set_A(pA)
+                    self.curTriangle.set_C(pC)
+
+
+
+            elif( np.allclose(p,self.triangle.C) ):
+
+                if (BC_switch) :
+                    pA,pB = self.segment_AB(info = 'path')
+                    self.curTriangle.set_A(pA)
+                    self.curTriangle.set_B(pB)
+                else:
+
+                    pA,pC = self.segment_AC(info = 'path')
+                    self.curTriangle.set_A(pA)
+                    self.curTriangle.set_C(pC)
+
+
+
+
+
     ##############################################
     # Method Name: algorithm()
     # Purpose: creates the path needed to cover a triangle, given the limitations of the drone
@@ -290,7 +327,7 @@ class Drone_Path():
     # Date:  3/2/2020
     #        3/27/2020: Redid Code for easier understanding and opmimal code
     ##############################################  
-    def algorithm(self):
+    def algorithm(self,BC_switch):
 
         req_dist_travel = 0
 
@@ -314,6 +351,14 @@ class Drone_Path():
         # LOOKING AT A FUTURE PATH
         start_end = [0,0]
         
+
+        ## 5/12/2020 Reserve Paths
+        self.reserve_path(BC_switch)
+
+
+
+
+        #########################
 
         # LOOP WILL CONTINUE UNTIL IT BREAKS BY:
         # PATH IS FOUND TO COVER TRIANGLE
@@ -548,8 +593,8 @@ class Drone_Path():
                 # IF I AM ON VERTEX A AND I CANNOT TRAVEL, THEN TERMINATE ALGORITHM
                 # REASON: THE ONLY TIME THE DRONE IS IN THIS POINT IS WHEN COMING FROM THE CHARGING STATION
                 if(start_end == [1,2]):
-                    #print('Cannot Complete Path')
-                    #print('req dist: ',req_dist_travel)
+                    print('Cannot Complete Path')
+                    print('req dist: ',req_dist_travel)
                     return []
                     #return None
 

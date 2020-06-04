@@ -498,15 +498,41 @@ class Field():
         if len(site) == 1:
             return [ [boundary, site[0]] ]
 
-        outer_region = [ [-1000,-1000] , [-1000,1000] , [1000,1000] , [1000,-1000]  ]
 
-        vor = Voronoi(site+outer_region)
-        regions, vertices = self.voronoi_finite_polygons_2d(vor)
+        ### Create a box to bound
+        
+        xVal = np.array([x[0] for x in site])
+        yVal = np.array([y[1] for y in site])
+        
+        xmin = np.min(xVal) - 50
+        xmax = np.max(xVal) + 50
+        ymin = np.min(yVal) - 50
+        ymax = np.max(yVal) + 50
+        
+        box = [ [xmin,ymin] , [xmin,ymax], [xmax,ymax] , [xmax,ymin] ] 
+        
+        
+        ###################################
 
 
+        vor = Voronoi(site + box)
+        
         voronois = []
-        for region in regions:
-            voronois.append(vertices[region])
+        
+        for i in vor.point_region:
+            
+            reg = np.array(vor.regions[i])
+            
+            if np.all(reg >= 0) and reg.size > 0:
+                voronois.append(vor.vertices[reg])
+                
+              
+                
+        #from scipy.spatial import voronoi_plot_2d
+        #import matplotlib.pyplot as plt
+        #fig = voronoi_plot_2d(vor)
+        #plt.show()
+        
 
         boundary_poly = Polygon(boundary)
 
@@ -514,10 +540,16 @@ class Field():
         for voronoi in voronois:
             voronoi_poly = Polygon(voronoi)
             result = boundary_poly.intersection(voronoi_poly)
-            result_lst = list(result.exterior.coords)
-            result_lst = result_lst[:-1]
-
-            voronoi_lst.append(result_lst)
+        
+            if result.is_empty:
+                
+                voronoi_lst.append(voronoi_poly)
+        
+            else:
+                result_lst = list(result.exterior.coords)
+                result_lst = result_lst[:-1]
+    
+                voronoi_lst.append(result_lst)
 
 
         

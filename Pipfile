@@ -6,12 +6,8 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
-matplotlib = "*"
-scipy = "*"
-shapely = "*"
-cvxpy = "*"
-numpy = "*"
-cvxopt = {path = "./Windows/cvxopt-1.2.4-cp37-cp37m-win32.whl"}
+numpy = {path = "./Windows/numpy-1.18.4+mkl-cp37-cp37m-win32.whl"}
+openpyxl = "*"
 
 [requires]
 python_version = "3.7"
