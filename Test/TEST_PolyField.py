@@ -49,17 +49,21 @@ for vononili_poly in vononili_polys:
     triangle_lst = field.create_triangle(poly = vononili_poly[0] , vertex = vononili_poly[1] ,)
 
     # LOOP THROUGH A LIST OF TRIANGLES, FIND PATH THAT COVERS THE AREA OF EACH
-    for triangle in triangle_lst:       
+
+    for triangle in triangle_lst:    
+
+    
 
         ### LINEAR TRANSFORMATIONS ###
         transform =  Transformation()
         trans_triangle, entryExit = transform.transform_triangle(triangle,entryExitLst[i])
 
-
         ### ALGORITHM ###
 
         DP = Drone_Path(trans_triangle , drone , entryExit)
-        path = DP.algorithm()
+        path = DP.algorithm(transform.BC_switch)
+
+        print('path N:',len(path))
         trans_path = transform.transform_path(path) # TRANSFORM PATH TO FIT ORIGINAL SHAPE
 
         # SET DRONE POSITION TO [0,0]
@@ -107,6 +111,7 @@ for vononili_poly in vononili_polys:
         
     i+= 1
 
+
 print(drone)
 
 
@@ -129,7 +134,7 @@ for path in path_lst:
     Canvas.path(path)
     pass
 
-Canvas.draw_sites_path(site_path)
+#Canvas.draw_sites_path(site_path)
 
 Canvas.draw_sites(sites)
 

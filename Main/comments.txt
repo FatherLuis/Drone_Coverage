@@ -1,0 +1,20 @@
+
+----------------------------------
+Date:6/3/2020
+Name: Luis
+
+* Decreased the code required to create the voronoi Regions
+    (hopefully error has been minimized)
+
+* A test.py file was created
+    - Create a panda dataframe that will store the information 
+      collected from the runs
+
+Bugs Note:
+* Drone Path Algorithm is duplicating paths.
+* Sometimes, optimal charging stations are not found, 
+  even when solution was found on other runs
+* Sometimes, a tour is not found,
+  even when tour was found on other runs
+
+----------------------------------

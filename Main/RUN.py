@@ -12,169 +12,183 @@ from Travel import traveling
 import numpy as np 
 
 
-#################### INITIALS ####################
-field = Field()
-Canvas = Draw()
+
+def run_program(drone_rad , drone_maxDist , max_CS_dist, shape):
+    #################### INITIALS ####################
+    field = Field()
+    Canvas = Draw()
 
 
-### INITIALIZE DRONE PROPERTIES ###
+    ### INITIALIZE DRONE PROPERTIES ###
 
-rad = 0.25
-mxDist = 50   # MUST BE ABLE TO REACH A VERTEX AND RETURN TO CHARGING STATION
-drone = Drone(radius=rad, max_distance = mxDist)
-
-
-
-#################### FIELD MATRIX ####################
-# CREATE A BINARY MATRIX THAT REPRESENTS A FIELD 
-
-field_boundary =  [  (0,0) , (0,60) , (60,60), (60,0) ]
-#field_boundary =  [  (0,0) , (10,20) , (15,40), (35,45),
-#                     (45,35) , (50,25) , (45,15), (25,5) ]
-
-step = 0.7
-
-matrix, xmin, xmax, ymin, ymax, nx, ny = field.create_matrix_field(poly = field_boundary ,step = step)
-
-
-#################### LOCATING CHARGING STATIONS ####################
-# USE LINEAR PROGRAMMING TO OPTIMIZE THE LOCATION OF THE CHARGING STATIONS IN A FIELD
-
-half_distance  = np.floor(drone.MAX_DISTANCE / 2.0 ) * 0.6
-numberStations = 50
-max_solutions = 5
-start_point = np.array([0, 0])
-
-CS = linear_program( binMatrix = matrix, xmin=xmin, xmax=xmax,ymin=ymin,ymax=ymax,nx = nx, ny = ny, step = step,
-                     ns = numberStations , rad = half_distance , solMax = max_solutions, start = start_point)
+    rad = drone_rad
+    mxDist = drone_maxDist  # MUST BE ABLE TO REACH A VERTEX AND RETURN TO CHARGING STATION
+    drone = Drone(radius=rad, max_distance = mxDist)
 
 
 
-#################### SPLIT POLYGONS INTO A LIST OF TRIANGLES ####################
-# EACH CHARGING STATION HAS A POLYGON FIELD, WHICH WILL BE SPLIT INTO TRIANGLES, 
-# WHERE THE CHARGING STATION IS A VERTEX AND THE BOUNDARIES ARE THE OTHER VERTICES
+    #################### FIELD MATRIX ####################
+    # CREATE A BINARY MATRIX THAT REPRESENTS A FIELD 
 
-sites = [ (x,y) for x,y in zip( CS[0][:], CS[1][:] ) ]
+    field_boundary =  shape
+    #field_boundary =  [  (0,0) , (10,20) , (15,40), (35,45),
+    #                     (45,35) , (50,25) , (45,15), (25,5) ]
 
-vononili_lst = field.create_voronoi_polygons(site=sites, boundary=field_boundary)
+    step = 0.5
 
-# ordered
-vononili_polys = tour(start_point,rad , vononili_lst)
-
-vertices , entryExitLst = traveling(vononili_polys)
+    matrix, xmin, xmax, ymin, ymax, nx, ny = field.create_matrix_field(poly = field_boundary ,step = step)
 
 
+    #################### LOCATING CHARGING STATIONS ####################
+    # USE LINEAR PROGRAMMING TO OPTIMIZE THE LOCATION OF THE CHARGING STATIONS IN A FIELD
 
-#################### FIND PATH FOR A GIVEN TRIANGLE ####################
+    half_distance  = max_CS_dist
+    numberStations = 50
+    max_solutions = 5
+    start_point = np.array([0, 0])
 
-path_lst = []
-site_path = []
-N = len(vononili_polys)
-i = 0
+    CS = linear_program( binMatrix = matrix, xmin=xmin, xmax=xmax,ymin=ymin,ymax=ymax,nx = nx, ny = ny, step = step,
+                        ns = numberStations , rad = half_distance , solMax = max_solutions, start = start_point)
 
-for vononili_poly in vononili_polys:
-    
-    # CREATE TRIANGLES FROM THE POLYGON, STORE AS LIST
-    triangle_lst = field.create_triangle(poly = vononili_poly[0] , vertex = vononili_poly[1] ,)
 
-    # LOOP THROUGH A LIST OF TRIANGLES, FIND PATH THAT COVERS THE AREA OF EACH
 
-    for triangle in triangle_lst:    
+    #################### SPLIT POLYGONS INTO A LIST OF TRIANGLES ####################
+    # EACH CHARGING STATION HAS A POLYGON FIELD, WHICH WILL BE SPLIT INTO TRIANGLES, 
+    # WHERE THE CHARGING STATION IS A VERTEX AND THE BOUNDARIES ARE THE OTHER VERTICES
+
+    sites = [ (x,y) for x,y in zip( CS[0][:], CS[1][:] ) ]
 
     
+    vononili_lst = field.create_voronoi_polygons(site=sites, boundary=field_boundary)
 
-        ### LINEAR TRANSFORMATIONS ###
-        transform =  Transformation()
-        trans_triangle, entryExit = transform.transform_triangle(triangle,entryExitLst[i])
+    # ordered
+    vononili_polys = tour(start_point,rad , vononili_lst)
 
-        ### ALGORITHM ###
+    vertices , entryExitLst = traveling(vononili_polys)
 
-        DP = Drone_Path(trans_triangle , drone , entryExit)
-        path = DP.algorithm(transform.BC_switch)
 
-        print('path N:',len(path))
-        trans_path = transform.transform_path(path) # TRANSFORM PATH TO FIT ORIGINAL SHAPE
 
-        # SET DRONE POSITION TO [0,0]
-        drone.curPoint = np.array([0,0])
-        # RESET CURMAX DISTANCE TO DRONE MAX DISTANCE
-        drone.curMax_distance = drone.MAX_DISTANCE
+    #################### FIND PATH FOR A GIVEN TRIANGLE ####################
 
-        # ADD PATH TAKEN TO THE PATH LIST 
-        path_lst.append(trans_path)
+    path_lst = []
+    site_path = []
+    N = len(vononili_polys)
+    i = 0
 
-        #Canvas.boundary(triangle.get_all_points())
+    for vononili_poly in vononili_polys:
+        
+        # CREATE TRIANGLES FROM THE POLYGON, STORE AS LIST
+        triangle_lst = field.create_triangle(poly = vononili_poly[0] , vertex = vononili_poly[1] ,)
 
-    # HERE, WE WILL ADD THE DISTANCE FROM ONE CHARGING STATION TO ANOTHER
+        # LOOP THROUGH A LIST OF TRIANGLES, FIND PATH THAT COVERS THE AREA OF EACH
 
-    
-    if( i < N-1):
+        for triangle in triangle_lst:    
 
-        if(i == 0):
-            a = vononili_polys[i][1]
+        
+
+            ### LINEAR TRANSFORMATIONS ###
+            transform =  Transformation()
+            trans_triangle, entryExit = transform.transform_triangle(triangle,entryExitLst[i])
+
+            ### ALGORITHM ###
+
+            DP = Drone_Path(trans_triangle , drone , entryExit)
+            path = DP.algorithm(transform.BC_switch)
+
+            print('path N:',len(path))
+            trans_path = transform.transform_path(path) # TRANSFORM PATH TO FIT ORIGINAL SHAPE
+
+            # SET DRONE POSITION TO [0,0]
+            drone.curPoint = np.array([0,0])
+            # RESET CURMAX DISTANCE TO DRONE MAX DISTANCE
+            drone.curMax_distance = drone.MAX_DISTANCE
+
+            # ADD PATH TAKEN TO THE PATH LIST 
+            path_lst.append(trans_path)
+
+            #Canvas.boundary(triangle.get_all_points())
+
+        # HERE, WE WILL ADD THE DISTANCE FROM ONE CHARGING STATION TO ANOTHER
+
+        
+        if( i < N-1):
+
+            if(i == 0):
+                a = vononili_polys[i][1]
+            else:
+                a = site_path[-1]
+                
+            b = vertices[i]
+            c = vononili_polys[i+1][1]
+
+
+            site_path.append(b)
+            site_path.append(c)
+
+            drone.total_distance_travel += dist(a,b) + dist(b,c)
+
         else:
+
             a = site_path[-1]
+            b = vertices[i]
+            c = vononili_polys[0][1]
+
+            site_path.append(b)
+            site_path.append(c)
+
+            drone.total_distance_travel += dist(a,b) + dist(b,c)        
+
+
             
-        b = vertices[i]
-        c = vononili_polys[i+1][1]
+            
+        i+= 1
 
-
-        site_path.append(b)
-        site_path.append(c)
-
-        drone.total_distance_travel += dist(a,b) + dist(b,c)
-
-    else:
-
-        a = site_path[-1]
-        b = vertices[i]
-        c = vononili_polys[0][1]
-
-        site_path.append(b)
-        site_path.append(c)
-
-        drone.total_distance_travel += dist(a,b) + dist(b,c)        
-
-
-        
-        
-    i+= 1
-
-print('------------- Drone -------------')
-print(drone)
-print('---------------------------------')
+    print('------------- Drone -------------')
+    print(drone)
+    print('---------------------------------')
 
 
 
-#################### DRAW PLOTS ####################
-# DRAW THE PATH THE DRONE TOOK
-# LOOP THROUGH ALL THE PATHS AND DRAW THEM ON THE PLOT
+    #################### DRAW PLOTS ####################
+    # DRAW THE PATH THE DRONE TOOK
+    # LOOP THROUGH ALL THE PATHS AND DRAW THEM ON THE PLOT
 
-# DRAW SHAPE BOUNDARY
-Canvas.boundary(field_boundary)
+    # DRAW SHAPE BOUNDARY
+    Canvas.boundary(field_boundary)
 
-for vononili_poly in vononili_polys:
-    #print(vononili_poly)
-    Canvas.boundary(vononili_poly[0],col='b')
-    pass
-
-
-for path in path_lst:
-    # DRAW PATH 
-    Canvas.path(path)
-    pass
-
-Canvas.draw_sites(sites)
+    for vononili_poly in vononili_polys:
+        #print(vononili_poly)
+        #Canvas.boundary(vononili_poly[0],col='b')
+        pass
 
 
+    for path in path_lst:
+        # DRAW PATH 
+        Canvas.path(path)
+        pass
 
-#Canvas.draw_sites_path(site_path)
-
-# SHOW PLOT
-Canvas.show_plot()
+    Canvas.draw_sites(sites)
 
 
 
+    #Canvas.draw_sites_path(site_path)
+
+    # SHOW PLOT
+    Canvas.show_plot()
 
 
 
+if __name__ == '__main__':
+
+    # IF THIS FILE IS RUN, THE FOLLOWING CODE WILL BE READ
+
+    rad = 0.4
+    mxDist = 50
+
+    field_boundary =  [  (0,0) , (0,60) , (60,60), (60,0) ]
+    #field_boundary =  [  (0,0) , (10,20) , (15,40), (35,45),
+    #                     (45,35) , (50,25) , (45,15), (25,5) ]
+    
+    half_distance  = np.floor(mxDist / 2.0 ) * 0.6
+
+    run_program(rad, mxDist, half_distance, field_boundary)
