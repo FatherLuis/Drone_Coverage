@@ -501,13 +501,13 @@ class Field():
 
         ### Create a box to bound
         
-        xVal = np.array([x[0] for x in site])
-        yVal = np.array([y[1] for y in site])
+        xVal = np.array([x[0] for x in boundary])
+        yVal = np.array([y[1] for y in boundary])
         
-        xmin = np.min(xVal) - 50
-        xmax = np.max(xVal) + 50
-        ymin = np.min(yVal) - 50
-        ymax = np.max(yVal) + 50
+        xmin = np.min(xVal) - 100
+        xmax = np.max(xVal) + 100
+        ymin = np.min(yVal) - 100
+        ymax = np.max(yVal) + 100
         
         box = [ [xmin,ymin] , [xmin,ymax], [xmax,ymax] , [xmax,ymin] ] 
         

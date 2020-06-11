@@ -18,3 +18,32 @@ Bugs Note:
   even when tour was found on other runs
 
 ----------------------------------
+Date:6/3/2020
+Name: Luis
+
+* There is no validation for when the drone is returning back to the CS
+  Some type of validation is needed, otherwise, the prime vertices will go out of the
+  original triangle.
+----------------------------------
+Date:6/4/2020
+Name: Luis
+
+
+* The validation used in the code does not work for all cases, and the prime vertices are leaving the triangle.
+* There's alot of repeated code in the algorithm and makes it hard to find a solution. Considering rewriting the algorithm to increase readiability
+    and find a solution to solve the special cases.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -13,10 +13,10 @@ import numpy as np
 
 
 
-def run_program(drone_rad , drone_maxDist , max_CS_dist, shape):
+def run_program(drone_rad , drone_maxDist , max_CS_dist, shape ,candidate, showPlot = True):
     #################### INITIALS ####################
     field = Field()
-    Canvas = Draw()
+    #Canvas = Draw()
 
 
     ### INITIALIZE DRONE PROPERTIES ###
@@ -43,8 +43,8 @@ def run_program(drone_rad , drone_maxDist , max_CS_dist, shape):
     # USE LINEAR PROGRAMMING TO OPTIMIZE THE LOCATION OF THE CHARGING STATIONS IN A FIELD
 
     half_distance  = max_CS_dist
-    numberStations = 50
-    max_solutions = 5
+    numberStations = candidate
+    max_solutions = 10
     start_point = np.array([0, 0])
 
     CS = linear_program( binMatrix = matrix, xmin=xmin, xmax=xmax,ymin=ymin,ymax=ymax,nx = nx, ny = ny, step = step,
@@ -92,10 +92,10 @@ def run_program(drone_rad , drone_maxDist , max_CS_dist, shape):
 
             ### ALGORITHM ###
 
-            DP = Drone_Path(trans_triangle , drone , entryExit)
-            path = DP.algorithm(transform.BC_switch)
+            DP = Drone_Path2(trans_triangle , drone , entryExit)
+            drone,path = DP.algorithm(transform.BC_switch)
 
-            print('path N:',len(path))
+            #print('path N:',len(path))
             trans_path = transform.transform_path(path) # TRANSFORM PATH TO FIT ORIGINAL SHAPE
 
             # SET DRONE POSITION TO [0,0]
@@ -148,33 +148,41 @@ def run_program(drone_rad , drone_maxDist , max_CS_dist, shape):
     print('---------------------------------')
 
 
+    if showPlot :
+        Canvas = Draw()
+        #################### DRAW PLOTS ####################
+        # DRAW THE PATH THE DRONE TOOK
+        # LOOP THROUGH ALL THE PATHS AND DRAW THEM ON THE PLOT
+    
+        # DRAW SHAPE BOUNDARY
+        Canvas.boundary(field_boundary)
+    
+        for vononili_poly in vononili_polys:
+            #print(vononili_poly)
+            #Canvas.boundary(vononili_poly[0],col='b')
+            pass
+    
+    
+        for path in path_lst:
+            # DRAW PATH 
+            Canvas.path(path)
+            pass
+    
+        Canvas.draw_sites(sites)
+    
+    
+    
+        #Canvas.draw_sites_path(site_path)
+    
+        # SHOW PLOT
+        Canvas.show_plot()
 
-    #################### DRAW PLOTS ####################
-    # DRAW THE PATH THE DRONE TOOK
-    # LOOP THROUGH ALL THE PATHS AND DRAW THEM ON THE PLOT
 
-    # DRAW SHAPE BOUNDARY
-    Canvas.boundary(field_boundary)
+    #   'num_Charging_Station','Total_Time','Total_Distance_Travel'
 
-    for vononili_poly in vononili_polys:
-        #print(vononili_poly)
-        #Canvas.boundary(vononili_poly[0],col='b')
-        pass
+    return len(sites), 0 , drone.total_distance_travel
 
 
-    for path in path_lst:
-        # DRAW PATH 
-        Canvas.path(path)
-        pass
-
-    Canvas.draw_sites(sites)
-
-
-
-    #Canvas.draw_sites_path(site_path)
-
-    # SHOW PLOT
-    Canvas.show_plot()
 
 
 
@@ -182,8 +190,8 @@ if __name__ == '__main__':
 
     # IF THIS FILE IS RUN, THE FOLLOWING CODE WILL BE READ
 
-    rad = 0.4
-    mxDist = 50
+    rad = 0.7
+    mxDist = 140
 
     field_boundary =  [  (0,0) , (0,60) , (60,60), (60,0) ]
     #field_boundary =  [  (0,0) , (10,20) , (15,40), (35,45),
@@ -191,4 +199,4 @@ if __name__ == '__main__':
     
     half_distance  = np.floor(mxDist / 2.0 ) * 0.6
 
-    run_program(rad, mxDist, half_distance, field_boundary)
+    run_program(rad, mxDist, half_distance, field_boundary, 25)

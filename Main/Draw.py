@@ -140,7 +140,7 @@ class Draw():
     def show_plot(self):
 
         # MAKES SURE THE PLOT IS EVEN AND WONT HAVE DISTURSIONS
-        plt.gca().set_aspect('equal',adjustable='box')
+        #plt.gca().set_aspect('equal',adjustable='box')
         # SHOW PLOTS
         plt.show()
 

@@ -37,6 +37,19 @@ class Drone:
     def calculate_area(self):
         return np.pi * self.radius ** 2
 
+
+
+    def copy(self):
+        
+        drone = Drone(self.radius,self.MAX_DISTANCE)
+        drone.total_distance_travel = self.total_distance_travel
+        drone.curMax_distance = self.curMax_distance
+        drone.curPoint = self.curPoint
+        
+        return drone
+        
+        
+
     ##############################################
     # Method Name: __str__()
     # Purpose: overrides the default print() method used on this object. When print() is used, information of the drone info is printed

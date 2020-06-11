@@ -196,6 +196,49 @@ class Drone_Path():
 
 
 
+
+
+
+    def calculate_path(self,loc, pNi = None, pNf = None):
+        
+        
+        
+        
+        if loc == 'AB':
+            
+            self.segment_AB(reverse = False , info = "path")
+            
+        elif loc == 'BA':
+            
+            self.segment_AB(reverse = True , info = "path")
+            
+        elif loc == 'AC':
+            
+            self.segment_AC(reverse = False , info = "path")
+            
+        elif loc == 'CA':
+            
+            self.segment_AC(reverse = True , info = "path")
+            
+        elif loc == 'BC':
+            
+            self.segment_BC(reverse = False , info = "path")
+            
+        elif loc == 'CB':
+            
+            self.segment_BC(reverse = True , info = "path")
+            
+        else:
+            print('Bad Loc Argument')
+        
+        
+        
+        
+        
+        
+        
+        
+
     ##############################################
     # Method Name: isCoverable()
     # Purpose: checks if a circle can cover a triangle
@@ -244,7 +287,7 @@ class Drone_Path():
     #               TUPLE: (next path point, final path point)
     # Date:  3/27/2020
     ############################################## 
-    def validate(self,pi,pf,pNi,pNf,Vi,Vf,sidei,sidef):
+    def validate(self,pi,pf,pNi,pNf,Vi,Vf,sidei,sidef,NN):
 
         # IF THERE ARE ANY CHANGES, THEN THE ALGORITHM WILL END AND A PATH
         endAlg = False 
@@ -255,6 +298,7 @@ class Drone_Path():
         # CHECK IF THE DIST(NEXTPATHPOINT, VEXTEX) < SIDE OF TRIANGLE 
         # AND SIDE OF TRIANGLE IS LESS THAN THE DIST(PRIME VERTEX , VERTEX)
             endAlg = True 
+            
         elif( sidei < dist(pi,Vi) ):
             # THE NEXT NEW PATH IS NOT WITHIN THE TRIANGLE,
             # SO ALGORITHM MUST END
@@ -270,12 +314,27 @@ class Drone_Path():
         # CHECK IF THE DIST(FINALPATHPOINT, VEXTEX) < SIDE OF TRIANGLE 
         # AND SIDE OF TRIANGLE IS LESS THAN THE DIST(PRIME VERTEX , VERTEX)
             endAlg = True 
+            
         elif( sidef < dist(pf,Vf) ):
             # THE NEXT NEW PATH IS NOT WITHIN THE TRIANGLE,
             # SO ALGORITHM MUST END
             # SET THE FINAL PATH TO THE VERTEX OF THE TRAINGLE           
             endAlg = True 
             pf = Vf
+            
+            
+#        if not(endAlg):   
+#            if NN == 'AB':
+#                #endAlg = not(self.curTriangle.A[0] == self.curTriangle.B[0])  or  self.curTriangle.A[1] > self.curTriangle.B[1]
+#                endAlg = not(self.curTriangle.A[0] == self.curTriangle.B[0])  or  self.curTriangle.A[1] > self.curTriangle.B[1]
+#            elif NN == 'BC':
+#                endAlg = self.curTriangle.B[0] > self.curTriangle.C[0]  or  self.curTriangle.B[1] < self.curTriangle.C[1]           
+#            elif NN == 'AC':
+#                endAlg = self.curTriangle.A[0] > self.curTriangle.C[0]  or self.curTriangle.A[1] > self.curTriangle.C[1]              
+            
+            
+            
+            
             
         # RETURN A FLAG TO LET THEM KNOW IF THESE POINTS ARE VALID OR NOT
         # IF IT IS NOT VALID, THEN THE NEXT SET OF POINTS WILL BE USED TO END THE ALGORITHM
@@ -327,7 +386,7 @@ class Drone_Path():
     # Date:  3/2/2020
     #        3/27/2020: Redid Code for easier understanding and opmimal code
     ##############################################  
-    def algorithm(self,BC_switch):
+    def algorithm(self,BC_switch = False):
 
         req_dist_travel = 0
 
@@ -432,7 +491,7 @@ class Drone_Path():
                 # GET A PRIME AND B PRIME POINTS
                 pNi,pNf = self.segment_AB(reverse = False , info = "prime")
 
-                valid = self.validate(pi,pf,pNi,pNf,self.curTriangle.A,self.curTriangle.B,self.curTriangle.AC_dist,self.curTriangle.BC_dist)
+                valid = self.validate(pi,pf,pNi,pNf,self.curTriangle.A,self.curTriangle.B,self.curTriangle.AC_dist,self.curTriangle.BC_dist,'AB')
 
             # IF DRONE IS IN B, THEN WE MUST GO FROM B TO C
             elif(start_end == [2,3]):
@@ -442,7 +501,7 @@ class Drone_Path():
                 # GET B PRIME AND C PRIME POINTS
                 pNi,pNf = self.segment_BC(reverse = False , info = "prime")        
 
-                valid = self.validate(pi,pf,pNi,pNf,self.curTriangle.B,self.curTriangle.C,self.curTriangle.AB_dist,self.curTriangle.AC_dist) 
+                valid = self.validate(pi,pf,pNi,pNf,self.curTriangle.B,self.curTriangle.C,self.curTriangle.AB_dist,self.curTriangle.AC_dist,'BC') 
 
             # IF DRONE IS IN B, THEN WE MUST GO FROM C TO B
             elif(start_end == [3,2]):
@@ -452,7 +511,8 @@ class Drone_Path():
                 # GET C PRIME AND B PRIME POINTS
                 pNi,pNf = self.segment_BC(reverse = True , info = "prime")     
 
-                valid = self.validate(pi,pf,pNi,pNf,self.curTriangle.C,self.curTriangle.B,self.curTriangle.AC_dist,self.curTriangle.AB_dist) 
+                valid = self.validate(pi,pf,pNi,pNf,self.curTriangle.C,self.curTriangle.B,self.curTriangle.AC_dist,self.curTriangle.AB_dist,'AC') 
+
 
             # CHECK FOR SPECIAL CASE TRIANGLE
             # END ALGORITHM HERE
@@ -548,11 +608,13 @@ class Drone_Path():
                 # DISTANCE FORM THE DRONE PRIME INITIAL POINT TO THE DRONE PRIME FINAL POINT
                 dist_ppi_ppf = dist(ppi,ppf)
                 # DISTANCE FROM THE DRONE PRIME FINAL POINT TO THE CHARGING STATION
-                dist_ppf_CS = dist( pNf, CS)
+                dist_ppf_CS = dist( ppf, CS)
 
 
                 # CALCULATE THE REQUIRE DISTANCE TO TRAVEL 
                 req_dist_travel = dist_curPos_pi + dist_pi_pf + dist_pf_ppi + dist_ppi_ppf + dist_ppf_CS
+
+
 
             # CHECK IF ITS POSSIBLE TO TRAVEL
             if(self.drone.curMax_distance >= req_dist_travel):
@@ -605,19 +667,63 @@ class Drone_Path():
                     
                     pNi,pNf = self.segment_AB(reverse = True , info = "prime")         
 
-                    self.curTriangle.set_A(pNf) 
-                    self.curTriangle.set_B(pNi)
+                    
+                    valid = self.validate(pi,pf,pNi,pNf,self.curTriangle.B,self.curTriangle.C,self.curTriangle.AB_dist,self.curTriangle.AC_dist,'AC') 
                 
                 # IF DRONE IS IN C, THEN WE MUST GO FROM C TO A
                 elif(start_end == [3,2]):
                     # GET THE DRONE INITIAL PATH POINT AND DRONE FINAL PATH POINT
                     pi,pf = self.segment_AC(reverse = True , info = "path")
                     # GET C PRIME AND B PRIME POINTS
-                    pNi,pNf = self.segment_AC(reverse = True , info = "prime")     
+                    pNi,pNf = self.segment_AC(reverse = True , info = "prime") 
+                    
+                    valid = self.validate(pi,pf,pNi,pNf,self.curTriangle.C,self.curTriangle.B,self.curTriangle.AC_dist,self.curTriangle.AB_dist,'AC') 
+                    
+
+                # Go Home
+                if(valid[0]):
+        
+                    pi,pf = valid[1]
+        
+        
+                    # DISTANCE FROM CURRENT POSITION TO DRONE INITIAL PATH POINT
+                    dist_curPos_pi = dist(self.drone.curPoint , pi)
+                    # DISTANCE FROM DRONE INITIAL PATH POINT TO DRONE FINAL PATH POINT
+                    dist_pi_pf = dist(pi,pf)  
+                    # DISTANCE FROM DRONE FINAL PATH POINT TO CHARGING STATION
+                    dist_pf_CS = dist(pf,CS)
+        
+                    req_dist_travel = dist_curPos_pi + dist_pi_pf + dist_pf_CS
+        
+                    # CHECK IF ITS POSSIBLE TO MAKE THE TRIP TO THE CENTROID, THEN TO THE CHARGING STATION
+                    if(self.drone.curMax_distance >= req_dist_travel):    
+        
+                        # ADD DRONE INITIAL PATH POINT TO THE PATH LIST
+                        path.append(pi)
+                        # ADD DRONE FINAL PATH POINT TO THE PATH LIST
+                        path.append(pf)
+                        # ADD CHARGING STATION TO THE PATH LIST
+                        path.append(CS)
+                        # ADD THE DISTANCE TRAVELED TO THE DRONE TOTAL_DISTANCE_TRAVEL
+                        self.drone.total_distance_travel += dist_curPos_pi + dist_pi_pf + dist_pf_CS
+                        break
+
+
+                # IF DRONE IS IN B, THEN WE MUST GO FROM B TO A
+                if(start_end == [2,3]):       
+
+                    self.curTriangle.set_A(pNf) 
+                    self.curTriangle.set_B(pNi)
+                
+                # IF DRONE IS IN C, THEN WE MUST GO FROM C TO A
+                elif(start_end == [3,2]):    
 
                     # SET THE NEW VERTICES FROM THE PRIMES
                     self.curTriangle.set_A(pNf) 
-                    self.curTriangle.set_C(pNi)                      
+                    self.curTriangle.set_C(pNi) 
+
+
+
 
                 # DISTANCE FROM CURRENT POSITION TO DRONE INITIAL PATH POINT
                 dist_curPos_pi = dist(self.drone.curPoint , pi)
@@ -652,17 +758,45 @@ class Drone_Path():
 
 
 
+if __name__ == '__main__':
+
+    from Draw import Draw
+    
+    canvas = Draw()
+
+    rad = 2
+    mxDist = 200 # MUST BE ABLE TO REACH A VERTEX AND RETURN TO CHARGING STATION
+    drone = Drone(radius=rad, max_distance = mxDist)    
+    
+    
+    entryExit = [ (0,100) , (10,50)]
+    
+    
+    pp = [ (0,0), (0,100) , (10,50) ]   
+    
+    triangle = Triangle(*pp)
+    
+    #print('\n',triangle)
+    
+    DP = Drone_Path(triangle , drone , entryExit)
+    
+    path = DP.algorithm()
+
+    print(drone)
+
+    canvas.boundary(pp)
+
+#    for p in path:
+#        print(p)
+#    print('')
 
 
 
+    canvas.path(path)
 
-
-
-
-
-
-
-
+    canvas.show_plot()
+    
+    code = True
 
 
 
