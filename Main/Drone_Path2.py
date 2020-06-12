@@ -15,7 +15,7 @@ from Utilities import dist
 #            redid the algorithm for a much cleaner loop and optimal
 #            deleted two methods and replaced it with isCoverable()
 ########################################
-class Drone_Path2():
+class Drone_Path():
 
     ##############################################
     # Method Name: __init__
@@ -31,6 +31,9 @@ class Drone_Path2():
         self.curTriangle = triangle.copy()
         self.drone = drone
         self.entryExit = np.array(entry_exit)
+        
+        self.locStart = []
+        self.farNode = ''
 
     ##############################################
     # Method Name: segment_AB
@@ -200,37 +203,38 @@ class Drone_Path2():
 
 
 
-    def reserve_path(self,BC_switch):
+    def reserve_path(self):
 
 
         for p in self.entryExit:
+            
+            if self.farNode == 'BC':
 
-            if( np.allclose(p,self.triangle.B)  ):
+                if( np.allclose(p,self.triangle.B)  ):
+    
+                        pNi, pNf = self.segment_AB(info = 'path')
+                        self.elim_edges('AB', pNi, pNf)
+    
+    
+                elif( np.allclose(p,self.triangle.C) ):
+    
+                        pNi, pNf = self.segment_AC(info = 'path')
+                        self.elim_edges('AC', pNi, pNf)
+                        
+            else:
+                
+                if( np.allclose(p,self.triangle.A)  ):
+    
+                        pNi, pNf = self.segment_AC(info = 'path',reverse = True)
+                        self.elim_edges('CA', pNi, pNf)
+    
+                        
+                elif( np.allclose(p,self.triangle.B)  ):
+    
+                        pNi, pNf = self.segment_BC(info = 'path', reverse = True)
+                        self.elim_edges('CB', pNi, pNf)
+             
 
-
-                if not(BC_switch) :
-                    pA,pB = self.segment_AB(info = 'path')
-                    self.curTriangle.set_A(pA)
-                    self.curTriangle.set_B(pB)
-                else:
-
-                    pA,pC = self.segment_AC(info = 'path')
-                    self.curTriangle.set_A(pA)
-                    self.curTriangle.set_C(pC)
-
-
-
-            elif( np.allclose(p,self.triangle.C) ):
-
-                if (BC_switch) :
-                    pA,pB = self.segment_AB(info = 'path')
-                    self.curTriangle.set_A(pA)
-                    self.curTriangle.set_B(pB)
-                else:
-
-                    pA,pC = self.segment_AC(info = 'path')
-                    self.curTriangle.set_A(pA)
-                    self.curTriangle.set_C(pC)
 
 
 
@@ -278,7 +282,51 @@ class Drone_Path2():
         
         
         
+    def elim_edges(self,loct, pNi, pNf):
         
+        loc = None
+        
+        if( loct == 'AB' ):
+            
+            loc = 'BC' if self.farNode == 'BC' else 'BA'
+            
+            self.curTriangle.set_A(pNi)
+            self.curTriangle.set_B(pNf)
+            
+            
+        elif( loct == 'BA' ):
+            
+            loc = 'AB'  
+            self.curTriangle.set_B(pNi)
+            self.curTriangle.set_A(pNf)            
+            
+        elif( loct == 'AC' ):
+            
+            loc = 'CB' if self.farNode == 'BC' else 'CB'   
+            self.curTriangle.set_A(pNi)
+            self.curTriangle.set_C(pNf)            
+            
+        elif( loct == 'CA' ):
+            
+            loc = self.locStart if self.farNode == 'BC' else 'AB'  
+            self.curTriangle.set_C(pNi)
+            self.curTriangle.set_A(pNf)            
+            
+        elif( loct == 'BC' ):
+            
+            loc = 'CB' if self.farNode == 'BC' else self.locStart  
+            self.curTriangle.set_B(pNi)
+            self.curTriangle.set_C(pNf)            
+            
+        elif( loct == 'CB' ):
+            
+            loc = 'BC' if self.farNode == 'BC' else 'BA'        
+            self.curTriangle.set_C(pNi)
+            self.curTriangle.set_B(pNf)        
+        else:
+            print('elim_edges: Something is wrong')
+            
+        return loc
         
         
         
@@ -310,7 +358,7 @@ class Drone_Path2():
         C = self.curTriangle.C     
         
         endAlg = False
-    
+     
         if loc == 'AB':
             
 
@@ -474,26 +522,53 @@ class Drone_Path2():
     # Date:  3/2/2020
     #        3/27/2020: Redid Code for easier understanding and opmimal code
     ##############################################  
-    def algorithm(self,BC_switch = False):
+    def algorithm(self,chargingStation):
 
-        loc = 'AB'
+        loc = None
 
         # CS: CHARGING STATION
-        CS = self.triangle.A
+        CS = None
+        
+        
+        if chargingStation == 'A':
+            
+            CS = self.triangle.A
+            
+            loc = 'AB' if(self.triangle.AB_dist > self.triangle.AC_dist) else 'AC'
+            
+            self.locStart = loc
+            self.farNode = 'BC'
+            
+        elif chargingStation == 'C':        
+        
+            CS = self.triangle.C
+            loc = 'CB' if(self.triangle.BC_dist > self.triangle.AC_dist) else 'CA'
+            
+            self.locStart = loc
+            self.farNode = 'AB'
+            
+        else:
+            print('Wrong CS Char')
+        
+        
         self.drone.curPoint = CS
         
         # Store paths
         path = [self.drone.curPoint] 
         
-        ## 5/12/2020 Reserve Paths
-        self.reserve_path(BC_switch)
         
-  
+        
+        ## 5/12/2020 Reserve Paths
+        self.reserve_path()
+        
+        
+        total_distance_travel_copy = self.drone.total_distance_travel
 
         path1 = self.next_step(CS,loc)
         
         
         if(len(path1)==0 or path1 is None):
+            self.drone.total_distance_travel = total_distance_travel_copy
             return self.drone,[]
         
         return self.drone,path+path1 
@@ -536,10 +611,13 @@ class Drone_Path2():
         if all(self.drone.curPoint == CS):
             # charge
             self.drone.curMax_distance = self.drone.MAX_DISTANCE
+            
+            loc = self.locStart
                     
         
         # Check if I can cover 
         if(self.isCoverable()):
+            
             # self.drone INITIAL PATH POINT
             pi = self.curTriangle.centroid
             # self.drone FINAL PATH POINT
@@ -612,31 +690,8 @@ class Drone_Path2():
                     
     
     
-                    if loc == 'AB':
+                    loc = self.elim_edges(loc, pNi, pNf)      
                     
-                        self.curTriangle.set_A(pNi)
-                        self.curTriangle.set_B(pNf)
-                        
-                        loc = 'BC'                  
-                    elif loc == 'AC':
-                        
-                        self.curTriangle.set_A(pNi)
-                        self.curTriangle.set_C(pNf)
-                        
-                        loc = 'CB'                       
-                        
-                    elif loc == 'BC':
-                        
-                        self.curTriangle.set_B(pNi)
-                        self.curTriangle.set_C(pNf)
-                        
-                        loc = 'CB'
-                        
-                    elif loc == 'CB':
-                        self.curTriangle.set_C(pNi)
-                        self.curTriangle.set_B(pNf)   
-                        
-                        loc = 'BC'          
                 
                     drone_copy = self.drone.copy()          
                     curTriangle_copy = self.curTriangle.copy()
@@ -647,29 +702,29 @@ class Drone_Path2():
                     if len(futurePath) == 0 :
                         self.drone = drone_copy
                         self.curTriangle = curTriangle_copy
-                else:
-                    
-                    dist_pf_CS = dist(pf,CS)
+            else:
+                
+                dist_pf_CS = dist(pf,CS)
  
-                    req_dist_travel = dist_curPos_pi + dist_pi_pf + dist_pf_CS
+                req_dist_travel = dist_curPos_pi + dist_pi_pf + dist_pf_CS
+                
+                
+                if(self.drone.curMax_distance >= req_dist_travel):    
+        
+                    # ADD self.drone INITIAL PATH POINT TO THE PATH LIST
+                    path.append(pi)
+                    # ADD self.drone FINAL PATH POINT TO THE PATH LIST
+                    path.append(pf)           
+                    # ADD CHARGING STATION POINT TO THE PATH LIST
+                    path.append(CS)
+                    # ADD THE DISTANCE TRAVELED TO THE self.drone TOTAL_DISTANCE_TRAVEL
+                    self.drone.total_distance_travel += req_dist_travel
                     
-                    
-                    if(self.drone.curMax_distance >= req_dist_travel):    
-            
-                        # ADD self.drone INITIAL PATH POINT TO THE PATH LIST
-                        path.append(pi)
-                        # ADD self.drone FINAL PATH POINT TO THE PATH LIST
-                        path.append(pf)           
-                        # ADD CHARGING STATION POINT TO THE PATH LIST
-                        path.append(CS)
-                        # ADD THE DISTANCE TRAVELED TO THE self.drone TOTAL_DISTANCE_TRAVEL
-                        self.drone.total_distance_travel += req_dist_travel
-                        
-                    
-                        self.drone.curMax_distance -= req_dist_travel
-                        self.drone.curPoint = pf   
-                        
-                        return path
+                
+                    self.drone.curMax_distance -= req_dist_travel
+                    self.drone.curPoint = CS  
+                    #print('Alg End Reach OOB')
+                    return path
 
         except:
             print('Return None')
@@ -682,15 +737,19 @@ class Drone_Path2():
         if len(futurePath) == 0 :
      
             # Try to Return to CS
+            
+            
+            loc = loc[0]+'A' if self.farNode == 'BC' else loc[0]+'C'
+            
 
             try:         
                 
-                pi,pf = self.calculate_path(loct = loc[0]+'A', req = 'path')
+                pi,pf = self.calculate_path(loct = loc, req = 'path')
             
-                pNi, pNf = self.calculate_path(loct = loc[0]+'A', req = 'prime')   
+                pNi, pNf = self.calculate_path(loct = loc, req = 'prime')   
                 
                 
-                endAlg, pi, pf = self.inBound(loc[0]+'A',pi,pNi,pf,pNf)
+                endAlg, pi, pf = self.inBound(loc,pi,pNi,pf,pNf)
                 
                 
                 # DISTANCE FROM CURRENT POSITION TO self.drone INITIAL PATH POINT
@@ -701,8 +760,32 @@ class Drone_Path2():
                 dist_pf_CS = dist(pf,CS)
 
                 req_dist_travel = dist_curPos_pi + dist_pi_pf + dist_pf_CS
+                
+    
 
-
+                if(self.drone.curMax_distance >= req_dist_travel):    
+                    
+                    
+                        
+                    loc = self.elim_edges(loc, pNi, pNf)
+    
+                    
+                    # ADD self.drone INITIAL PATH POINT TO THE PATH LIST
+                    path.append(pi)
+                    # ADD self.drone FINAL PATH POINT TO THE PATH LIST
+                    path.append(pf)                
+                    # ADD CHARGING STATION POINT TO THE PATH LIST
+                    path.append(CS)
+                    # ADD THE DISTANCE TRAVELED TO THE self.drone TOTAL_DISTANCE_TRAVEL
+                    self.drone.total_distance_travel += req_dist_travel
+                    self.drone.curMax_distance -= req_dist_travel
+                    self.drone.curPoint = CS 
+                    
+                    if not(endAlg):
+                        return path+self.next_step(CS,loc)
+                    else:
+                        print('Alg End: No more Travels')
+                        return path
 
                
             except:
@@ -711,41 +794,7 @@ class Drone_Path2():
 
 
 
-            if(self.drone.curMax_distance >= req_dist_travel):    
-                
-                
-                    
-                if loc[0]+'A' == 'BA':
-                    
-                    self.curTriangle.set_B(pNi)
-                    self.curTriangle.set_A(pNf)
-                    
-                    loc = 'AB'
-                    
-                    
-                elif loc[0]+'A' == 'CA':
-                    
-                    self.curTriangle.set_C(pNi)
-                    self.curTriangle.set_A(pNf)
-                    
-                    loc = 'AB'
 
-                
-                # ADD self.drone INITIAL PATH POINT TO THE PATH LIST
-                path.append(pi)
-                # ADD self.drone FINAL PATH POINT TO THE PATH LIST
-                path.append(pf)                
-                # ADD CHARGING STATION POINT TO THE PATH LIST
-                path.append(CS)
-                # ADD THE DISTANCE TRAVELED TO THE self.drone TOTAL_DISTANCE_TRAVEL
-                self.drone.total_distance_travel += req_dist_travel
-                self.drone.curMax_distance -= req_dist_travel
-                self.drone.curPoint = CS 
-                
-                if not(endAlg):
-                    return path+self.next_step(CS,loc)
-                else:
-                    return path
                 
             else:
                 #print("Can't Go Back Home")
@@ -766,24 +815,27 @@ if __name__ == '__main__':
     
     canvas = Draw()
 
-    rad = 2
-    mxDist = 200 # MUST BE ABLE TO REACH A VERTEX AND RETURN TO CHARGING STATION 250
+    rad = 0.5
+    mxDist = 1000 # MUST BE ABLE TO REACH A VERTEX AND RETURN TO CHARGING STATION 250
     drone = Drone(radius=rad, max_distance = mxDist)    
     
     
-    entryExit = [ (0,100) , (10,50)]
+    entryExit = [ (0,0) , (0,30)]
     
+    pp= [ (0., 0.),(0, 30),(10, 7)]
     
-    pp = [ (0,0), (0,100) , (10,50) ]   
+    #pp = [ (0,0), (0,33) , (30,20) ]   
     
     triangle = Triangle(*pp)
     
     #print('\n',triangle)
     
-    DP = Drone_Path2(triangle,drone,entryExit)  
+    curCS = 'C'
+    
+    DP = Drone_Path(triangle,drone,entryExit)  
     
    
-    drone, path = DP.algorithm()
+    drone, path = DP.algorithm(curCS)
 
     print(drone)
     

@@ -29,11 +29,11 @@ Max_Dist_Vertex = [2.5,3.5]
 ### SHAPE ###
 # Square
 square1 = [ (0,0) , (0,7) , (7,7) , (7,0)]
-#square2 = [ (0,0) , (0,200) , (200,200) , (200,0)]
+square2 = [ (0,0) , (0,200) , (200,200) , (200,0)]
 #poly3 = [ (0,0) , (0,200) , (100,300) , (200,200) , (200,0)]
 
-fields = [square1]
-candidates = [25]
+fields = [square1,square2]
+candidates = [25,25]
 
 for cand,field in zip(candidates,fields):
     
@@ -48,7 +48,7 @@ for cand,field in zip(candidates,fields):
                         max_CS_dist = mdv, 
                         shape = square1,
                         candidate = cand,
-                        showPlot = False)
+                        showPlot = True)
             
             # lst is 'num_Charging_Station','Total_Time','Total_Distance_Travel'
             

@@ -1,7 +1,9 @@
+# -*- coding: utf-8 -*-
+
 
 from Triangle import Triangle
 from Drone import Drone
-from Drone_Path2 import Drone_Path
+from DronePath2 import Drone_Path2
 from Draw import Draw
 from Transformation2 import Transformation 
 from Field import Field
@@ -16,60 +18,31 @@ import numpy as np
 def run_program(drone_rad , drone_maxDist , max_CS_dist, shape ,candidate, showPlot = True):
     #################### INITIALS ####################
     field = Field()
-    #Canvas = Draw()
-
-
+    
+    
     ### INITIALIZE DRONE PROPERTIES ###
-
-    rad = drone_rad
-    mxDist = drone_maxDist  # MUST BE ABLE TO REACH A VERTEX AND RETURN TO CHARGING STATION
+    
+    rad = 0.25
+    mxDist = 25 # MUST BE ABLE TO REACH A VERTEX AND RETURN TO CHARGING STATION
     drone = Drone(radius=rad, max_distance = mxDist)
-
-
-
-    #################### FIELD MATRIX ####################
-    # CREATE A BINARY MATRIX THAT REPRESENTS A FIELD 
-
-    field_boundary =  shape
-    #field_boundary =  [  (0,0) , (10,20) , (15,40), (35,45),
-    #                     (45,35) , (50,25) , (45,15), (25,5) ]
-
-    step = 0.025
-
-    matrix, xmin, xmax, ymin, ymax, nx, ny = field.create_matrix_field(poly = field_boundary ,step = step)
-
-
-    #################### LOCATING CHARGING STATIONS ####################
-    # USE LINEAR PROGRAMMING TO OPTIMIZE THE LOCATION OF THE CHARGING STATIONS IN A FIELD
-
-    half_distance  = max_CS_dist
-    numberStations = candidate
-    max_solutions = 10
-    start_point = np.array([0, 0])
-
-    CS = linear_program( binMatrix = matrix, xmin=xmin, xmax=xmax,ymin=ymin,ymax=ymax,nx = nx, ny = ny, step = step,
-                        ns = numberStations , rad = half_distance , solMax = max_solutions, start = start_point)
-
-
-
+    
     #################### SPLIT POLYGONS INTO A LIST OF TRIANGLES ####################
     # EACH CHARGING STATION HAS A POLYGON FIELD, WHICH WILL BE SPLIT INTO TRIANGLES, 
     # WHERE THE CHARGING STATION IS A VERTEX AND THE BOUNDARIES ARE THE OTHER VERTICES
-
-    sites = [ (x,y) for x,y in zip( CS[0][:], CS[1][:] ) ]
-
+    
+    field_boundary = [ (0,0) , (0,20) , (20,20), (20,0)  ]
+    
+    sites = [( 0,0 ) , ( 5,15 ) , ( 15,15 ) ,  ( 15,5 ) ]
     
     vononili_lst = field.create_voronoi_polygons(site=sites, boundary=field_boundary)
-
+    
     # ordered
-    vononili_polys = tour(start_point,rad , vononili_lst)
-
+    vononili_polys = tour(sites[0],rad , vononili_lst)
+    
     vertices , entryExitLst = traveling(vononili_polys)
-
-
-
+    
     #################### FIND PATH FOR A GIVEN TRIANGLE ####################
-
+    
     path_lst = []
     site_path = []
     N = len(vononili_polys)
@@ -93,7 +66,9 @@ def run_program(drone_rad , drone_maxDist , max_CS_dist, shape ,candidate, showP
 
             ### ALGORITHM ###
 
-            DP = Drone_Path(trans_triangle , drone , entryExit)
+            DP = Drone_Path2(trans_triangle , drone , entryExit)
+            
+            print('CS:  ',curCS)
             
             drone,path = DP.algorithm(curCS)
 
@@ -112,38 +87,6 @@ def run_program(drone_rad , drone_maxDist , max_CS_dist, shape ,candidate, showP
 
         # HERE, WE WILL ADD THE DISTANCE FROM ONE CHARGING STATION TO ANOTHER
 
-        
-        if( i < N-1):
-
-            if(i == 0):
-                a = vononili_polys[i][1]
-            else:
-                a = site_path[-1]
-                
-            b = vertices[i]
-            c = vononili_polys[i+1][1]
-
-
-            site_path.append(b)
-            site_path.append(c)
-
-            drone.total_distance_travel += dist(a,b) + dist(b,c)
-
-        else:
-
-            a = site_path[-1]
-            b = vertices[i]
-            c = vononili_polys[0][1]
-
-            site_path.append(b)
-            site_path.append(c)
-
-            drone.total_distance_travel += dist(a,b) + dist(b,c)        
-
-
-            
-            
-        i+= 1
 
     print('------------- Drone -------------')
     print(drone)
@@ -192,8 +135,8 @@ if __name__ == '__main__':
 
     # IF THIS FILE IS RUN, THE FOLLOWING CODE WILL BE READ
 
-    rad = 0.2
-    mxDist = 145
+    rad = 0.7
+    mxDist = 20
 
     field_boundary =  [  (0,0) , (0,60) , (60,60), (60,0) ]
     #field_boundary =  [  (0,0) , (10,20) , (15,40), (35,45),
