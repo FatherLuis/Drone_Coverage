@@ -184,7 +184,7 @@ if __name__ == '__main__':
     
     entryExit = [ (0,33) , (31,-8)]
     
-    pp = [ (0,0), (0,33) , (31,-8) ]   
+    pp = [ (1.40345,1.07196), (0,1.43495) , (0,2.98667) ]   
     
     triangle = Triangle(*pp)
     
@@ -206,8 +206,6 @@ if __name__ == '__main__':
     
     print('')
     print(transform.transform_path(transTriangle.get_all_points()))
-
-
 
 
 

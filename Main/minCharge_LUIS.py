@@ -92,18 +92,19 @@ def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad ,solMax
         if status == 'optimal':
             fmin = dotu(c, solNew)
         else:
+            raise('Solution Not Found')
             print("Solution not found!\n")
             break
         
-        print("****************************************************************************")
-        print("solNew:", solNew.trans())
-        print("fmin:", fmin)
+        #print("****************************************************************************")
+        #print("solNew:", solNew.trans())
+        #print("fmin:", fmin)
         
-        print("****************************************************************************")        
-        print("STATUS:", status,)
-        print("****************************************************************************")
+        #print("****************************************************************************")        
+        #print("STATUS:", status,)
+        #print("****************************************************************************")
         
-        print("\n///////////////////////////////////////////////////////////////////////////", "\n")  
+        #print("\n///////////////////////////////////////////////////////////////////////////", "\n")  
 
 
         if round(fmin) > round(fmin0):
@@ -115,15 +116,15 @@ def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad ,solMax
             rows = int(len(solMx) / len(solNew))
             solMx = solMx.reshape(rows, ns)
             
-    print("****************************************************************************")        
-    print("solMx:", solMx)
-    print("****************************************************************************")
+    #print("****************************************************************************")        
+    #print("solMx:", solMx)
+    #print("****************************************************************************")
 
 
     if solMx.ndim > 1:
         ncs = sum(solMx[0, range(ns)])#sum(solMx(1,1:ns))
 
-        ['Minimum number of charging stations: ', str(ncs)]
+        #['Minimum number of charging stations: ', str(ncs)]
         if ncs == 0:
             print('No solutions') #error. RAISE EXCEPTION HERE??
         
@@ -194,13 +195,12 @@ def tour(start,rad,voronoi_lst):
             mtx[i][j] = has_intersection
             mtx[j][i] = has_intersection
 
-        if( i > (n/2) ):
+        if( i > (n/2)+2 ):
             break
 
     
 
 
-    
     #Get tour information
 
     locsTmp = np.array( [ [x[0] for x in csLocs ] , [y[1] for y in csLocs ]  ] )
@@ -211,12 +211,44 @@ def tour(start,rad,voronoi_lst):
 
     if tour is not None:
         locsTmp, coor, tourDist = tour
+        
+        
+        coor_unique = []
+        for c in coor:
+            if not(c in coor_unique):
+                coor_unique.append(c)
+        
+        ordered_voronoiLst = [voronoi_lst[i] for i in coor_unique]
 
-        ordered_voronoiLst = [voronoi_lst[i] for i in coor[:-1]]
 
-    #print([x[1] for x in ordered_voronoiLst])
+    N = len(coor)
 
-    return ordered_voronoiLst
+
+    start_end_lst = [ []  for i in range(len(coor_unique))]
+
+    vertices = []
+    for i in range(N-1):
+
+        set1 = set(voronoi_lst[coor[i]][0])
+        set2 = set(voronoi_lst[coor[i+1]][0])
+
+        interPts = set1.intersection(set2)
+
+        for p in interPts:
+
+            if not(p in start_end_lst[coor[i]]) and not(p in start_end_lst[coor[i+1]]):
+                start_end_lst[coor[i]].append(p)
+                start_end_lst[coor[i+1]].append(p)
+                
+                vertices.append(voronoi_lst[coor[i]][1])
+                vertices.append(p)
+                break
+          
+    vertices.append(voronoi_lst[coor[0]][1])     
+            
+    start_end_lst = [start_end_lst[i] for i in coor_unique]
+
+    return ordered_voronoiLst,start_end_lst,vertices
 
 
 

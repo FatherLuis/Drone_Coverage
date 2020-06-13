@@ -205,37 +205,36 @@ class Drone_Path():
 
     def reserve_path(self):
 
-
-        for p in self.entryExit:
+        if not(len(self.entryExit) == 0) :
             
-            if self.farNode == 'BC':
-
-                if( np.allclose(p,self.triangle.B)  ):
-    
-                        pNi, pNf = self.segment_AB(info = 'path')
-                        self.elim_edges('AB', pNi, pNf)
-    
-    
-                elif( np.allclose(p,self.triangle.C) ):
-    
-                        pNi, pNf = self.segment_AC(info = 'path')
-                        self.elim_edges('AC', pNi, pNf)
-                        
-            else:
+            for p in self.entryExit:
                 
-                if( np.allclose(p,self.triangle.A)  ):
+                if self.farNode == 'BC':
     
-                        pNi, pNf = self.segment_AC(info = 'path',reverse = True)
-                        self.elim_edges('CA', pNi, pNf)
-    
-                        
-                elif( np.allclose(p,self.triangle.B)  ):
-    
-                        pNi, pNf = self.segment_BC(info = 'path', reverse = True)
-                        self.elim_edges('CB', pNi, pNf)
-             
-
-
+                    if( np.allclose(p,self.triangle.B)  ):
+        
+                            pNi, pNf = self.segment_AB(info = 'path')
+                            self.elim_edges('AB', pNi, pNf)
+        
+        
+                    elif( np.allclose(p,self.triangle.C) ):
+        
+                            pNi, pNf = self.segment_AC(info = 'path')
+                            self.elim_edges('AC', pNi, pNf)
+                            
+                else:
+                    
+                    if( np.allclose(p,self.triangle.A)  ):
+        
+                            pNi, pNf = self.segment_AC(info = 'path',reverse = True)
+                            self.elim_edges('CA', pNi, pNf)
+        
+                            
+                    elif( np.allclose(p,self.triangle.B)  ):
+        
+                            pNi, pNf = self.segment_BC(info = 'path', reverse = True)
+                            self.elim_edges('CB', pNi, pNf)
+           
 
 
 
@@ -812,29 +811,32 @@ class Drone_Path():
 if __name__ == '__main__':
 
     from Draw import Draw
+    from Transformation2 import Transformation
     
     canvas = Draw()
 
-    rad = 0.5
-    mxDist = 1000 # MUST BE ABLE TO REACH A VERTEX AND RETURN TO CHARGING STATION 250
+    rad = 0.025
+    mxDist = 8 # MUST BE ABLE TO REACH A VERTEX AND RETURN TO CHARGING STATION 250
     drone = Drone(radius=rad, max_distance = mxDist)    
     
     
-    entryExit = [ (0,0) , (0,30)]
+    entryExit = [ (0,1.43495) , (0,2.98667)]
     
-    pp= [ (0., 0.),(0, 30),(10, 7)]
+    pp=  [ (1.40345,1.07196), (0,1.43495) , (0,2.98667) ]  
     
     #pp = [ (0,0), (0,33) , (30,20) ]   
     
     triangle = Triangle(*pp)
     
+    transform = Transformation()
+    
+    curCS,transTriangle, primeEntryExit= transform.transform_triangle(triangle,entryExit)
     #print('\n',triangle)
     
-    curCS = 'C'
+    #curCS = 'C'
     
-    DP = Drone_Path(triangle,drone,entryExit)  
-    
-   
+    DP = Drone_Path(transTriangle,drone,primeEntryExit)  
+
     drone, path = DP.algorithm(curCS)
 
     print(drone)
@@ -843,7 +845,7 @@ if __name__ == '__main__':
 
     canvas.boundary(pp)
 
-    canvas.path(path)
+    canvas.path(transform.transform_path(path))
 
     canvas.show_plot()
 

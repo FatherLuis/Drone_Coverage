@@ -3,6 +3,7 @@ import numpy as np
 from shapely import geometry 
 from datetime import datetime
 from RUN import run_program
+import traceback
 
 
 # Create a Panda Dataframe 
@@ -17,7 +18,7 @@ df = pd.DataFrame(columns = column_names)
 #### Drone Properties
 #
 drone_max_range = 8
-drone_cov_rad = 0.05
+drone_cov_rad = 0.025
 
 
 ### Charging Station Properties
@@ -29,11 +30,11 @@ Max_Dist_Vertex = [2.5,3.5]
 ### SHAPE ###
 # Square
 square1 = [ (0,0) , (0,7) , (7,7) , (7,0)]
-square2 = [ (0,0) , (0,200) , (200,200) , (200,0)]
+square2 = [ (0,0) , (0,10) , (10,10) , (10,0)]
 #poly3 = [ (0,0) , (0,200) , (100,300) , (200,200) , (200,0)]
 
-fields = [square1,square2]
-candidates = [25,25]
+fields = [square1, square2]
+candidates = [25, 25]
 
 for cand,field in zip(candidates,fields):
     
@@ -43,12 +44,16 @@ for cand,field in zip(candidates,fields):
     for mdv in  Max_Dist_Vertex:
         
         try:
+            
+            
+            
+            
             lst = run_program(drone_rad = drone_cov_rad , 
                         drone_maxDist = drone_max_range , 
                         max_CS_dist = mdv, 
                         shape = square1,
                         candidate = cand,
-                        showPlot = True)
+                        showPlot = False)
             
             # lst is 'num_Charging_Station','Total_Time','Total_Distance_Travel'
             
@@ -66,7 +71,8 @@ for cand,field in zip(candidates,fields):
         
 
         except:
-            print('\n','No Bueno','\n')
+            print(traceback.format_exc())
+
 
 
 now = datetime.now() # current date and time

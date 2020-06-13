@@ -47,7 +47,8 @@ def finalPath(start, pathArr, arr):
         afterIdx = np.append(path[loc:-1][::-1], start[0][0]) #reverse element after index
         res = np.append(start[1][0], path[: (loc + 1)][::-1])
         result = np.append(res, afterIdx)
-        print("result: ", result)
+        
+        #print("result: ", result)
         
         if idxArray.size > 1:
             idxArr = idxArray[: -1]
@@ -122,8 +123,8 @@ def tourFn(startP, locsTmp, rad, adjMatrix):
     #Create link matrix with acceptable distances
     # compute all distances
 
-    print(np.ones((ncs,1)))
-    print(locsTmp[0, range(ncs)])
+    #print(np.ones((ncs,1)))
+    #print(locsTmp[0, range(ncs)])
 
 
     xTmp = np.ones((ncs,1))*locsTmp[0, range(ncs)] # Create x matrix
@@ -136,11 +137,11 @@ def tourFn(startP, locsTmp, rad, adjMatrix):
     # Check whether any singletons that are connected to only 1 site
     # Store singletons (nodes with only one way to get there)
     singLvec = (np.sum(dMxTmp>0,0) == 1)  #Stations that can only be reached by 1
-    print("singLvec: ", singLvec, "\n")
+    #print("singLvec: ", singLvec, "\n")
     singLmx = locsTmp[:, singLvec] #x,y locations of singletons
-    print("\nsingLmx: ", singLmx, "\n")
+    #print("\nsingLmx: ", singLmx, "\n")
     nonSingLMx = locsTmp[:, np.logical_not(singLvec)] #x,y locations of non-singletons
-    print("\nnonSingLMx: \n", nonSingLMx, "\n")
+    #print("\nnonSingLMx: \n", nonSingLMx, "\n")
     dMxSingleTmp = np.array([[0]])
     
     if sum(singLvec >= 1):
@@ -185,7 +186,8 @@ def tourFn(startP, locsTmp, rad, adjMatrix):
             fmin = dotu(cVec, xNew)
         
         if status != 'optimal': # If no solution is found
-            print("Solution not found!\n\n")
+            #print("Solution not found!\n\n")
+            raise('No Tour Found')
             fmin = 1E100 # Mark this as impossible
             flag = 1 # Exit
         
@@ -200,7 +202,7 @@ def tourFn(startP, locsTmp, rad, adjMatrix):
             flag = 1
             path = [thisNode]
             
-            print("\nEdgeSoln: \n", edgeSoln, "\n")
+            #print("\nEdgeSoln: \n", edgeSoln, "\n")
             for jj in range(ncsTmp-1):
                 tmp = np.where(edgeSoln == thisNode)  # Find current node in list of edges
                 edgeIx = tmp[1][0]
@@ -228,16 +230,16 @@ def tourFn(startP, locsTmp, rad, adjMatrix):
         #edgeMx = edgeTmp[rows,logicalFn(xNew)] # Edges from which cycle is drawn
         tourDist = fmin + 2*sum(sum(dMxSingleTmp)) # Distance for solution
         
-        print("\nsingLmx: \n", singLmx)
-        print("dMxSingleTmp: ", dMxSingleTmp)
+        #print("\nsingLmx: \n", singLmx)
+        #print("dMxSingleTmp: ", dMxSingleTmp)
         
         
         
         fPath = finalPath(starting, path, dMxSingleTmp)#
         
-        print("****************************************************************************\n")
-        print("xNew:\n", xNew) #xNew.trans()
-        print("****************************************************************************\n")
+        #print("****************************************************************************\n")
+        #print("xNew:\n", xNew) #xNew.trans()
+        #print("****************************************************************************\n")
         
         return locsTmp, fPath, tourDist
     
