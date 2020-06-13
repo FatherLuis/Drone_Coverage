@@ -430,10 +430,10 @@ class Field():
         diffx = xmax - xmin
         diffy = ymax - ymin
 
-        xmin -= 2*diffx
-        xmax += 2*diffx 
-        ymin -= 2*diffy  
-        ymax += 2*diffy          
+        xmin -= 5*diffx
+        xmax += 5*diffx 
+        ymin -= 5*diffy  
+        ymax += 5*diffy          
         
         
         

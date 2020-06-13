@@ -1,30 +1,37 @@
 import pandas as pd
 import numpy as np
+from Drone import Drone
 from shapely import geometry 
 from datetime import datetime
 from RUN import run_program
+from ChargingPad import ChargingPad
 import traceback
 
 
 # Create a Panda Dataframe 
 
-column_names = ['N_Gon','Shape_Area','CS_MaxRadius','num_Charging_Station',
+column_names = ['N_Gon','Shape_Area','CS_Radius','num_Candidates','num_Charging_Station',
                 'Total_Time','Total_Distance_Travel']
 
 
 df = pd.DataFrame(columns = column_names)
 
 
-#### Drone Properties
-#
-drone_max_range = 8
-drone_cov_rad = 0.025
+ ### INITIALIZE DRONE PROPERTIES ###
 
+rad = 0.025
+mxDist = 8
+velocity = 25
+ 
+
+# Initialize Charging Pad
+volt = 25
+cPad = ChargingPad(volt)
 
 ### Charging Station Properties
 
 # Max Charging Station distance
-Max_Dist_Vertex = [2.5,3.5]
+CS_radius = [2.5,3.5]
 
 
 ### SHAPE ###
@@ -36,43 +43,57 @@ square2 = [ (0,0) , (0,10) , (10,10) , (10,0)]
 fields = [square1, square2]
 candidates = [25, 25]
 
-for cand,field in zip(candidates,fields):
+for i in range(20):
+    for cand,field in zip(candidates,fields):
     
-    curShape = geometry.Polygon(field)
-    
-    
-    for mdv in  Max_Dist_Vertex:
         
-        try:
+        drone = Drone(radius=rad, max_distance = mxDist, velocity = velocity)  
+        curShape = geometry.Polygon(field)
+        
+        
+        for mdv in CS_radius:
             
-            
-            
-            
-            lst = run_program(drone_rad = drone_cov_rad , 
-                        drone_maxDist = drone_max_range , 
-                        max_CS_dist = mdv, 
-                        shape = square1,
-                        candidate = cand,
-                        showPlot = False)
-            
-            # lst is 'num_Charging_Station','Total_Time','Total_Distance_Travel'
-            
-            
+            try:
+                
+                
+                
+                
+                lst = run_program( drone = drone,
+                                  cPad = cPad,
+                                  CS_radius = mdv, 
+                                  shape = field,
+                                  candidate = cand,
+                                  showPlot = False)
+                
+                # lst is ['num_Charging_Station','Total_Time','Total_Distance_Travel']
+                
+        
+                df = df.append({'N_Gon': len(field),
+                                'Shape_Area':curShape.area,
+                                'CS_Radius': mdv,
+                                'num_Candidates':cand,
+                                'num_Charging_Station':lst[0],
+                                'Total_Time': lst[1],
+                                'Total_Distance_Travel': lst[2]},
+                              ignore_index = True)
+    
             
     
-            df = df.append({'N_Gon': len(field),
-                            'Shape_Area':curShape.area,
-                            'CS_MaxRadius': mdv,
-                            'num_Charging_Station':lst[0],
-                            'Total_Time': lst[1],
-                            'Total_Distance_Travel': lst[2]},
-                          ignore_index = True)
-
-        
-
-        except:
-            print(traceback.format_exc())
-
+            except:
+    
+                df = df.append({'N_Gon': len(field),
+                                'Shape_Area':curShape.area,
+                                'CS_Radius': mdv,
+                                'num_Candidates':cand,
+                                'num_Charging_Station':0,
+                                'Total_Time': 0,
+                                'Total_Distance_Travel': 0},
+                              ignore_index = True)
+    
+    
+                  
+                print(traceback.format_exc())
+    
 
 
 now = datetime.now() # current date and time

@@ -17,10 +17,15 @@ class Drone:
     # Return Value: None
     # Date:  3/2/2020
     ##############################################
-    def __init__(self,radius=1, max_distance = 10000):
+    def __init__(self,radius=1, max_distance = 10000, velocity = 1):
         self.radius= radius
         self.MAX_DISTANCE = max_distance
+        self.velocity = velocity
+        
+        
         self.total_distance_travel = 0
+        self.total_time = 0
+        
 
         self.curMax_distance = max_distance 
         self.curPoint = np.array( (0,0) )
@@ -41,8 +46,11 @@ class Drone:
 
     def copy(self):
         
-        drone = Drone(self.radius,self.MAX_DISTANCE)
+        drone = Drone(self.radius,self.MAX_DISTANCE , self.velocity )
+        
         drone.total_distance_travel = self.total_distance_travel
+        drone.total_time = self.total_time
+        
         drone.curMax_distance = self.curMax_distance
         drone.curPoint = self.curPoint
         
@@ -62,8 +70,9 @@ class Drone:
         str_DR = "Drone Radius: {}".format(self.radius)
         str_MD = "Max Distance to Travel: {}".format(self.MAX_DISTANCE)
         str_TDT = "Total Distance Travel: {}".format(self.total_distance_travel)
+        str_TT = "Total Time: {}".format(self.total_time)
 
-        return "{}\n{}\n{}\n".format(str_DR,str_MD,str_TDT) 
+        return "{}\n{}\n{}\n{}\n".format(str_DR,str_MD,str_TDT,str_TT) 
 
 
 

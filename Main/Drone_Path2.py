@@ -3,7 +3,7 @@ from Drone import Drone
 import numpy as np 
 from Utilities import dist
 
-
+from ChargingPad import ChargingPad
 
 ########################################
 # Class name: self.drone_Path()
@@ -25,11 +25,12 @@ class Drone_Path():
     # Return Value: None
     # Date:  3/2/2020
     ##############################################
-    def __init__(self,triangle,drone,entry_exit):
+    def __init__(self,triangle,drone,cPad , entry_exit):
 
         self.triangle = triangle # SAVES THE ORIGINAL TRIANGLE IN WHICH THE ALGORITHM WILL THE FIND THE PATH TO
         self.curTriangle = triangle.copy()
         self.drone = drone
+        self.cPad = cPad
         self.entryExit = np.array(entry_exit)
         
         self.locStart = []
@@ -561,13 +562,13 @@ class Drone_Path():
         self.reserve_path()
         
         
-        total_distance_travel_copy = self.drone.total_distance_travel
+        drone_copy = self.drone
 
         path1 = self.next_step(CS,loc)
         
         
         if(len(path1)==0 or path1 is None):
-            self.drone.total_distance_travel = total_distance_travel_copy
+            self.drone = drone_copy
             return self.drone,[]
         
         return self.drone,path+path1 
@@ -609,7 +610,9 @@ class Drone_Path():
             
         if all(self.drone.curPoint == CS):
             # charge
-            self.drone.curMax_distance = self.drone.MAX_DISTANCE
+            #self.drone.curMax_distance = self.drone.MAX_DISTANCE
+            self.cPad.charge_drone(self.drone)
+            self.drone.curPoint = CS
             
             loc = self.locStart
                     
@@ -647,6 +650,7 @@ class Drone_Path():
                 # ADD CHARGING STATION POINT TO THE PATH LIST
         
                 self.drone.total_distance_travel += req_dist_travel
+                self.cPad.charge_drone(self.drone)
                 self.drone.curPoint = CS
                 return path
 
@@ -702,6 +706,7 @@ class Drone_Path():
                         self.drone = drone_copy
                         self.curTriangle = curTriangle_copy
             else:
+                #Algorithm Ends
                 
                 dist_pf_CS = dist(pf,CS)
  
@@ -721,6 +726,7 @@ class Drone_Path():
                     
                 
                     self.drone.curMax_distance -= req_dist_travel
+                    self.cPad.charge_drone(self.drone)
                     self.drone.curPoint = CS  
                     #print('Alg End Reach OOB')
                     return path
@@ -778,12 +784,16 @@ class Drone_Path():
                     # ADD THE DISTANCE TRAVELED TO THE self.drone TOTAL_DISTANCE_TRAVEL
                     self.drone.total_distance_travel += req_dist_travel
                     self.drone.curMax_distance -= req_dist_travel
+                    
+                    
+                    
                     self.drone.curPoint = CS 
                     
                     if not(endAlg):
                         return path+self.next_step(CS,loc)
                     else:
-                        print('Alg End: No more Travels')
+                        self.cPad.charge_drone(self.drone)
+                        #print('Alg End: No more Travels')
                         return path
 
                
@@ -815,14 +825,16 @@ if __name__ == '__main__':
     
     canvas = Draw()
 
-    rad = 0.025
-    mxDist = 8 # MUST BE ABLE TO REACH A VERTEX AND RETURN TO CHARGING STATION 250
-    drone = Drone(radius=rad, max_distance = mxDist)    
+
+    drone = Drone(radius= 0.025, max_distance = 8, velocity = 25)    
     
+    # Initialize Charging Pad
+    volt = 25
+    cPad = ChargingPad(volt)    
     
     entryExit = [ (0,1.43495) , (0,2.98667)]
     
-    pp=  [ (1.40345,1.07196), (0,1.43495) , (0,2.98667) ]  
+    pp=  [ (2,4), (4,4) , (3,6) ]  
     
     #pp = [ (0,0), (0,33) , (30,20) ]   
     
@@ -835,7 +847,7 @@ if __name__ == '__main__':
     
     #curCS = 'C'
     
-    DP = Drone_Path(transTriangle,drone,primeEntryExit)  
+    DP = Drone_Path(transTriangle,drone,cPad,primeEntryExit)  
 
     drone, path = DP.algorithm(curCS)
 
