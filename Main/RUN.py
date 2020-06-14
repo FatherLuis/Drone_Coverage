@@ -200,14 +200,14 @@ if __name__ == '__main__':
         
 
     
-        field_boundary =  [ (0,0) , (0,7) , (3.5,10)  , (7,6.9) , (7,0)]
+        field_boundary =  [ (0,0) , (0,7) , (7,7) , (7,0)]
         #field_boundary =  [  (0,0) , (10,20) , (15,40), (35,45),
         #                     (45,35) , (50,25) , (45,15), (25,5) ]
         
-        CS_radius = 2.5
+        CS_radius = 3.5
         
     
-        lst = run_program(drone, cPad, CS_radius , field_boundary, 25)
+        lst = run_program(drone, cPad, CS_radius , field_boundary, 25 )
         
         #print('')
         #print('nCS:',lst[0])

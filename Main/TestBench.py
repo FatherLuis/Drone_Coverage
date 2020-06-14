@@ -31,19 +31,21 @@ cPad = ChargingPad(volt)
 ### Charging Station Properties
 
 # Max Charging Station distance
-CS_radius = [2.5,3.5]
+CS_radius = [2.5] #,3.5]
 
 
 ### SHAPE ###
 # Square
 square1 = [ (0,0) , (0,7) , (7,7) , (7,0)]
-square2 = [ (0,0) , (0,10) , (10,10) , (10,0)]
+#square2 = [ (0,0) , (0,10) , (10,10) , (10,0)]
 #poly3 = [ (0,0) , (0,200) , (100,300) , (200,200) , (200,0)]
 
-fields = [square1, square2]
-candidates = [25, 25]
+fields = [square1]
+candidates = [25]
 
-for i in range(20):
+
+n_trials = 50
+for i in range(n_trials):
     for cand,field in zip(candidates,fields):
     
         
@@ -54,10 +56,7 @@ for i in range(20):
         for mdv in CS_radius:
             
             try:
-                
-                
-                
-                
+
                 lst = run_program( drone = drone,
                                   cPad = cPad,
                                   CS_radius = mdv, 

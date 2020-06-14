@@ -23,7 +23,7 @@ from Field import Field
 # Note: Changed code from Script to Method
 # (4/23/2020): Changed minCharge from Version 2 to Version 4
 # (4/23/2020): Changed TourFn from Version 2 to Version 4
-
+# https://www.zanaducloud.com/2AE3C865-980D-4561-BBA2-BC42028DAD54
 # print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n")
 
 # ns: Number of possible charging station positions
@@ -62,17 +62,18 @@ def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad ,solMax
     ######################################
 
     # Locate charging stations
-    locs0 = r.sample(range(0, np_tot),ns) #k Random locations for charging station
+    locs0 = r.sample(range(np_tot),ns) #k Random locations for charging station
     locs = np.array([xVec[locs0], yVec[locs0]])
 
     #Define incidence matrix: coverage area for drone is circular with radius rad
     d2Mx = np.zeros((np_tot,ns))
+    
     # Distance matrix and locations not covered by start
     for ii in range(ns):
         d2Mx[:, ii] =  (locs[0,ii]- xVec)**2 + (locs[1,ii]- yVec)**2 
         
     iMx = d2Mx < rad2# Coverage matrix
-    iVec = ((xVec - start[0])**2 + (yVec-start[1])**2) > rad2; # points covered by start
+    iVec = ((xVec - start[0])**2 + (yVec-start[1])**2) > rad2; # points not covered by start
     iMx = iMx[tf.logicalFn(iVec), :] #Logical coverage matrix for remaining points
     d2Mx = d2Mx[tf.logicalFn(iVec), :] #Distance matrix for remaining points
     np_eff = iMx.shape[0]#size(iMx,1) #Number of points not covered by start
@@ -85,94 +86,86 @@ def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad ,solMax
 
     fmin = 1E20 # Set large value as initial solution 
 
+    
+    #Minimize cx
+    # subject to Ax <= b
+    # A negative is placed in the parameter because ilp only does Ax >= B
+    
     for ii in range(solMax):
+        
         fmin0 = 1*fmin
-        status, solNew = ilp(c, -1*iMx, -1*b, matrix(1., (0,len(c))),matrix(1., (0,1)), I = set(), B = set(range(len(c))))
+        status, solNew = ilp(c, 
+                             -1*iMx, 
+                             -1*b, 
+                             matrix(1., (0,ns) ),
+                             matrix(1., (0,1) ), 
+                             I = set(), 
+                             B = set(range(ns)))
         
-        if status == 'optimal':
+        if not(status == 'optimal') or round(fmin) > round(fmin0):
+            break
+        else:
+            
             fmin = dotu(c, solNew)
-        else:
-            raise('Solution Not Found')
-            print("Solution not found!\n")
-            break
-        
-        #print("****************************************************************************")
-        #print("solNew:", solNew.trans())
-        #print("fmin:", fmin)
-        
-        #print("****************************************************************************")        
-        #print("STATUS:", status,)
-        #print("****************************************************************************")
-        
-        #print("\n///////////////////////////////////////////////////////////////////////////", "\n")  
-
-
-        if round(fmin) > round(fmin0):
-            break
-        else:
+            
             iMx = matrix([iMx, -1*solNew.ctrans()]) #[iMx ; -1*solNew'] #Add to LP matrix
             b = matrix([b, -1*fmin+1])    # Constraint constant
-            solMx = np.append(solMx, solNew.ctrans()) # Add to matrix of solutions
-            rows = int(len(solMx) / len(solNew))
-            solMx = solMx.reshape(rows, ns)
+
+            if ii == 0:
+                solMx = solNew.ctrans()
+            else:
+                solMx = np.vstack((solMx, solNew.ctrans())) # Add to matrix of solutions
+
+    # lP relaxation is primal infeasible       
+    print("****************************************************************************")     
+    print("Status:", status)
+    print("solMx:", solMx)
+    print("****************************************************************************")
+
+
+    # CHECK IF THE NUMPY ARRAY IS NOT EMPRY
+    if solMx.size == 0:
+        raise('Solution Not Found')
+
+
+    #Minimize points' distance to charging stations
+
+    distStat = np.zeros(solMx.shape[0])
+    startConjT = np.array(np.matrix(start).H) #start.conj().transpose()#conjugate transpose of start
+    for ii in range(solMx.shape[0]): 
+        minDistVec = 1E50 * np.ones(len(xVec))
+        csLocs = locs[:, tf.logicalFn(solMx[ii,:])] #select charging stations for current solution
+        csLocs = np.append(startConjT, csLocs, axis = 1) #add starting point
+        
+        # Construct minDistMx and regMx
+        for jj in range(csLocs.shape[1]): 
             
-    #print("****************************************************************************")        
-    #print("solMx:", solMx)
-    #print("****************************************************************************")
+            #If power is larger, farther points are counted more
+            tmpDistVec = ((xVec-csLocs[0,jj])**2 + (yVec-csLocs[1,jj])**2)**power
+            minDistVec = np.minimum(minDistVec,tmpDistVec)
+            
+            
+        #Save best value so far
+        distStat[ii] = sum(minDistVec)
+        distStat[ii] = min(distStat[ii],distStat[ii - (ii > 0)])
+
+    bestVal,bestIx = min(distStat), np.argmin(distStat) #Choose best solution
+    #iBest = bestIx[0];
+
+    #select charging station locs. for best solution
+    csLocs = locs[:, np.asarray(list(map(lambda x: bool(x), solMx[bestIx,:] ))) ] 
+    csLocs = np.append(startConjT,csLocs, axis = 1) #add starting point
 
 
-    if solMx.ndim > 1:
-        ncs = sum(solMx[0, range(ns)])#sum(solMx(1,1:ns))
 
-        #['Minimum number of charging stations: ', str(ncs)]
-        if ncs == 0:
-            print('No solutions') #error. RAISE EXCEPTION HERE??
-        
 
-        #Minimize points' distance to charging stations
 
-        distStat = np.zeros(solMx.shape[0])
-        for ii in range(solMx.shape[0]): 
-            minDistVec = 1E50*np.ones(len(xVec))
-            csLocs = locs[:, tf.logicalFn(solMx[ii,:])] #select charging stations for current solution
-            startConjT = np.array(np.matrix(start).H) #start.conj().transpose()#conjugate transpose of start
-            csLocs = np.append(startConjT,csLocs, axis = 1) #add starting point
-            for jj in range(csLocs.shape[1]): # Construct minDistMx and regMx
-                #If power is larger, farther points are counted more
-                tmpDistVec = ((xVec-csLocs[0,jj])**2 + (yVec-csLocs[1,jj])**2)**power
-                minDistVec = np.minimum(minDistVec,tmpDistVec)
-            #Save best value so far
-            distStat[ii] = sum(minDistVec)
-            distStat[ii] = min(distStat[ii],distStat[ii - (ii > 0)])
-        
+    # print(csLocs)
+    return csLocs
 
-        #plt.figure(3)
-        #plt.plot(range(len(distStat)),distStat,'*')
-        #plt.title('Distance statistic improvement for trial solutions')
-        #plt.xlabel('Solution number')
-        #plt.ylabel('Distance statistic')
-        
-        
-        bestVal,bestIx = min(distStat), np.argmin(distStat) #Choose best solution
-        #iBest = bestIx[0];
 
         
 
-        csLocs = locs[:, np.asarray(list(map(lambda x: bool(x), solMx[bestIx,:] ))) ] #select charging station locs. for best solution
-        
-
-
-        startConjT = np.array(np.matrix(start).H)
-        csLocs = np.append(startConjT,csLocs, axis = 1) #add starting point
-
-
-
-
-
-        # print(csLocs)
-        return csLocs
-
-    return None
 
 
 def tour(start,rad,voronoi_lst):
