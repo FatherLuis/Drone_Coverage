@@ -69,12 +69,17 @@ def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad ,solMax
     d2Mx = np.zeros((np_tot,ns))
     
     # Distance matrix and locations not covered by start
+    # DISTANCE MATRIX THAT EACH SITE MAY REACH
     for ii in range(ns):
         d2Mx[:, ii] =  (locs[0,ii]- xVec)**2 + (locs[1,ii]- yVec)**2 
         
-    iMx = d2Mx < rad2# Coverage matrix
+    # SELECT LOCATIONS THAT ARE LESS THAN THE MAX TRAVEL DISTANCE
+    iMx = d2Mx < rad2 # LOGICAL Coverage matrix
+    # LOCATE THE AREA WHERE THE FIRST CHARGING STATION CANNOT REACHES
     iVec = ((xVec - start[0])**2 + (yVec-start[1])**2) > rad2; # points not covered by start
+    # SELECT THE AREAS THAT ARE NOT COVERED BY THE FIRST CHARGING STATION ( GIVES A BOOLEAN MATRIX)
     iMx = iMx[tf.logicalFn(iVec), :] #Logical coverage matrix for remaining points
+    # SELECT THE AREAS THAT ARE NOT COVERED BY THE FIRST CHARGING STATION ( GIVES A DISTANCE MATRIX)
     d2Mx = d2Mx[tf.logicalFn(iVec), :] #Distance matrix for remaining points
     np_eff = iMx.shape[0]#size(iMx,1) #Number of points not covered by start
 
@@ -108,7 +113,9 @@ def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad ,solMax
             
             fmin = dotu(c, solNew)
             
+            # ADDITIONAL CONTRAINS
             iMx = matrix([iMx, -1*solNew.ctrans()]) #[iMx ; -1*solNew'] #Add to LP matrix
+            # ADDED NEW BOUND 
             b = matrix([b, -1*fmin+1])    # Constraint constant
 
             if ii == 0:
@@ -133,7 +140,9 @@ def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad ,solMax
     distStat = np.zeros(solMx.shape[0])
     startConjT = np.array(np.matrix(start).H) #start.conj().transpose()#conjugate transpose of start
     for ii in range(solMx.shape[0]): 
+        
         minDistVec = 1E50 * np.ones(len(xVec))
+        
         csLocs = locs[:, tf.logicalFn(solMx[ii,:])] #select charging stations for current solution
         csLocs = np.append(startConjT, csLocs, axis = 1) #add starting point
         
@@ -142,12 +151,14 @@ def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad ,solMax
             
             #If power is larger, farther points are counted more
             tmpDistVec = ((xVec-csLocs[0,jj])**2 + (yVec-csLocs[1,jj])**2)**power
+            # MINIMUM
             minDistVec = np.minimum(minDistVec,tmpDistVec)
             
             
         #Save best value so far
         distStat[ii] = sum(minDistVec)
-        distStat[ii] = min(distStat[ii],distStat[ii - (ii > 0)])
+        #distStat[ii] = min(distStat[ii],distStat[ii - (ii > 0)])
+
 
     bestVal,bestIx = min(distStat), np.argmin(distStat) #Choose best solution
     #iBest = bestIx[0];
@@ -169,6 +180,8 @@ def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad ,solMax
 
 
 def tour(start,rad,voronoi_lst):
+    
+    
 
     csLocs = [x[1] for x in voronoi_lst]
 
@@ -198,7 +211,7 @@ def tour(start,rad,voronoi_lst):
 
     locsTmp = np.array( [ [x[0] for x in csLocs ] , [y[1] for y in csLocs ]  ] )
 
-    tour = tf.tourFn(start, locsTmp, rad , mtx)
+    tour = tf.tourFn(start, locsTmp, mtx)
 
     ordered_voronoiLst = None
 

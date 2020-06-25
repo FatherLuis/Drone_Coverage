@@ -851,10 +851,6 @@ if __name__ == '__main__':
 
     drone, path = DP.algorithm(curCS)
 
-    print(drone)
-    
-
-
     canvas.boundary(pp)
 
     canvas.path(transform.transform_path(path))
