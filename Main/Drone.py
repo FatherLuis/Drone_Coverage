@@ -17,39 +17,22 @@ class Drone:
     # Return Value: None
     # Date:  3/2/2020
     ##############################################
-    def __init__(self,radius=1, max_distance = 10000, velocity = 1):
-        self.radius= radius
-        self.MAX_DISTANCE = max_distance
-        self.velocity = velocity
+    def __init__(self,radius=1, max_distance = 10000):
         
+        self.radius= radius
+        self.MAX_DISTANCE = max_distance        
         
         self.total_distance_travel = 0
-        self.total_time = 0
         
-
         self.curMax_distance = max_distance 
         self.curPoint = np.array( (0,0) )
-
-    ##############################################
-    # Method Name: calculate_area
-    # Purpose: Calculate the area covered by the dron (pi*r^2)
-    # Parameter: None
-    # Method used: None
-    # Return Value: None
-    # Date:  3/2/2020
-    # 3/27/2020 : METHOD NO LONGER BEING USED
-    ##############################################
-    def calculate_area(self):
-        return np.pi * self.radius ** 2
-
 
 
     def copy(self):
         
-        drone = Drone(self.radius,self.MAX_DISTANCE , self.velocity )
+        drone = Drone(self.radius,self.MAX_DISTANCE)
         
         drone.total_distance_travel = self.total_distance_travel
-        drone.total_time = self.total_time
         
         drone.curMax_distance = self.curMax_distance
         drone.curPoint = self.curPoint
@@ -70,9 +53,8 @@ class Drone:
         str_DR = "Drone Radius: {}".format(self.radius)
         str_MD = "Max Distance to Travel: {}".format(self.MAX_DISTANCE)
         str_TDT = "Total Distance Travel: {}".format(self.total_distance_travel)
-        str_TT = "Total Time: {}".format(self.total_time)
 
-        return "{}\n{}\n{}\n{}\n".format(str_DR,str_MD,str_TDT,str_TT) 
+        return "{}\n{}\n{}\n{}\n".format(str_DR,str_MD,str_TDT) 
 
 
 

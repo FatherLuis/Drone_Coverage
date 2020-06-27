@@ -1,9 +1,6 @@
 from Triangle import Triangle
 from Drone import Drone
 import numpy as np 
-from Utilities import dist
-
-from ChargingPad import ChargingPad
 
 ########################################
 # Class name: self.drone_Path()
@@ -25,16 +22,16 @@ class Drone_Path():
     # Return Value: None
     # Date:  3/2/2020
     ##############################################
-    def __init__(self,triangle,drone,cPad , entry_exit):
+    def __init__(self,triangle,drone,entry_exit):
 
         self.triangle = triangle # SAVES THE ORIGINAL TRIANGLE IN WHICH THE ALGORITHM WILL THE FIND THE PATH TO
         self.curTriangle = triangle.copy()
         self.drone = drone
-        self.cPad = cPad
         self.entryExit = np.array(entry_exit)
         
         self.locStart = []
         self.farNode = ''
+        
 
     ##############################################
     # Method Name: segment_AB
@@ -201,7 +198,16 @@ class Drone_Path():
                 return np.array((Ax,Ay)),np.array((Cx,Cy)) 
 
 
-
+    ##############################################
+    # Method Name: dist()
+    # Purpose: Calculate eucledian distance between two points
+    # Parameter: two tuples-like objects (x,y)
+    # Method used: None
+    # Return Value: Float
+    # Date:  3/2/2020
+    ##############################################  
+    def dist(self,p1,p2):
+        return np.sqrt( (p2[1]-p1[1])**2 +(p2[0]-p1[0])**2)
 
 
     def reserve_path(self):
@@ -344,9 +350,9 @@ class Drone_Path():
         centroid = self.curTriangle.centroid
 
 
-        return  (self.drone.radius >= dist(centroid,self.curTriangle.A) and 
-               self.drone.radius >= dist(centroid,self.curTriangle.B) and 
-               self.drone.radius >= dist(centroid,self.curTriangle.C) )
+        return  (self.drone.radius >= self.dist(centroid,self.curTriangle.A) and 
+               self.drone.radius >= self.dist(centroid,self.curTriangle.B) and 
+               self.drone.radius >= self.dist(centroid,self.curTriangle.C) )
 
 
 
@@ -513,6 +519,8 @@ class Drone_Path():
 
         return endAlg, pi, pf
 
+
+
     ##############################################
     # Method Name: algorithm()
     # Purpose: creates the path needed to cover a triangle, given the limitations of the self.drone
@@ -549,13 +557,15 @@ class Drone_Path():
             
         else:
             print('Wrong CS Char')
+            return self.drone,[]
+        
+        
         
         
         self.drone.curPoint = CS
         
         # Store paths
         path = [self.drone.curPoint] 
-        
         
         
         ## 5/12/2020 Reserve Paths
@@ -592,6 +602,8 @@ class Drone_Path():
     #        3/27/2020: Redid Code for easier understanding and opmimal code
     ##############################################  
     def next_step(self,CS,loc):
+        
+        
 
         req_dist_travel = 0
 
@@ -610,8 +622,9 @@ class Drone_Path():
             
         if all(self.drone.curPoint == CS):
             # charge
-            #self.drone.curMax_distance = self.drone.MAX_DISTANCE
-            self.cPad.charge_drone(self.drone)
+            #self.drone.curMax_distance = self.drone.MAX_DISTANCE     
+            self.drone.curMax_distance = self.drone.MAX_DISTANCE 
+            
             self.drone.curPoint = CS
             
             loc = self.locStart
@@ -626,10 +639,10 @@ class Drone_Path():
             pf = CS
                 
             # DISTANCE FROM CURRENT POSITION TO self.drone INITIAL PATH POINT
-            dist_curPos_pi = dist(self.drone.curPoint , pi)
+            dist_curPos_pi = self.dist(self.drone.curPoint , pi)
 
             # DISTANCE FROM self.drone INITIAL PATH POINT TO self.drone FINAL PATH POINT(CHARGING STATION)
-            dist_pi_pf = dist(pi,pf)                
+            dist_pi_pf = self.dist(pi,pf)                
             
 
             # ADD ALL THE DISTANCES TOGETHER
@@ -650,7 +663,12 @@ class Drone_Path():
                 # ADD CHARGING STATION POINT TO THE PATH LIST
         
                 self.drone.total_distance_travel += req_dist_travel
-                self.cPad.charge_drone(self.drone)
+                self.drone.curMax_distance -= req_dist_travel         
+                self.drone.curMax_distance = self.drone.MAX_DISTANCE            
+                
+                
+                
+                
                 self.drone.curPoint = CS
                 return path
 
@@ -666,9 +684,9 @@ class Drone_Path():
 
             
             # DISTANCE FROM CURRENT POSITION TO self.drone INITIAL PATH POINT
-            dist_curPos_pi = dist(self.drone.curPoint , pi)
+            dist_curPos_pi = self.dist(self.drone.curPoint , pi)
             # DISTANCE FROM self.drone INITIAL PATH POINT TO self.drone FINAL PATH POINT
-            dist_pi_pf = dist(pi,pf)  
+            dist_pi_pf = self.dist(pi,pf)  
 
 
             if not(endAlg):
@@ -708,7 +726,7 @@ class Drone_Path():
             else:
                 #Algorithm Ends
                 
-                dist_pf_CS = dist(pf,CS)
+                dist_pf_CS = self.dist(pf,CS)
  
                 req_dist_travel = dist_curPos_pi + dist_pi_pf + dist_pf_CS
                 
@@ -724,9 +742,9 @@ class Drone_Path():
                     # ADD THE DISTANCE TRAVELED TO THE self.drone TOTAL_DISTANCE_TRAVEL
                     self.drone.total_distance_travel += req_dist_travel
                     
-                
-                    self.drone.curMax_distance -= req_dist_travel
-                    self.cPad.charge_drone(self.drone)
+
+                    self.drone.curMax_distance -= req_dist_travel         
+                    self.drone.curMax_distance = self.drone.MAX_DISTANCE 
                     self.drone.curPoint = CS  
                     #print('Alg End Reach OOB')
                     return path
@@ -758,11 +776,11 @@ class Drone_Path():
                 
                 
                 # DISTANCE FROM CURRENT POSITION TO self.drone INITIAL PATH POINT
-                dist_curPos_pi = dist(self.drone.curPoint , pi)
+                dist_curPos_pi = self.dist(self.drone.curPoint , pi)
                 # DISTANCE FROM self.drone INITIAL PATH POINT TO self.drone FINAL PATH POINT
-                dist_pi_pf = dist(pi,pf)  
+                dist_pi_pf = self.dist(pi,pf)  
                 # DISTANCE FROM self.drone FINAL PATH POINT TO CHARGING STATION
-                dist_pf_CS = dist(pf,CS)
+                dist_pf_CS = self.dist(pf,CS)
 
                 req_dist_travel = dist_curPos_pi + dist_pi_pf + dist_pf_CS
                 
@@ -791,8 +809,8 @@ class Drone_Path():
                     
                     if not(endAlg):
                         return path+self.next_step(CS,loc)
-                    else:
-                        self.cPad.charge_drone(self.drone)
+                    else:      
+                        self.drone.curMax_distance = self.drone.MAX_DISTANCE 
                         #print('Alg End: No more Travels')
                         return path
 
@@ -800,10 +818,6 @@ class Drone_Path():
             except:
                 #print('Could Not Return to CS')
                 return []
-
-
-
-
                 
             else:
                 #print("Can't Go Back Home")
@@ -826,11 +840,8 @@ if __name__ == '__main__':
     canvas = Draw()
 
 
-    drone = Drone(radius= 0.025, max_distance = 8, velocity = 25)    
-    
-    # Initialize Charging Pad
-    volt = 25
-    cPad = ChargingPad(volt)    
+    drone = Drone(radius= 0.025, max_distance = 8)    
+ 
     
     entryExit = [ (0,1.43495) , (0,2.98667)]
     
@@ -847,7 +858,7 @@ if __name__ == '__main__':
     
     #curCS = 'C'
     
-    DP = Drone_Path(transTriangle,drone,cPad,primeEntryExit)  
+    DP = Drone_Path(transTriangle,drone,primeEntryExit)  
 
     drone, path = DP.algorithm(curCS)
 

@@ -4,11 +4,13 @@ from Drone import Drone
 from shapely import geometry 
 from datetime import datetime
 from RUN import run_program
-from ChargingPad import ChargingPad
 import traceback
+import os.path
 
+#####################################
+# CREATE PANDA DATAFRAME
+#####################################
 
-# Create a Panda Dataframe 
 
 column_names = ['N_Gon','Shape_Area','CS_Radius','num_Candidates','num_Charging_Station',
                 'Total_Time','Total_Distance_Travel']
@@ -17,54 +19,71 @@ column_names = ['N_Gon','Shape_Area','CS_Radius','num_Candidates','num_Charging_
 df = pd.DataFrame(columns = column_names)
 
 
- ### INITIALIZE DRONE PROPERTIES ###
+#####################################
+### INITIALIZE DRONE PROPERTIES ###
+#####################################
+
 
 rad = 0.025
 mxDist = 8
 velocity = 25
  
 
-# Initialize Charging Pad
-volt = 25
-cPad = ChargingPad(volt)
-
-### Charging Station Properties
+#####################################
+### Charging Station Properties ###
+#####################################
 
 # Max Charging Station distance
-CS_radius = [2.5] #,3.5]
+CS_radius = [2.5,3.5]
 
 
+
+#####################################
 ### SHAPE ###
-# Square
-square1 = [ (0,0) , (0,7) , (7,7) , (7,0)]
-#square2 = [ (0,0) , (0,10) , (10,10) , (10,0)]
-#poly3 = [ (0,0) , (0,200) , (100,300) , (200,200) , (200,0)]
+#####################################
 
-fields = [square1]
-candidates = [25]
+# Rectangle
+square1 = [ (0,0) , (0,5) , (5,5) , (5,0)]
+square2 = [ (0,0) , (0,5) , (10,5) , (10,0)]
+square3 = [ (0,0) , (0,10) , (10,10) , (10,0)]
 
 
-n_trials = 50
-for i in range(n_trials):
-    for cand,field in zip(candidates,fields):
+# Octagon
+oct1 = [ (0,0),(2.28,0),(3.88,1.61),(3.88,3.88),(2.28,5.49),(0,5.49),(-1.61,3.88),(-1.61,1.61) ]
+oct2 = [ (0,0), (3.22,0), (5.49,2.28), (5.49,5.49), (3.22,7.77), (0,7.77), (-2.28,5.49), (-2.28,2.28)  ]
+oct3 = [ (0,0), (4.55,0), (7.77,3.22), (7.77,7.77), (4.55,10.99), (0,10.99), (-3.22,7.77), (-3.22,3.22)  ]
+
+
+fields = [square1,square2,square3,oct1,oct2,oct3]
+
+n_trials = 1
+
+
+
+
+for field in fields:
+
+    curShape = geometry.Polygon(field)
     
+    # FOR EVERY SQ, THERE IS 1 CANDIDATE
+    cand = int(np.ceil(curShape.area))
+       
+    for mdv in CS_radius:
         
-        drone = Drone(radius=rad, max_distance = mxDist, velocity = velocity)  
-        curShape = geometry.Polygon(field)
+        drone = Drone(radius=rad, max_distance = mxDist)  
         
-        
-        for mdv in CS_radius:
-            
+        for i in range(n_trials):
             try:
-
+                
+                # lst is ['num_Charging_Station','Total_Distance_Travel']
                 lst = run_program( drone = drone,
-                                  cPad = cPad,
                                   CS_radius = mdv, 
                                   shape = field,
                                   candidate = cand,
                                   showPlot = False)
                 
-                # lst is ['num_Charging_Station','Total_Time','Total_Distance_Travel']
+                
+                tot_time = 3*(lst[1] / velocity)
                 
         
                 df = df.append({'N_Gon': len(field),
@@ -72,8 +91,8 @@ for i in range(n_trials):
                                 'CS_Radius': mdv,
                                 'num_Candidates':cand,
                                 'num_Charging_Station':lst[0],
-                                'Total_Time': lst[1],
-                                'Total_Distance_Travel': lst[2]},
+                                'Total_Time': tot_time,
+                                'Total_Distance_Travel': lst[1]},
                               ignore_index = True)
     
             
@@ -92,13 +111,37 @@ for i in range(n_trials):
     
                   
                 print(traceback.format_exc())
-    
+
+
+
+#####################################
+### SAVE PANDA DATAFRAME AS CSV FILE 
+#####################################
 
 
 now = datetime.now() # current date and time
 date_time = now.strftime("%m_%d_%Y___%H_%M_%S")
 
-df.to_csv('data\{}_{}.csv'.format('Test_Data',date_time))
+
+directory = './data/'
+filename = '{}_{}.csv'.format('Test_Data',date_time)
+
+file_path = os.path.join(directory, filename)
+
+if not os.path.isdir(directory):
+    os.mkdir(directory)
+
+df.to_csv(file_path)
+
+
+
+
+
+
+
+
+
+
     
 
 

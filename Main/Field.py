@@ -332,7 +332,7 @@ class Field():
 
                 if not(vertex == poly[0]):
 
-                    poly.append( poly.pop( poly.index(i)   )  )
+                    poly.append( poly.pop(0) )
 
                 else:
                     
@@ -342,6 +342,8 @@ class Field():
 
         else:
             start = 0
+
+
 
 
         # THE VERTEX WILL BE THE POINT WE'LL USE TO SPLIT THE POLYGON INTO TRIANGLES
@@ -455,7 +457,7 @@ class Field():
                 voronois.append(vor.vertices[reg])
                 
               
-                
+        ############################################      
         #from scipy.spatial import voronoi_plot_2d
         #import matplotlib.pyplot as plt
         #fig = voronoi_plot_2d(vor)

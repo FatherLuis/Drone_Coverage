@@ -124,10 +124,10 @@ def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad ,solMax
                 solMx = np.vstack((solMx, solNew.ctrans())) # Add to matrix of solutions
 
     # lP relaxation is primal infeasible       
-    print("****************************************************************************")     
-    print("Status:", status)
-    print("solMx:", solMx)
-    print("****************************************************************************")
+    #print("****************************************************************************")     
+    #print("Status:", status)
+    #print("solMx:", solMx)
+    #print("****************************************************************************")
 
 
     # CHECK IF THE NUMPY ARRAY IS NOT EMPRY
@@ -184,6 +184,9 @@ def tour(start,rad,voronoi_lst):
     
 
     csLocs = [x[1] for x in voronoi_lst]
+    
+    for x in csLocs:
+        print(x)
 
     n = len(csLocs)
     mtx = np.zeros( (n,n) )
@@ -193,19 +196,22 @@ def tour(start,rad,voronoi_lst):
         vor_set = set(voronoi_lst[i][0])
 
         for j in range(n):
+            
+            if not( i == j ):
 
-            vor_set2 = set(voronoi_lst[j][0])
+                vor_set2 = set(voronoi_lst[j][0])
+    
+                has_intersection = 1 if len(vor_set.intersection(vor_set2)) > 0 else 0
+    
+                mtx[i][j] = has_intersection
+                mtx[j][i] = has_intersection
 
-            has_intersection = 1 if len(vor_set.intersection(vor_set2)) > 0 else 0
-
-            mtx[i][j] = has_intersection
-            mtx[j][i] = has_intersection
-
-        if( i > (n/2)+2 ):
+        if( i > np.ceil(n/2.0) ):
             break
 
-    
-
+    print('')
+    print(mtx)
+    print('')
 
     #Get tour information
 
@@ -215,20 +221,31 @@ def tour(start,rad,voronoi_lst):
 
     ordered_voronoiLst = None
 
-    if tour is not None:
-        locsTmp, coor, tourDist = tour
+    if tour is  None:
+        raise('Empty Tour')
+      
         
-        
-        coor_unique = []
-        for c in coor:
-            if not(c in coor_unique):
-                coor_unique.append(c)
-        
-        ordered_voronoiLst = [voronoi_lst[i] for i in coor_unique]
+    locsTmp, coor, tourDist = tour
+    
+    #############################
+    ## GET THE ORDER (WITHOUT REPETITION) OF THE CS
+    ## REORDER THE VORONOI LIST BASED ON THE ORDERLIST
+    #############################
+    coor_unique = []
+    for c in coor:
+        if not(c in coor_unique):
+            coor_unique.append(c)
+    
+    ordered_voronoiLst = [voronoi_lst[i] for i in coor_unique]
 
 
+    #############################
+    ## FIND THE INTERSECTION OF THE CONSECUTIVE VORONOI REGIONS
+    ## CREATE AN ARRAY OF ARRAYS THAT CONTAIN THE INTERSECTED VERTICES
+    ## BETWEEN CONSECUTIVE VORONOI REGIONS
+    #############################
+    
     N = len(coor)
-
 
     start_end_lst = [ []  for i in range(len(coor_unique))]
 

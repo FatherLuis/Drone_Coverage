@@ -18,12 +18,14 @@ class Draw():
     # Return Value: None
     # Date:  3/12/2020
     ##############################################
-    def __init__(self):
+    def __init__(self,ax_fig):
 
         # CREATE A FIGURE OBJECT (REFERENCE IT?)
-        self.fig = plt.figure()
+        #self.fig = plt.figure()
+        
         # CREATE A SUBPLOT IN THE FIGURE 
-        self.ax = self.fig.add_subplot(111)
+        #self.ax = self.fig.add_subplot(111)
+        self.ax = ax_fig
         #self.ax.set_facecolor('black')
         
     ##############################################
@@ -34,7 +36,7 @@ class Draw():
     # Return Value: None
     # Date:  3/12/2020
     ##############################################
-    def boundary(self, lst_pts, col = 'k'):
+    def boundary(self, lst_pts, col = 'k', lines = "solid"):
         
         # GET THE SIZE OF THE LIST
         N = len(lst_pts)
@@ -50,7 +52,7 @@ class Draw():
             if( i == N-1):
                 
                 # DRAW A LINE FROM THE LAST ELEMENT TO THE FIRST ELEMENT 
-                self.ax.plot( (lst_pts[0][0] ,  x1) , (lst_pts[0][1] ,y1) ,color= col)
+                self.ax.plot( (lst_pts[0][0] ,  x1) , (lst_pts[0][1] ,y1) ,color= col, linestyle = lines)
 
 
             else:
@@ -59,7 +61,7 @@ class Draw():
                 y2 = lst_pts[i+1][1]              
 
                 # DRAW A LINE FROM i ELEMENT TO i+1 ELEMENT
-                self.ax.plot( (x1,x2) , (y1,y2) ,color=col)
+                self.ax.plot( (x1,x2) , (y1,y2) ,color=col, linestyle = lines)
 
     ##############################################
     # Method Name: path()
@@ -102,31 +104,25 @@ class Draw():
         N = len(site_pts)
 
         # ITERATE THROUGH THE LIST OF POINTS
-        for i in range(N):
+        for i in range(N-1):
 
             # SELECT i ELEMENT FROM THE LIST
             x1 = site_pts[i][0]
             y1 = site_pts[i][1]
 
-            # IF THIS IS THE LAST ELEMENT IN THE LIST
-            if( i == N-1):
 
-                self.ax.arrow(x1, y1, site_pts[0][0]-x1,site_pts[0][1]-y1, linewidth = 2, head_width=1, head_length=1, fc='k', ec='k')
+            # SELECT i+1 ELEMENT FROM THE LIST
+            x2 = site_pts[i+1][0]
+            y2 = site_pts[i+1][1]              
 
-
-            else:
-                # SELECT i+1 ELEMENT FROM THE LIST
-                x2 = site_pts[i+1][0]
-                y2 = site_pts[i+1][1]              
-
-                # DRAW A LINE FROM i ELEMENT TO i+1 ELEMENT
-                self.ax.arrow(x1, y1, x2-x1, y2-y1, linewidth = 2,head_width=1, head_length=1, fc='k', ec='k')
+            # DRAW A LINE FROM i ELEMENT TO i+1 ELEMENT
+            self.ax.arrow(x1, y1, x2-x1, y2-y1, length_includes_head = True, linewidth = 2,head_width=0.1, head_length=0.1, fc='b', ec='b')
 
 
-    def draw_sites(self,sites):
+    def draw_sites(self,sites,col = 'r', mark = 'o'):
 
         for p in sites:
-            self.ax.plot(p[0],p[1],'ro')
+            self.ax.plot(p[0],p[1],color = col, marker = mark)
 
 
     ##############################################
@@ -137,7 +133,7 @@ class Draw():
     # Return Value: None
     # Date:  3/12/2020
     ##############################################
-    def show_plot(self):
+    def return_ax(self):
 
         # MAKES SURE THE PLOT IS EVEN AND WONT HAVE DISTURSIONS
         plt.gca().set_aspect('equal',adjustable='box')

@@ -175,7 +175,6 @@ def field_paths():
     from Draw import Draw
     from Drone import Drone
     from Triangle import Triangle
-    from ChargingPad import ChargingPad
     from Drone_Path2 import Drone_Path
     from Transformation2 import Transformation
     from Field import Field
@@ -186,90 +185,89 @@ def field_paths():
     ## Triangle Drone Passage
     ###################################
 
-#    drone = Drone(radius= 0.025, max_distance = 8, velocity = 25)    
-#    
-#    # Initialize Charging Pad
-#    volt = 25
-#    cPad = ChargingPad(volt)    
-#    
-#    entryExit = [ (0,1.43495) , (0,2.98667)]
-#    
-#    # It is assumed that the first point is the CS
-#    pp =  [ (0,0), (0,3) , (2,2) ]  
-#    
-#    triangle = Triangle(*pp)
-#    
-#    transform = Transformation()
-#    
-#    curCS,transTriangle, primeEntryExit= transform.transform_triangle(triangle,entryExit)
-#    
-#    #print('\n',triangle)
-#    
-#    #curCS = 'C'
-#    
-#    DP = Drone_Path(transTriangle,drone,cPad,primeEntryExit)  
-#
-#    drone, path = DP.algorithm(curCS)
-#    
-#    path_pts = transform.transform_path(path)
-#
-#
-#    # GET THE SIZE OF THE LIST
-#    N = len(pp)
-#    col = 'k'
-#    
-#    
-#    plt.plot(0,0,'ro')
-#
-#    # ITERATE THROUGH THE LIST OF POINTS
-#    for i in range(N):
-#
-#        # SELECT i ELEMENT FROM THE LIST
-#        x1 = pp[i][0]
-#        y1 = pp[i][1]
-#
-#        # IF THIS IS THE LAST ELEMENT IN THE LIST
-#        if( i == N-1):
-#            
-#            # DRAW A LINE FROM THE LAST ELEMENT TO THE FIRST ELEMENT 
-#            plt.plot( (pp[0][0] ,  x1) , (pp[0][1] ,y1) ,color= col)
-#
-#        else:
-#            # SELECT i+1 ELEMENT FROM THE LIST
-#            x2 = pp[i+1][0]
-#            y2 = pp[i+1][1]              
-#
-#            # DRAW A LINE FROM i ELEMENT TO i+1 ELEMENT
-#            plt.plot( (x1,x2) , (y1,y2) ,color=col)
-#
-#
-#
-#    # CREATE A TUPLE WITH THREE RANDOM NUMBERS ( USED FOR RGM COLORING)
-#    colors = np.random.rand(3,)
-#    
-#    # ITERATE THROUGH THE LIST OF POINTS
-#    for i in range( len(path_pts) - 1 ):
-#
-#        # SELECT i ELEMENT FROM THE LIST
-#        x1 = path_pts[i][0]
-#        y1 = path_pts[i][1]
-#
-#        # SELECT i+1 ELEMENT FROM THE LIST
-#        x2 = path_pts[i+1][0]
-#        y2 = path_pts[i+1][1]  
-#
-#        # IF i ELEMENT IS IN THE ORIGIN, CHANGE COLORS
-#        # THIS HELPS IDENTIFY NEW PATHS FROM THE DRONE PROJECT
-#        if ( (x1==path_pts[0][0] and y1==path_pts[0][1])):
-#           
-#            # CREATE A TUPLE WITH THREE RANDOM NUMBERS ( USED FOR RGM COLORING)
-#            colors = np.random.rand(3,)
-#      
-#        # DRAW A LINE FROM i ELEMENT TO i+1 ELEMENT
-#        plt.plot( (x1,x2) , (y1,y2) , c = colors , linewidth = 1, alpha = 0.7 )
-#
-#
-#    plt.savefig('photos\\dronePathTriangle.png')
+    drone = Drone(radius= 0.025, max_distance = 8)    
+    
+
+    
+    entryExit = [ (0,1.43495) , (0,2.98667)]
+    
+    # It is assumed that the first point is the CS
+    pp =  [ (0,0), (0,3) , (2,2) ]  
+    
+    triangle = Triangle(*pp)
+    
+    transform = Transformation()
+    
+    curCS,transTriangle, primeEntryExit= transform.transform_triangle(triangle,entryExit)
+    
+    #print('\n',triangle)
+    
+    #curCS = 'C'
+    
+    DP = Drone_Path(transTriangle,drone,primeEntryExit)  
+
+    drone, path = DP.algorithm(curCS)
+    
+    path_pts = transform.transform_path(path)
+
+
+    # GET THE SIZE OF THE LIST
+    N = len(pp)
+    col = 'k'
+    
+    
+    plt.plot(0,0,'ro')
+
+    # ITERATE THROUGH THE LIST OF POINTS
+    for i in range(N):
+
+        # SELECT i ELEMENT FROM THE LIST
+        x1 = pp[i][0]
+        y1 = pp[i][1]
+
+        # IF THIS IS THE LAST ELEMENT IN THE LIST
+        if( i == N-1):
+            
+            # DRAW A LINE FROM THE LAST ELEMENT TO THE FIRST ELEMENT 
+            plt.plot( (pp[0][0] ,  x1) , (pp[0][1] ,y1) ,color= col)
+
+        else:
+            # SELECT i+1 ELEMENT FROM THE LIST
+            x2 = pp[i+1][0]
+            y2 = pp[i+1][1]              
+
+            # DRAW A LINE FROM i ELEMENT TO i+1 ELEMENT
+            plt.plot( (x1,x2) , (y1,y2) ,color=col)
+
+
+
+    # CREATE A TUPLE WITH THREE RANDOM NUMBERS ( USED FOR RGM COLORING)
+    colors = np.random.rand(3,)
+    
+    # ITERATE THROUGH THE LIST OF POINTS
+    for i in range( len(path_pts) - 1 ):
+
+        # SELECT i ELEMENT FROM THE LIST
+        x1 = path_pts[i][0]
+        y1 = path_pts[i][1]
+
+        # SELECT i+1 ELEMENT FROM THE LIST
+        x2 = path_pts[i+1][0]
+        y2 = path_pts[i+1][1]  
+
+        # IF i ELEMENT IS IN THE ORIGIN, CHANGE COLORS
+        # THIS HELPS IDENTIFY NEW PATHS FROM THE DRONE PROJECT
+        if ( (x1==path_pts[0][0] and y1==path_pts[0][1])):
+          
+            # CREATE A TUPLE WITH THREE RANDOM NUMBERS ( USED FOR RGM COLORING)
+            colors = np.random.rand(3,)
+      
+        # DRAW A LINE FROM i ELEMENT TO i+1 ELEMENT
+        plt.plot( (x1,x2) , (y1,y2) , c = colors , linewidth = 1, alpha = 0.7 )
+
+    plt.xlabel('x-axis: kilometers (km)')
+    plt.ylabel('y-axis: kilometers (km)')
+    plt.savefig('dronePathTriangle.png')
     
     
 #    field = Field()
