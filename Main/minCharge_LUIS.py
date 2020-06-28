@@ -185,6 +185,7 @@ def tour(start,rad,voronoi_lst):
 
     csLocs = [x[1] for x in voronoi_lst]
     
+    print('-------------Charging Stations-------------------')
     for x in csLocs:
         print(x)
 
@@ -209,6 +210,7 @@ def tour(start,rad,voronoi_lst):
         if( i > np.ceil(n/2.0) ):
             break
 
+    print('------------- ADJ Matrix ----------------')
     print('')
     print(mtx)
     print('')

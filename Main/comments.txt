@@ -73,8 +73,39 @@ Name: Luis
     * Deleted the Travel.py file, since it was no longer needed.
 * Continue working on fixing bugs
 
+----------------------------------
+Date:6/13/2020
+Name: Luis
 
+* Prof and I found some inconsistencies in the MinCharge.LinearProgram. 
+Most of it has been fixed, however, we still wonder why the linear program breaks when the set it is meant to succeed.
 
+----------------------------------
+Date:6/14/2020
+Name: Luis
 
+* Cleaned up the MinCharge.LinearProgram
+* Cleaning up Tour.py 
+* Added comments on Tour.py
+* Moved test information of Tour to the bottom of the file
+* Fixed Bugs
+
+----------------------------------
+Date:6/25/2020
+Name: Luis
+
+* Add more shapes to the TestBench.py file
+* Ensure that the code is running correctly
+* Fixed Bugs
+
+Bug:
+
+* The tour function is not returning a tour having two singletons in the tour
+----------------------------------
+Date:6/26/2020
+Name: Luis
+* Fixed the Adjacent matrix that was including the travel of a CS to itself
+* Added figures throughout the code to show what is happening in the code
+* Fixed Bugs
 
 

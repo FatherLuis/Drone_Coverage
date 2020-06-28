@@ -28,6 +28,7 @@ rad = 0.025
 mxDist = 8
 velocity = 25
  
+start = np.array([0, 0])
 
 #####################################
 ### Charging Station Properties ###
@@ -80,6 +81,7 @@ for field in fields:
                                   CS_radius = mdv, 
                                   shape = field,
                                   candidate = cand,
+                                  sp = start,
                                   showPlot = False)
                 
                 

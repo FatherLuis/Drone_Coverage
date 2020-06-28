@@ -1,447 +1,381 @@
-# -*- coding: utf-8 -*-
 
-import numpy as np
+from Triangle import Triangle
+from Drone import Drone
+from Drone_Path2 import Drone_Path
+from Draw import Draw
+from Transformation2 import Transformation 
+from Field import Field
+from minCharge_LUIS import linear_program,tour
 import matplotlib.pyplot as plt
 
 
+import numpy as np 
 
-def voronoiRegionCreation():
-    
-    from scipy.spatial import Voronoi, voronoi_plot_2d
-    
-    from Field import Field
-
-    
-    ###################################
-    ## UNDEFINED VORONOI REGIONS
-    ###################################
-    
-#    points = np.array([[0, 0], [2, 0], [1, 2], [1, 1]])
-#    
-#    vor = Voronoi(points) 
-#
-#    voronoi_plot_2d(vor)
-#    
-#    
-#    plt.xlim( - 3 , 5)
-#    plt.ylim( - 2 , 4)
-#    
-#    plt.savefig('photos\\undefinedVoronoiRegion.png')
-    
-    ###################################
-    ## BOUNDED VORONOI REGIONS
-    ###################################
-    
-#    points = np.array([[0, 0], [2, 0], [1, 2], [1, 1] , [-5,-5], [-5,5], [5,5], [5,-5]])
-#    
-#    vor = Voronoi(points) 
-#
-#    voronoi_plot_2d(vor)
-#      
-#    plt.xlim( - 7 , 7)
-#    plt.ylim( - 7 , 9)
-#    
-#    plt.savefig('photos\\boundedVoronoiRegion.png')    
-    
-    
-    ###################################
-    ## BOUNDED VORONOI REGIONS W/ Shape
-    ###################################    
-    
-#    points = np.array([[0, 0], [2, 0], [1, 2], [1, 1] , [-5,-5], [-5,5], [5,5], [5,-5]])
-#    
-#    vor = Voronoi(points) 
-#
-#    voronoi_plot_2d(vor)
-#    
-#    
-#    
-#    shape = [ [-1,-1] , [3,-1] , [3,2] , [1,4] , [-1,2]]
-#    
-#    # GET THE SIZE OF THE LIST
-#    N = len(shape)
-#    
-#    col = 'k'
-#    # ITERATE THROUGH THE LIST OF POINTS
-#    for i in range(N):
-#
-#        # SELECT i ELEMENT FROM THE LIST
-#        x1 = shape[i][0]
-#        y1 = shape[i][1]
-#
-#        # IF THIS IS THE LAST ELEMENT IN THE LIST
-#        if( i == N-1):
-#            
-#            # DRAW A LINE FROM THE LAST ELEMENT TO THE FIRST ELEMENT 
-#            plt.plot( (shape[0][0] ,  x1) , (shape[0][1] ,y1) ,color= col)
-#
-#
-#        else:
-#            # SELECT i+1 ELEMENT FROM THE LIST
-#            x2 = shape[i+1][0]
-#            y2 = shape[i+1][1]              
-#
-#            # DRAW A LINE FROM i ELEMENT TO i+1 ELEMENT
-#            plt.plot( (x1,x2) , (y1,y2) ,color=col)      
-#    
-#      
-#    plt.xlim( - 7 , 7)
-#    plt.ylim( - 7 , 9)
-#    
-#    plt.savefig('photos\\boundedVoronoiRegionWithShape.png')     
-    
-    
-    
-    
-    ###################################
-    ## BOUNDED VORONOI REGIONS IN SHAPE
-    ###################################
-
-#    field = Field()
-#    
-#    site = [ [0, 0], [2, 0], [1, 2], [1, 1] ]
-#    shape = [ [-1,-1] , [3,-1] , [3,2] , [1,4] , [-1,2]]
-#    
-#    lstvor = field.create_voronoi_polygons(site, shape)
-#    
-#    vor_only_lst = [lst[0] for lst in lstvor]
-#    
-#    for p in site:
-#        
-#        plt.plot(p[0],p[1],'ro')
-#        
-#    # GET THE SIZE OF THE LIST
-#    N = len(shape)
-#    
-#    col = 'k'
-#    # ITERATE THROUGH THE LIST OF POINTS
-#    for i in range(N):
-#
-#        # SELECT i ELEMENT FROM THE LIST
-#        x1 = shape[i][0]
-#        y1 = shape[i][1]
-#
-#        # IF THIS IS THE LAST ELEMENT IN THE LIST
-#        if( i == N-1):
-#            
-#            # DRAW A LINE FROM THE LAST ELEMENT TO THE FIRST ELEMENT 
-#            plt.plot( (shape[0][0] ,  x1) , (shape[0][1] ,y1) ,color= col)
-#
-#
-#        else:
-#            # SELECT i+1 ELEMENT FROM THE LIST
-#            x2 = shape[i+1][0]
-#            y2 = shape[i+1][1]              
-#
-#            # DRAW A LINE FROM i ELEMENT TO i+1 ELEMENT
-#            plt.plot( (x1,x2) , (y1,y2) ,color=col)    
-#
-#
-#    for vor in vor_only_lst:
-#        
-#        # GET THE SIZE OF THE LIST
-#        N = len(vor)
-#        
-#        col = 'k'
-#        # ITERATE THROUGH THE LIST OF POINTS
-#        for i in range(N):
-#    
-#            # SELECT i ELEMENT FROM THE LIST
-#            x1 = vor[i][0]
-#            y1 = vor[i][1]
-#    
-#            # IF THIS IS THE LAST ELEMENT IN THE LIST
-#            if( i == N-1):
-#                
-#                # DRAW A LINE FROM THE LAST ELEMENT TO THE FIRST ELEMENT 
-#                plt.plot( (vor[0][0] ,  x1) , (vor[0][1] ,y1) ,color= col)
-#    
-#    
-#            else:
-#                # SELECT i+1 ELEMENT FROM THE LIST
-#                x2 = vor[i+1][0]
-#                y2 = vor[i+1][1]              
-#    
-#                # DRAW A LINE FROM i ELEMENT TO i+1 ELEMENT
-#                plt.plot( (x1,x2) , (y1,y2) ,color=col)         
-#
-#    plt.savefig('photos\\shapeBoundVoronoiRegion.png')
+import traceback
+import os.path
 
 
 
-def field_paths():
 
 
-    from Draw import Draw
-    from Drone import Drone
-    from Triangle import Triangle
-    from Drone_Path2 import Drone_Path
-    from Transformation2 import Transformation
-    from Field import Field
-    from minCharge_LUIS import tour
- 
+def run_program(drone, CS_radius , shape ,candidate, sp,  showPlot = True):
     
-    ###################################
-    ## Triangle Drone Passage
-    ###################################
+    outpath = './photos/'
+    
+    
+    #################### INITIALS ####################
+    field = Field()
+    
+    dist = lambda p1,p2: np.sqrt( (p2[1]-p1[1])**2 +(p2[0]-p1[0])**2)
 
-    drone = Drone(radius= 0.025, max_distance = 8)    
-    
+    #################### FIELD MATRIX ####################
+    # CREATE A BINARY MATRIX THAT REPRESENTS A FIELD 
 
-    
-    entryExit = [ (0,1.43495) , (0,2.98667)]
-    
-    # It is assumed that the first point is the CS
-    pp =  [ (0,0), (0,3) , (2,2) ]  
-    
-    triangle = Triangle(*pp)
-    
-    transform = Transformation()
-    
-    curCS,transTriangle, primeEntryExit= transform.transform_triangle(triangle,entryExit)
-    
-    #print('\n',triangle)
-    
-    #curCS = 'C'
-    
-    DP = Drone_Path(transTriangle,drone,primeEntryExit)  
+    field_boundary =  shape
+    #field_boundary =  [  (0,0) , (10,20) , (15,40), (35,45),
+    #                     (45,35) , (50,25) , (45,15), (25,5) ]
 
-    drone, path = DP.algorithm(curCS)
-    
-    path_pts = transform.transform_path(path)
+    step = 0.02
+
+    matrix, xmin, xmax, ymin, ymax, nx, ny = field.create_matrix_field(poly = field_boundary ,step = step)
 
 
-    # GET THE SIZE OF THE LIST
-    N = len(pp)
-    col = 'k'
+    #################### LOCATING CHARGING STATIONS ####################
+    # USE LINEAR PROGRAMMING TO OPTIMIZE THE LOCATION OF THE CHARGING STATIONS IN A FIELD
+
+    half_distance  = CS_radius
+    numberStations = candidate
+    max_solutions = 10
+    start_point = sp
+
+    CS = linear_program( binMatrix = matrix, xmin=xmin, xmax=xmax,ymin=ymin,ymax=ymax,nx = nx, ny = ny, step = step,
+                        ns = numberStations , rad = half_distance , solMax = max_solutions, start = start_point)
+
+
+
+
+    # #################### SPLIT POLYGONS INTO A LIST OF TRIANGLES ####################
+    # # EACH CHARGING STATION HAS A POLYGON FIELD, WHICH WILL BE SPLIT INTO TRIANGLES, 
+    # # WHERE THE CHARGING STATION IS A VERTEX AND THE BOUNDARIES ARE THE OTHER VERTICES
+
+    sites = [ (x,y) for x,y in zip( CS[0][:], CS[1][:] ) ]
+    
+    vononili_lst = field.create_voronoi_polygons(site=sites, boundary=field_boundary)
+
+
+
+
+    ############################################      
+    from scipy.spatial import voronoi_plot_2d
+    from scipy.spatial import Voronoi
     
     
-    plt.plot(0,0,'ro')
+    ### Create a box to bound
+    
+    xVal = np.array([x[0] for x in field_boundary])
+    yVal = np.array([y[1] for y in field_boundary])
+    
+    xmin = np.min(xVal) 
+    xmax = np.max(xVal) 
+    ymin = np.min(yVal) 
+    ymax = np.max(yVal) 
+    
+    diffx = xmax - xmin
+    diffy = ymax - ymin
+    
+    xmin -= 2*diffx
+    xmax += 2*diffx 
+    ymin -= 2*diffy  
+    ymax += 2*diffy  
+    
 
-    # ITERATE THROUGH THE LIST OF POINTS
-    for i in range(N):
+    vor = Voronoi(sites)    
+    
+    
+    # CREATE A FIGURE OBJECT
+    fig1 = plt.figure(1)
+    
+    # CREATE A SUBPLOT IN THE FIGURE 
+    ax1 = fig1.add_subplot(111)  
+    ax1.set_xlabel('x-axis: kilometers (km)')
+    ax1.set_ylabel('y-axis: kilometers (km)')
 
-        # SELECT i ELEMENT FROM THE LIST
-        x1 = pp[i][0]
-        y1 = pp[i][1]
+    
+    voronoi_plot_2d(vor, ax1, show_vertices = False)
+    dr = Draw(ax1)
+    fig1.savefig(os.path.join(outpath,"undefinedVoronoiRegion.png"))
 
-        # IF THIS IS THE LAST ELEMENT IN THE LIST
-        if( i == N-1):
+
+   #######################################
+    
+        
+    
+    
+    box = [ [xmin,ymin] , [xmin,ymax], [xmax,ymax] , [xmax,ymin] ]
+
+    vor = Voronoi(sites + box)  
+
+    # CREATE A FIGURE OBJECT
+    fig2 = plt.figure(2)
+    
+    # CREATE A SUBPLOT IN THE FIGURE 
+    ax2 = fig2.add_subplot(111)
+    ax2.set_xlabel('x-axis: kilometers (km)')
+    ax2.set_ylabel('y-axis: kilometers (km)')
+    voronoi_plot_2d(vor, ax2,show_vertices = False)
+    dr = Draw(ax2)
+    dr.boundary(field_boundary,lines = 'dotted')
+    dr.draw_sites(box,col = 'r',mark = '*')
+    fig2.savefig(os.path.join(outpath,"boundedVoronoiRegion.png"))
+   
+    #######################################
+
+
+
+
+
+    #######################################
+    #######################################
+    # CREATE A FIGURE OBJECT
+    fig3 = plt.figure(3)
+    
+    # CREATE A SUBPLOT IN THE FIGURE 
+    ax3 = fig3.add_subplot(111)
+    ax3.set_xlabel('x-axis: kilometers (km)')
+    ax3.set_ylabel('y-axis: kilometers (km)')
+    
+    draw3 = Draw(ax3)
+    draw3.draw_sites(sites)
+    draw3.boundary(field_boundary)
+    
+    for v in vononili_lst:
+        draw3.boundary(v[0])
+    
+    fig3.savefig(os.path.join(outpath,"shapeBoundVoronoiRegion.png"))
+
+    #######################################
+    #######################################
+
+
+
+
+
+   
+    # # ordered
+    vononili_polys,entryExitLst, vertices = tour(start_point, drone.MAX_DISTANCE , vononili_lst)
+    
+
+    #######################################
+    #######################################
+    # CREATE A FIGURE OBJECT
+    fig4 = plt.figure(4)
+    
+    # CREATE A SUBPLOT IN THE FIGURE 
+    ax4 = fig4.add_subplot(111)    
+    ax4.set_xlabel('x-axis: kilometers (km)')
+    ax4.set_ylabel('y-axis: kilometers (km)')
+    
+    draw4 = Draw(ax4)
+    draw4.draw_sites(sites)
+    draw4.boundary(field_boundary)
+    
+    for v in vononili_polys:
+        draw4.boundary(v[0])
+        
+    draw4.draw_sites_path(vertices)
+    
+    fig4.savefig(os.path.join(outpath,"regionTour.png"))
+
+    
+    
+    #######################################
+    #######################################
+
+
+
+    # #################### FIND PATH FOR A GIVEN TRIANGLE ####################
+
+    path_lst = []
+    
+    N = len(vononili_polys)
+    
+    k = 0
+
+
+
+
+    #######################################
+    #######################################
+    # CREATE A FIGURE OBJECT
+    fig5 = plt.figure(5)
+    
+    # CREATE A SUBPLOT IN THE FIGURE 
+    ax5 = fig5.add_subplot(111)    
+    ax5.set_xlabel('x-axis: kilometers (km)')
+    ax5.set_ylabel('y-axis: kilometers (km)')
+    
+    draw5 = Draw(ax5)
+     
+    #######################################
+    #######################################
+        
+    for i,vononili_poly in enumerate(vononili_polys):
+        
+        #print('\n----- Voronoi ',i,' ------')
+
+        
+        # CREATE TRIANGLES FROM THE POLYGON, STORE AS LIST
+        triangle_lst = field.create_triangle(poly = vononili_poly[0] , vertex = vononili_poly[1] ,)
+
+        # LOOP THROUGH A LIST OF TRIANGLES, FIND PATH THAT COVERS THE AREA OF EACH
+
+        for j,triangle in enumerate(triangle_lst):  
             
-            # DRAW A LINE FROM THE LAST ELEMENT TO THE FIRST ELEMENT 
-            plt.plot( (pp[0][0] ,  x1) , (pp[0][1] ,y1) ,color= col)
+            draw5.boundary(triangle.get_all_points())
 
+            #print('\n--- Triangle ', k, ' ---')
+
+            ### LINEAR TRANSFORMATIONS ###
+            transform =  Transformation()
+            
+            curCS, trans_triangle, entryExit = transform.transform_triangle(triangle,entryExitLst[i])
+
+            ### ALGORITHM ###
+
+            DP = Drone_Path(trans_triangle , drone , entryExit)
+            
+            drone,path = DP.algorithm(curCS)
+
+            trans_path = transform.transform_path(path) # TRANSFORM PATH TO FIT ORIGINAL SHAPE
+        
+
+            # ADD PATH TAKEN TO THE PATH LIST 
+            path_lst.append(trans_path)
+            #Canvas.boundary(triangle.get_all_points())
+
+            # SET DRONE POSITION TO [0,0]
+            drone.curPoint = np.array([0,0])       
+            drone.curMax_distance = drone.MAX_DISTANCE
+        
+    
+        
+        
+        
+
+        # HERE, WE WILL ADD THE DISTANCE FROM ONE CHARGING STATION TO ANOTHER
+        
+        
+        
+        if i == N-1:         
+            nVert = len(vertices)
         else:
-            # SELECT i+1 ELEMENT FROM THE LIST
-            x2 = pp[i+1][0]
-            y2 = pp[i+1][1]              
+            nVert = k + 2
+            
+        while(k < nVert-1):
+            
+            curCS = vertices[k]
+            nextVert = vertices[k+1]
+            nextCS = vertices[k+2]
+            
+            dist_curCS_nextVert = dist(curCS,nextVert)
+            dist_nextVert_nextCS = dist(nextVert,nextCS)
+            
+            req_dist_travel = dist_curCS_nextVert + dist_nextVert_nextCS
+            
+            if(drone.curMax_distance >= req_dist_travel):
+                
+                drone.total_distance_travel += req_dist_travel
+                drone.curMax_distance -= req_dist_travel         
+                drone.curMax_distance = drone.MAX_DISTANCE
 
-            # DRAW A LINE FROM i ELEMENT TO i+1 ELEMENT
-            plt.plot( (x1,x2) , (y1,y2) ,color=col)
-
-
-
-    # CREATE A TUPLE WITH THREE RANDOM NUMBERS ( USED FOR RGM COLORING)
-    colors = np.random.rand(3,)
+                
+                k += 2   
+                
+            else:
+                raise('Could not Travel to next CS')
     
-    # ITERATE THROUGH THE LIST OF POINTS
-    for i in range( len(path_pts) - 1 ):
+    for vononili_poly in vononili_polys:
+        draw5.boundary(vononili_poly[0],col='b',lines='dotted')
+    draw5.draw_sites(sites)  
+    fig5.savefig(os.path.join(outpath,"triangularRegions.png"))
 
-        # SELECT i ELEMENT FROM THE LIST
-        x1 = path_pts[i][0]
-        y1 = path_pts[i][1]
 
-        # SELECT i+1 ELEMENT FROM THE LIST
-        x2 = path_pts[i+1][0]
-        y2 = path_pts[i+1][1]  
-
-        # IF i ELEMENT IS IN THE ORIGIN, CHANGE COLORS
-        # THIS HELPS IDENTIFY NEW PATHS FROM THE DRONE PROJECT
-        if ( (x1==path_pts[0][0] and y1==path_pts[0][1])):
-          
-            # CREATE A TUPLE WITH THREE RANDOM NUMBERS ( USED FOR RGM COLORING)
-            colors = np.random.rand(3,)
-      
-        # DRAW A LINE FROM i ELEMENT TO i+1 ELEMENT
-        plt.plot( (x1,x2) , (y1,y2) , c = colors , linewidth = 1, alpha = 0.7 )
-
-    plt.xlabel('x-axis: kilometers (km)')
-    plt.ylabel('y-axis: kilometers (km)')
-    plt.savefig('dronePathTriangle.png')
+    if showPlot :
+        #################### DRAW PLOTS ####################
+        
+        
     
+        # CREATE A FIGURE OBJECT
+        fig6 = plt.figure(6)
+        
+        # CREATE A SUBPLOT IN THE FIGURE 
+        ax6 = fig6.add_subplot(111)
+        ax6.set_xlabel('x-axis: kilometers (km)')
+        ax6.set_ylabel('y-axis: kilometers (km)')
+        
+        
+        Canvas = Draw(ax6)
     
-#    field = Field()
-#    
-#
-#    drone = Drone(radius= 0.025, max_distance = 8, velocity = 25) 
-#     
-#    
-#    # Initialize Charging Pad
-#    volt = 25
-#    cPad = ChargingPad(volt)
-#
-#    ### SHAPE ###
-#    # Square
-#    pentagon = [ [-1,-1] , [3,-1] , [3,2] , [1,4] , [-1,2]]
-#    
-#    start_point = np.array([0,0])
-#
-#    sites = [ [0, 0], [2, 0], [1, 2], [1, 1] ]
-#
-#    vononili_lst = field.create_voronoi_polygons(site=sites, boundary=pentagon)
-#    
-#    # ordered
-#    vononili_polys,entryExitLst, vertices = tour(start_point, drone.MAX_DISTANCE , vononili_lst)
-#
-#    #################### FIND PATH FOR A GIVEN TRIANGLE ####################
-#
-#    path_lst = []
-#
-#    for i,vononili_poly in enumerate(vononili_polys):
-#        
-#        #print('\n----- Voronoi ',i,' ------')
-#
-#        
-#        # CREATE TRIANGLES FROM THE POLYGON, STORE AS LIST
-#        triangle_lst = field.create_triangle(poly = vononili_poly[0] , vertex = vononili_poly[1] ,)
-#
-#        # LOOP THROUGH A LIST OF TRIANGLES, FIND PATH THAT COVERS THE AREA OF EACH
-#
-#        for triangle in triangle_lst:    
-#
-#            #print('\n--- Triangle ', k, ' ---')
-#
-#            ### LINEAR TRANSFORMATIONS ###
-#            transform =  Transformation()
-#            curCS, trans_triangle, entryExit = transform.transform_triangle(triangle,entryExitLst[i])
-#
-#
-#            ### ALGORITHM ###
-#
-#            DP = Drone_Path(trans_triangle , drone , cPad ,entryExit)
-#            
-#            drone,path = DP.algorithm(curCS)
-#
-#            trans_path = transform.transform_path(path) # TRANSFORM PATH TO FIT ORIGINAL SHAPE
-#
-#
-#            # ADD PATH TAKEN TO THE PATH LIST 
-#            path_lst.append(trans_path)
-#            #Canvas.boundary(triangle.get_all_points())
-#
-#            # SET DRONE POSITION TO [0,0]
-#            drone.curPoint = np.array([0,0])         
-#            cPad.charge_drone(drone)
-#
-#
+        # DRAW SHAPE BOUNDARY
+        Canvas.boundary(field_boundary)
     
+        for vononili_poly in vononili_polys:
+            #print(vononili_poly)
+            Canvas.boundary(vononili_poly[0],col='b')
+            pass
     
+        # DRAW THE PATH THE DRONE TOOK
+        # LOOP THROUGH ALL THE PATHS AND DRAW THEM ON THE PLOT
+        for path in path_lst:
+            # DRAW PATH 
+            Canvas.path(path)
+            pass
     
+        Canvas.draw_sites(sites)
+        
+        fig6.savefig(os.path.join(outpath,"dronePathPentagon.png"))
+
     
+        # SHOW PLOT
+        #plt.gca().set_aspect('equal',adjustable='box')
+        plt.plot()
+
+
+    #   'num_Charging_Station','Total_Time','Total_Distance_Travel'
+
+    return len(sites),drone.total_distance_travel
+
+
+
+
+
+if __name__ == '__main__':
+
+    # IF THIS FILE IS RUN, THE FOLLOWING CODE WILL BE READ
     
+    try:
+        
+        
+         ### INITIALIZE DRONE PROPERTIES ###
+
+        drone = Drone(radius=0.025, max_distance = 8)       
     
-    ###################################
-    ## Pentagon Drone Passage
-    ###################################    
+        #field_boundary =  [ (0,0) , (0,7) , (7,7) , (7,0)]
+        #field_boundary = [ (0,0),(2.28,0),(3.88,1.61),(3.88,3.88),(2.28,5.49),(0,5.49),(-1.61,3.88),(-1.61,1.61) ]
+        field_boundary =  [ (0,0) , (0,5) , (10,5) , (10,0)]
+        #field_boundary =  [ [0,0] , [0,3] , [4,5] , [8,3] , [8,0]]
+
+        
+        CS_radius = 3.5
+        
     
-    
-    
-    
-#
-#    for p in sites:
-#        
-#        plt.plot(p[0],p[1],'ro')
-#
-#    col = 'k'
-#    ## DRAW SHAPE
-#    N = len(pentagon)
-#    # ITERATE THROUGH THE LIST OF POINTS
-#    for i in range(N):
-#
-#        # SELECT i ELEMENT FROM THE LIST
-#        x1 = pentagon[i][0]
-#        y1 = pentagon[i][1]
-#
-#        # IF THIS IS THE LAST ELEMENT IN THE LIST
-#        if( i == N-1):
-#            
-#            # DRAW A LINE FROM THE LAST ELEMENT TO THE FIRST ELEMENT 
-#            plt.plot( (pentagon[0][0] ,  x1) , (pentagon[0][1] ,y1) ,color= col)
-#
-#        else:
-#            # SELECT i+1 ELEMENT FROM THE LIST
-#            x2 = pentagon[i+1][0]
-#            y2 = pentagon[i+1][1]              
-#
-#            # DRAW A LINE FROM i ELEMENT TO i+1 ELEMENT
-#            plt.plot( (x1,x2) , (y1,y2) ,color=col)
-#
-#    # DRAW Path
-#    
-#    for path_pts in path_lst:
-#        # CREATE A TUPLE WITH THREE RANDOM NUMBERS ( USED FOR RGM COLORING)
-#        colors = np.random.rand(3,)
-#        
-#        # ITERATE THROUGH THE LIST OF POINTS
-#        for i in range( len(path_pts) - 1 ):
-#    
-#            # SELECT i ELEMENT FROM THE LIST
-#            x1 = path_pts[i][0]
-#            y1 = path_pts[i][1]
-#    
-#            # SELECT i+1 ELEMENT FROM THE LIST
-#            x2 = path_pts[i+1][0]
-#            y2 = path_pts[i+1][1]  
-#    
-#            # IF i ELEMENT IS IN THE ORIGIN, CHANGE COLORS
-#            # THIS HELPS IDENTIFY NEW PATHS FROM THE DRONE PROJECT
-#            if ( (x1==path_pts[0][0] and y1==path_pts[0][1])):
-#               
-#                # CREATE A TUPLE WITH THREE RANDOM NUMBERS ( USED FOR RGM COLORING)
-#                colors = np.random.rand(3,)
-#          
-#            # DRAW A LINE FROM i ELEMENT TO i+1 ELEMENT
-#            plt.plot( (x1,x2) , (y1,y2) , c = colors , linewidth = 1, alpha = 0.7 )
-#
-#    plt.gca().set_aspect('equal',adjustable='box')
-#
-#
-#    plt.savefig('photos\\dronePathPentagon.png')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#voronoiRegionCreation()
-    
-field_paths()
+        lst = run_program(drone, CS_radius , field_boundary, 50 , np.array([0, 0]) )
+        
+        print('')
+        print('nCS:',lst[0])
+        print('Time:',lst[1]/25)
+        print('Travel',lst[1])
+        
+    except:
+        
+        print(traceback.format_exc())

@@ -14,7 +14,7 @@ import numpy as np
 import traceback
 
 
-def run_program(drone, CS_radius , shape ,candidate, showPlot = True):
+def run_program(drone, CS_radius , shape ,candidate, sp , showPlot = True):
     
     
     #################### INITIALS ####################
@@ -40,7 +40,7 @@ def run_program(drone, CS_radius , shape ,candidate, showPlot = True):
     half_distance  = CS_radius
     numberStations = candidate
     max_solutions = 10
-    start_point = np.array([0, 0])
+    start_point = sp
 
     CS = linear_program( binMatrix = matrix, xmin=xmin, xmax=xmax,ymin=ymin,ymax=ymax,nx = nx, ny = ny, step = step,
                         ns = numberStations , rad = half_distance , solMax = max_solutions, start = start_point)
@@ -54,9 +54,6 @@ def run_program(drone, CS_radius , shape ,candidate, showPlot = True):
     # WHERE THE CHARGING STATION IS A VERTEX AND THE BOUNDARIES ARE THE OTHER VERTICES
 
     sites = [ (x,y) for x,y in zip( CS[0][:], CS[1][:] ) ]
-    
-    for s in sites:
-        print(s)
 
     vononili_lst = field.create_voronoi_polygons(site=sites, boundary=field_boundary)
     
@@ -204,7 +201,7 @@ if __name__ == '__main__':
         CS_radius = 2.5
         
     
-        lst = run_program(drone, CS_radius , field_boundary, 50 )
+        lst = run_program(drone, CS_radius , field_boundary, 50, np.array([0, 0]) )
         
         print('')
         print('nCS:',lst[0])
