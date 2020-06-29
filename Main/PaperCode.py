@@ -22,6 +22,7 @@ def run_program(drone, CS_radius , shape ,candidate, sp,  showPlot = True):
     
     outpath = './photos/'
     
+    plt.close()
     
     #################### INITIALS ####################
     field = Field()
@@ -266,33 +267,33 @@ def run_program(drone, CS_radius , shape ,candidate, sp,  showPlot = True):
         
         
         
-        if i == N-1:         
-            nVert = len(vertices)
-        else:
-            nVert = k + 2
+        # if i == N-1:         
+        #     nVert = len(vertices)
+        # else:
+        #     nVert = k + 2
             
-        while(k < nVert-1):
+        # while(k < nVert-1):
             
-            curCS = vertices[k]
-            nextVert = vertices[k+1]
-            nextCS = vertices[k+2]
+        #     curCS = vertices[k]
+        #     nextVert = vertices[k+1]
+        #     nextCS = vertices[k+2]
             
-            dist_curCS_nextVert = dist(curCS,nextVert)
-            dist_nextVert_nextCS = dist(nextVert,nextCS)
+        #     dist_curCS_nextVert = dist(curCS,nextVert)
+        #     dist_nextVert_nextCS = dist(nextVert,nextCS)
             
-            req_dist_travel = dist_curCS_nextVert + dist_nextVert_nextCS
+        #     req_dist_travel = dist_curCS_nextVert + dist_nextVert_nextCS
             
-            if(drone.curMax_distance >= req_dist_travel):
+        #     if(drone.curMax_distance >= req_dist_travel):
                 
-                drone.total_distance_travel += req_dist_travel
-                drone.curMax_distance -= req_dist_travel         
-                drone.curMax_distance = drone.MAX_DISTANCE
+        #         drone.total_distance_travel += req_dist_travel
+        #         drone.curMax_distance -= req_dist_travel         
+        #         drone.curMax_distance = drone.MAX_DISTANCE
 
                 
-                k += 2   
+        #         k += 2   
                 
-            else:
-                raise('Could not Travel to next CS')
+        #     else:
+        #         raise('Could not Travel to next CS')
     
     for vononili_poly in vononili_polys:
         draw5.boundary(vononili_poly[0],col='b',lines='dotted')
@@ -366,7 +367,7 @@ if __name__ == '__main__':
         #field_boundary =  [ [0,0] , [0,3] , [4,5] , [8,3] , [8,0]]
 
         
-        CS_radius = 3.5
+        CS_radius = 2.5
         
     
         lst = run_program(drone, CS_radius , field_boundary, 50 , np.array([0, 0]) )

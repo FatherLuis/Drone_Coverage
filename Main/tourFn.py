@@ -28,48 +28,142 @@ def logicalFn(y):
 
 ##############################################################################################
 
-def finalPath(start, pathArr, singLvec, dMx):
+def finalPath(start, pathArr, singLvec, aMx):
     
     '''Function to return path given start, edges(pathArray) 
         and array indicating where singleton is connected'''
-    result = 0
+    result = []
     
+    path = np.array(pathArr)
 
-    # CHECK IF SINGLETON ARRAY IS EMPTY
+
+    # THERE ARE THREE CASES:
+    # CASE I: THERE ARE NO SINGLETONS
+    # CASE II: ALL THE VERTICES ARE SINGLETONS
+    # CASE III: SOME ARE SINGLETONS
+    
+    
+    nCS = len(singLvec)
+    
+    # CASE I : THERE ARE NO SINGLETONS
     if np.sum(singLvec) == 0:
-        result = 1*pathArr
-   
+        result = path
+        
+    # CASE II: ALL VERTICES ARE SINGLETONS
+    elif np.sum(singLvec) == nCS:
+        
+        idx = 0
+        result.append(idx)
+        singLvec[idx] = 0
+        
+        for k in range(nCS-1):
+    
+            row = aMx[idx,:]
+            idx = np.where(row == 1)[0][0]
+            result.append(idx)
+            
+            
+            aMx[:,np.logical_not(singLvec)] = 0
+            aMx[np.logical_not(singLvec),:] = 0
+            
+            singLvec[idx] = 0
+        
+        
+        # NEED TO RETURN THE WAY I CAME IN
+
+        reverse_lst = [elem for elem in reversed(result[:-1])]
+        result.extend(reverse_lst)
+
+
+    # CASE III: THERE IS A PATH AND THERE ARE SINGLETONS
     else:
 
-        singvecTemp = np.copy(singLvec) 
         
-        while( len(singvecTemp) > 0 ):
+        
+        path = np.arange(nCS)[np.logical_not(np.array(singLvec))][path[:-1]].tolist()
+        
+        # path_idx = 0
+        # path = path[:-1]
+        
+        # last_nonSing = np.where(singLvec == False)[0][-1]
+        # for k,isSingle in enumerate(singLvec):
             
-            dMxTmp = dMx[np.ix_(np.logical_not(singLvec),singLvec)]# Remaining edge vector
-            singvecTemp = np.sum( dMxTmp[ np.logical_not(singLvec) , : ] > 0 , 0 ) == 1
-            singLvec = np.logical_or(singLvec,singvecTemp)
             
-
-
-        
-        path = np.asarray(list(map(lambda x: x + 1, pathArr)))
-        idx = idxArray[-1]
-        loc = np.where(path == idx+1)[0][-1] #gets last of matching indices
-        afterIdx = np.append(path[loc:-1][::-1], start[0][0]) #reverse element after index
-        res = np.append(start[1][0], path[: (loc + 1)][::-1])
-        result = np.append(res, afterIdx)
-        
-        #print("result: ", result)
-        
-        if idxArray.size > 1:
-            idxArr = idxArray[: -1]
             
-            for index in idxArr:
-                loc = np.where(result == index+1)[0][-1] #gets last of matching indices
-                numBefore = result[loc-1]
-                result = np.insert(result, loc+1, numBefore)    
+            
+        #     if isSingle  and last_nonSing > k: 
+                
+                
+        #         path[path_idx:] += 1
+        #         path_idx += 1
+                
+                
+                
+        
+        # path = path.tolist()                 
+        
+        
+        for i,(row,isSingle) in enumerate(zip(aMx,singLvec)):
+            
+            if( isSingle ):
+                
+                
+                next_idx = np.where(row == 1)[0][0]
+                
+                idx = np.where(path == next_idx)[0][0]
+                
+                path.insert(idx, next_idx)
+                path.insert(idx+1 , i)
+                
+        
+        
+        result = path
+        
+        
+        while not(result[0] == 0):
+            
+            result.append(result.pop(0))
+        
+        result.append(result[0])
     
-    #Ask about case where dMxSingleTmp has more than one elem > 0
+        
+        
+        # path_idx = 0
+        
+        # for i,(single,row) in enumerate(zip(singLvec,aMx)):
+            
+            
+        #     if( single ):
+                
+        #         nextIdx = np.where(row == 1)[0][0]
+                
+        #         if i == 0:
+        #             result.append(nextIdx)
+        #             result.append(i)
+        #         else:
+        #             result.append(i)
+        #             result.append(nextIdx)
+
+        #         path[path_idx:] += 1
+        #     else:
+        #         nextIdx = path[path_idx]
+        #         result.append(nextIdx)
+        #         path_idx +=1
+        
+        # # IF THE THE FIRST CS WAS A SINGLETON, 
+        # # WE'LL SHIFT THE RESULT TO THE LEFT BY ONE
+        # if singLvec[0] :
+            
+        #     result.append(result.pop(0))
+            
+        # # ADD THE FIRST CS TO THE END OF THE RESULT
+        # result.append(result[0])
+            
+
+
+    print(result)
+
+
     return result    
 
 
@@ -82,6 +176,7 @@ def tourFn(startP, locsTmp, adjMatrix):
     
     ncs = locsTmp.shape[1] #size(locsTmp,2)
     
+    print(locsTmp)
 
     ##############################################
     #### CREATE A ADJACENT DISTANCE MATRIX 
@@ -93,7 +188,7 @@ def tourFn(startP, locsTmp, adjMatrix):
     #dMxTmp = dMxTmp - dMxTmp * (dMxTmp >= 2*rad) # possible edges
     dMxTmp = dMxTmp * adjMatrix  # dMxTmp = dMxTmp * (my matrix) # replace 127
     
-    dMx = np.copy(dMxTmp)
+    aMx = np.copy(adjMatrix)
     
     ##############################################
     #### ELIMINATE SINGLETON PATHS FROM THE dMxTmp
@@ -119,7 +214,7 @@ def tourFn(startP, locsTmp, adjMatrix):
         
         
     # WE TAKE OFF THE SINGLETONS FROM THE MATRIX
-    dMxTmp = dMxTmp[np.ix_(singLvec,singLvec)]
+    dMxTmp = dMxTmp[np.ix_(np.logical_not(singLvec),np.logical_not(singLvec))]
         
         
         
@@ -238,7 +333,7 @@ def tourFn(startP, locsTmp, adjMatrix):
             #print("dMxSingleTmp: ", dMxSingleTmp)
             
             ## PUTS PATH INDECES TOGETHER USING THE START POINT, EDGES PATH, AND THE SINGLETONS
-            fPath = finalPath(startP.reshape(-1,1), path, singLvec,dMx)#
+            fPath = finalPath(startP.reshape(-1,1), path, singLvec,aMx)#
             
             #print("****************************************************************************\n")
             #print("xNew:\n", xNew) #xNew.trans()
@@ -248,9 +343,9 @@ def tourFn(startP, locsTmp, adjMatrix):
     
     else:
         
-        fPath = finalPath(startP.reshape(-1,1), [0], singLvec, dMx)
+        fPath = finalPath(startP.reshape(-1,1), [0], singLvec, aMx)
         
-        return locsTmp, fPath, tourDist
+        return locsTmp, fPath, 0
         
         
         
@@ -265,16 +360,49 @@ if __name__ == '__main__':
     
     startP = np.array([0, 0]) #Starting point for tour (point of origin)
     
-    #locs = np.array([[0.,2.,2.,6.,5.],
-                    #[0.,2.,6.,2.,5.]])
+    locs = np.array([[0.,2.,2.,6.,5.],
+                    [0.,2.,6.,2.,5.]])
     
     
     # ABCDE
-    #adjMatrix = np.array([[0,1,0,0,0],
-                         #[1,0,1,1,1],
-                         #[0,1,0,0,1],
-                         #[0,1,0,0,1],
-                         #[0,1,1,1,0]])
+    # adjMatrix = np.array([[0,1,0,0,0],
+    #                       [1,0,1,1,1],
+    #                       [0,1,0,0,1],
+    #                       [0,1,0,0,1],
+    #                       [0,1,1,1,0]])
+    
+  
+    
+    # adjMatrix = np.array([[0. ,1. ,1. ,0.],
+    #  [1. ,0. ,1. ,0.],
+    #  [1. ,1. ,0. ,1.],
+    #  [0. ,0. ,1. ,0.]])
+    
+    # locs = np.array([[0.   ,0.8  ,4.44 ,8.34],
+    #                 [0.   ,3.5  ,2.42 ,2.66]])
+    #[0, 2, 3, 2, 3, 0]   
+    
+    # adjMatrix = np.array([[0. ,0. ,0. ,1.],
+    #                      [0. ,0. ,1. ,1.],
+    #                      [0. ,1. ,0. ,1.],
+    #                      [1. ,1. ,1. ,0.]])
+    
+    # locs = np.array([[0.   ,7.32 ,7.48 ,2.46],
+    #                  [0.   ,3.64 ,1.68 ,2.68]])
+    # #[0, 2, 3, 0, 3, 0]
+    
+    
+    
+    adjMatrix = np.array([[0. ,0. ,1. ,1.],
+                          [0. ,0. ,0. ,1.],
+                          [1. ,0. ,0. ,1.],
+                          [1. ,1. ,1. ,0.]])
+    
+    locs = np.array([[0.   ,9.44 ,2.08 ,5.76],
+                     [0.   ,2.1  ,3.24 ,2.62]])
+    
+    
+    
     
     
     # THESE PARAMETERS ARE CAUSING TROUBLES
@@ -284,19 +412,87 @@ if __name__ == '__main__':
     #(4.94, 2.58)
     #(8.100000000000001, 2.66)
                              
-    locs = np.array( [[0.0, 2.38, 4.94 ,8.10] , [0.0 , 2.42 , 2.58 , 2.66]] )
+    # locs = np.array( [[0.0, 2.38, 4.94 ,8.10] , [0.0 , 2.42 , 2.58 , 2.66]] )
     #------------- ADJ Matrix ----------------
     
-    adjMatrix = np.array( [[0., 1., 0., 0.],
-                          [1., 0., 1., 0.],
-                          [0., 1., 0., 1.],
-                          [0., 0., 1., 0.]] )  
+    # adjMatrix = np.array( [[0., 1., 0., 0.],
+    #                       [1., 0., 1., 0.],
+    #                       [0., 1., 0., 1.],
+    #                       [0., 0., 1., 0.]] )  
+    
+    
+    
+    
+    
+    
+    
+    # adjMatrix = np.array([[0., 1., 0., 1.],
+    #                      [1., 0.,1., 1.],
+    #                      [0., 1., 0.,0.],
+    #                      [1., 1.,0.,0.]])
+
+    # locs = np.array([[0.   ,4.48 ,8.2  ,2.38],
+    #                  [0.   ,2.56 ,2.84 ,3.16]])
+    #[0, 1, 1, 2, 3]
+    
+    
+    # adjMatrix = np.array([[0. ,0. ,1. ,1.],
+    #              [0. ,0. ,0. ,1.],
+    #              [1. ,0. ,0. ,1.],
+    #              [1. ,1. ,1. ,0.]])
+    
+    # locs = np.array([[0.   ,7.94 ,1.72 ,5.2 ],
+    #                  [0.   ,2.18 ,4.26 ,2.62]])   
+    
+    #[0, 1, 3, 2, 3, 0]
+
+
+
+
+    # adjMatrix = np.array([[0. ,1. ,1. ,0.],
+    #                       [1. ,0. ,1. ,1.],
+    #                       [1. ,1. ,0. ,0.],
+    #                       [0. ,1. ,0. ,0.]])
+    
+    # locs = np.array([[0.   ,4.18 ,1.52 ,8.86],
+    #                   [0.   ,2.5  ,3.96 ,2.6 ]])
+    #[0, 3, 1, 1, 2, 0])
+
+
+    # adjMatrix = np.array([[0. ,0. ,1. ,1.],
+    #                       [0. ,0. ,1. ,0.],
+    #                       [1. ,1. ,0. ,1.],
+    #                       [1. ,0. ,1. ,0.]])
+    
+    # locs = np.array([[0.   ,9.12 ,4.92 ,1.72],
+    #                   [0.   ,2.02 ,2.98 ,3.44]])
+
+
+    # [0, 2, 3, 1, 2, 0]
+    
+    
+    #################
+    #TOUR Lin Eq
+    
     
 
+    adjMatrix = np.array([[0. ,0. ,0. ,1. ,0. ,1.],
+                          [0. ,0. ,1. ,1. ,1. ,0.],
+                          [0. ,1. ,0. ,0. ,1. ,0.],
+                          [1. ,1. ,0. ,0. ,1. ,1.],
+                          [0. ,1. ,1. ,1. ,0. ,1.],
+                          [1. ,0. ,0. ,1. ,1. ,0.]])
+    
+    locs = np.array([[0.   ,8.02 ,8.36 ,3.6  ,5.54 ,1.8 ],
+                     [0.   ,1.   ,3.94 ,0.16 ,3.92 ,3.32]])    
+    
+    
+    
     ##################################
     
     locsTmp, fPath, tourDist = tourFn(startP, locs, adjMatrix)
     
+    print('\n')
     print(locsTmp)
     print('')
     print(fPath)
