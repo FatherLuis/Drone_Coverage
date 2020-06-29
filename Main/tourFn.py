@@ -29,6 +29,7 @@ def logicalFn(y):
 ##############################################################################################
 
 def finalPath(start, pathArr, singLvec, dMx):
+    
     '''Function to return path given start, edges(pathArray) 
         and array indicating where singleton is connected'''
     result = 0
@@ -99,25 +100,26 @@ def tourFn(startP, locsTmp, adjMatrix):
     ##############################################
     
     # Check whether any singletons that are connected to only 1 site
-    # Store singletons (nodes with only one way to get there)
-    singLvec = (np.sum(dMxTmp>0, 0) == 1)  #Stations that can only be reached by 1
+    # Store singletons (nodes with only one way to get there)    
+    singLvec = (np.sum(adjMatrix, axis = 0) == 1)
     singvecTemp = np.copy(singLvec) 
     
-    while( len(singvecTemp) > 0 ):
+    
+    while sum(singvecTemp) > 0:
         
-        singvecTemp = np.sum( dMxTmp[ np.logical_not(singLvec) , : ] > 0 , 0 ) == 1
+        # ZERO OUT THE SINGLETONS ON THE MATRIX
+        adjMatrix[:,singLvec] = 0
+        adjMatrix[singLvec,:] = 0
+    
+        
         singLvec = np.logical_or(singLvec,singvecTemp)
         
+        singvecTemp = (np.sum(adjMatrix, axis = 0) == 1)
+
         
         
-    
-    
-    if sum(singLvec >= 1):
-        #dMxSingleTmp = dMxTmp[singLvec,:] # connect single with other CS
-        dMxTmp = dMxTmp[np.ix_(np.logical_not(singLvec),np.logical_not(singLvec))]# Remaining edge vector
-      
-        
-        
+    # WE TAKE OFF THE SINGLETONS FROM THE MATRIX
+    dMxTmp = dMxTmp[np.ix_(singLvec,singLvec)]
         
         
         
