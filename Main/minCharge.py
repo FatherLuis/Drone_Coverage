@@ -19,13 +19,6 @@ from Field import Field
 
 
 
-
-# Note: Changed code from Script to Method
-# (4/23/2020): Changed minCharge from Version 2 to Version 4
-# (4/23/2020): Changed TourFn from Version 2 to Version 4
-# https://www.zanaducloud.com/2AE3C865-980D-4561-BBA2-BC42028DAD54
-# print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n")
-
 # ns: Number of possible charging station positions
 # rad: coverage radius
 # solMax: Maximum number of solutions
@@ -44,8 +37,8 @@ def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad ,solMax
     power = 2 #Penalty for large distances
     solMx = np.array([])
 
-    inclVec = binMatrix.flatten().astype(bool)
 
+    inclVec = binMatrix.flatten().astype(bool)
 
     xVec = np.repeat( np.arange(xmin,xmax,step), ny )[inclVec]
     yVec = np.tile(np.arange(ymin,ymax,step), nx )[inclVec]
@@ -55,11 +48,6 @@ def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad ,solMax
 
 
 
-
-
-    ######################################
-    # CODE AFTER HERE REFLECTS SHAUNNA WORK
-    ######################################
 
     # Locate charging stations
     locs0 = r.sample(range(np_tot),ns) #k Random locations for charging station
@@ -93,8 +81,8 @@ def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad ,solMax
 
     
     #Minimize cx
-    # subject to Ax <= b
-    # A negative is placed in the parameter because ilp only does Ax >= B
+    # subject to Ax >= b
+    # A negative is placed in the parameter because ilp only does Ax <= B
     
     for ii in range(solMax):
         
@@ -184,19 +172,15 @@ def tour(start,rad,voronoi_lst):
     
 
     csLocs = [x[1] for x in voronoi_lst]
-    
-    print('-------------Charging Stations-------------------')
-    for x in csLocs:
-        print(x)
 
-    n = len(csLocs)
-    mtx = np.zeros( (n,n) )
+    nCS = len(csLocs)
+    mtx = np.zeros( (nCS,nCS) )
 
-    for i in range(n):
+    for i in range(nCS):
 
         vor_set = set(voronoi_lst[i][0])
 
-        for j in range(n):
+        for j in range(nCS):
             
             if not( i == j ):
 
@@ -207,13 +191,9 @@ def tour(start,rad,voronoi_lst):
                 mtx[i][j] = has_intersection
                 mtx[j][i] = has_intersection
 
-        if( i > np.ceil(n/2.0) ):
+        if( i > np.ceil(nCS/2.0) ):
             break
 
-    print('------------- ADJ Matrix ----------------')
-    print('')
-    print(mtx)
-    print('')
 
     #Get tour information
 
@@ -221,7 +201,6 @@ def tour(start,rad,voronoi_lst):
 
     tour = tf.tourFn(start, locsTmp, mtx)
 
-    ordered_voronoiLst = None
 
     if tour is  None:
         raise('Empty Tour')
@@ -229,31 +208,16 @@ def tour(start,rad,voronoi_lst):
         
     locsTmp, coor, tourDist = tour
     
-    #############################
-    ## GET THE ORDER (WITHOUT REPETITION) OF THE CS
-    ## REORDER THE VORONOI LIST BASED ON THE ORDERLIST
-    #############################
-    coor_unique = []
-    for c in coor:
-        if not(c in coor_unique):
-            coor_unique.append(c)
     
-    ordered_voronoiLst = [voronoi_lst[i] for i in coor_unique]
-
-
-    #############################
-    ## FIND THE INTERSECTION OF THE CONSECUTIVE VORONOI REGIONS
-    ## CREATE AN ARRAY OF ARRAYS THAT CONTAIN THE INTERSECTED VERTICES
-    ## BETWEEN CONSECUTIVE VORONOI REGIONS
-    #############################
     
-    N = len(coor)
-
-    start_end_lst = [ []  for i in range(len(coor_unique))]
-
-    vertices = []
-    for i in range(N-1):
-
+    nTour =len(coor)
+    
+    vertices = [voronoi_lst[0][1]]
+    start_end_lst = [ []  for i in range(nCS)]
+    
+    for i in range(nTour-1):
+        
+    
         set1 = set(voronoi_lst[coor[i]][0])
         set2 = set(voronoi_lst[coor[i+1]][0])
 
@@ -265,15 +229,81 @@ def tour(start,rad,voronoi_lst):
                 start_end_lst[coor[i]].append(p)
                 start_end_lst[coor[i+1]].append(p)
                 
-                vertices.append(voronoi_lst[coor[i]][1])
                 vertices.append(p)
-                break
-          
-    vertices.append(voronoi_lst[coor[0]][1])     
-            
-    start_end_lst = [start_end_lst[i] for i in coor_unique]
+                vertices.append(voronoi_lst[coor[i+1]][1])
+                
+                break    
+    
+    
+    
+    return start_end_lst, coor, vertices
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    # #############################
+    # ## GET THE ORDER (WITHOUT REPETITION) OF THE CS
+    # ## REORDER THE VORONOI LIST BASED ON THE ORDERLIST
+    # #############################
+    # coor_unique = []
+    # for c in coor:
+    #     if not(c in coor_unique):
+    #         coor_unique.append(c)
+    
+    # ordered_voronoiLst = [voronoi_lst[i] for i in coor_unique]
 
-    return ordered_voronoiLst,start_end_lst,vertices
+
+    #############################
+    ## FIND THE INTERSECTION OF THE CONSECUTIVE VORONOI REGIONS
+    ## CREATE AN ARRAY OF ARRAYS THAT CONTAIN THE INTERSECTED VERTICES
+    ## BETWEEN CONSECUTIVE VORONOI REGIONS
+    #############################
+    
+    # N = len(coor)
+
+    # start_end_lst = [ []  for i in range(len(coor_unique))]
+
+    # vertices = []
+    # for i in range(N-1):
+
+    #     set1 = set(voronoi_lst[coor[i]][0])
+    #     set2 = set(voronoi_lst[coor[i+1]][0])
+
+    #     interPts = set1.intersection(set2)
+
+    #     for p in interPts:
+
+    #         if not(p in start_end_lst[coor[i]]) and not(p in start_end_lst[coor[i+1]]):
+    #             start_end_lst[coor[i]].append(p)
+    #             start_end_lst[coor[i+1]].append(p)
+                
+    #             vertices.append(voronoi_lst[coor[i]][1])
+    #             vertices.append(p)
+    #             break
+          
+    # vertices.append(voronoi_lst[coor[0]][1])     
+            
+    # start_end_lst = [start_end_lst[i] for i in coor_unique]
+
+    # return ordered_voronoiLst,start_end_lst,vertices
 
 
 

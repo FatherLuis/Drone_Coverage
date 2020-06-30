@@ -5,7 +5,7 @@ from Drone_Path2 import Drone_Path
 from Draw import Draw
 from Transformation2 import Transformation 
 from Field import Field
-from minCharge_LUIS import linear_program,tour
+from minCharge import linear_program,tour
 import matplotlib.pyplot as plt
 
 
@@ -55,87 +55,87 @@ def run_program(drone, CS_radius , shape ,candidate, sp , showPlot = True):
 
     sites = [ (x,y) for x,y in zip( CS[0][:], CS[1][:] ) ]
 
-    vononili_lst = field.create_voronoi_polygons(site=sites, boundary=field_boundary)
+    voronoi_lst = field.create_voronoi_polygons(site=sites, boundary=field_boundary)
     
     # ordered
-    vononili_polys,entryExitLst, vertices = tour(start_point, drone.MAX_DISTANCE , vononili_lst)
+    entryExitLst, tourOrder ,vertices = tour(start_point, drone.MAX_DISTANCE , voronoi_lst)
+
+
 
     #################### FIND PATH FOR A GIVEN TRIANGLE ####################
 
+
+
+    hasTravel = np.zeros(len(sites))
+    # STORE LIST OF PATHS 
     path_lst = []
+
+
+    for i,curNode in enumerate(tourOrder[:-1]):
+        
+        if not(hasTravel[curNode]):
+            
+            hasTravel[curNode] = 1
+            
+            curVoronoi = voronoi_lst[curNode]
+            entryExit = entryExitLst[curNode]
+
+            # CREATE TRIANGLES FROM THE POLYGON, STORE AS LIST
+            triangle_lst = field.create_triangle(poly = curVoronoi[0] , vertex = curVoronoi[1])
     
-    N = len(vononili_polys)
+            # LOOP THROUGH A LIST OF TRIANGLES, FIND PATH THAT COVERS THE AREA OF EACH
     
-    k = 0
-
-    for i,vononili_poly in enumerate(vononili_polys):
-        
-        #print('\n----- Voronoi ',i,' ------')
-
-        
-        # CREATE TRIANGLES FROM THE POLYGON, STORE AS LIST
-        triangle_lst = field.create_triangle(poly = vononili_poly[0] , vertex = vononili_poly[1] ,)
-
-        # LOOP THROUGH A LIST OF TRIANGLES, FIND PATH THAT COVERS THE AREA OF EACH
-
-        for triangle in triangle_lst:    
-
-            #print('\n--- Triangle ', k, ' ---')
-
-            ### LINEAR TRANSFORMATIONS ###
-            transform =  Transformation()
-            
-            curCS, trans_triangle, entryExit = transform.transform_triangle(triangle,entryExitLst[i])
-
-            ### ALGORITHM ###
-
-            DP = Drone_Path(trans_triangle , drone , entryExit)
-            
-            drone,path = DP.algorithm(curCS)
-
-            trans_path = transform.transform_path(path) # TRANSFORM PATH TO FIT ORIGINAL SHAPE
-
-
-            # ADD PATH TAKEN TO THE PATH LIST 
-            path_lst.append(trans_path)
-            #Canvas.boundary(triangle.get_all_points())
-
-            # SET DRONE POSITION TO [0,0]
-            drone.curPoint = np.array([0,0])       
-            drone.curMax_distance = drone.MAX_DISTANCE
-            
-
-        # HERE, WE WILL ADD THE DISTANCE FROM ONE CHARGING STATION TO ANOTHER
-        
-        
-        
-        if i == N-1:         
-            nVert = len(vertices)
-        else:
-            nVert = k + 2
-            
-        while(k < nVert-1):
-            
-            curCS = vertices[k]
-            nextVert = vertices[k+1]
-            nextCS = vertices[k+2]
-            
-            dist_curCS_nextVert = dist(curCS,nextVert)
-            dist_nextVert_nextCS = dist(nextVert,nextCS)
-            
-            req_dist_travel = dist_curCS_nextVert + dist_nextVert_nextCS
-            
-            if(drone.curMax_distance >= req_dist_travel):
+            for triangle in triangle_lst:    
+    
+                #print('\n--- Triangle ', k, ' ---')
+    
+                ### LINEAR TRANSFORMATIONS ###
+                transform =  Transformation()
                 
-                drone.total_distance_travel += req_dist_travel
-                drone.curMax_distance -= req_dist_travel         
+                curCS, trans_triangle, entryExitTransform = transform.transform_triangle(triangle,entryExit)
+    
+                ### ALGORITHM ###
+    
+                DP = Drone_Path(trans_triangle , drone , entryExitTransform)
+                
+                drone,path = DP.algorithm(curCS)
+    
+                trans_path = transform.transform_path(path) # TRANSFORM PATH TO FIT ORIGINAL SHAPE
+    
+        
+    
+                # ADD PATH TAKEN TO THE PATH LIST 
+                path_lst.append(trans_path)
+                #Canvas.boundary(triangle.get_all_points())
+    
+                # SET DRONE POSITION TO [0,0]
+                drone.curPoint = np.array([0,0])       
                 drone.curMax_distance = drone.MAX_DISTANCE
 
+
+        # MOVE TO THE NEXT CS
                 
-                k += 2   
-                
-            else:
-                raise('Could not Travel to next CS')
+        k = 2*i
+        curCS = vertices[k]
+        nextVert = vertices[k+1]
+        nextCS = vertices[k+2]
+        
+        dist_curCS_nextVert = dist(curCS,nextVert)
+        dist_nextVert_nextCS = dist(nextVert,nextCS)
+        
+        req_dist_travel = dist_curCS_nextVert + dist_nextVert_nextCS
+
+
+
+        if(drone.curMax_distance >= req_dist_travel):
+            
+            drone.total_distance_travel += req_dist_travel
+            drone.curMax_distance -= req_dist_travel         
+            drone.curMax_distance = drone.MAX_DISTANCE 
+            
+        else:
+            raise('Could not Travel to next CS')
+
 
 
 
@@ -155,9 +155,9 @@ def run_program(drone, CS_radius , shape ,candidate, sp , showPlot = True):
         # DRAW SHAPE BOUNDARY
         Canvas.boundary(field_boundary)
     
-        for vononili_poly in vononili_polys:
+        for curVoronoi in voronoi_lst:
             #print(vononili_poly)
-            #Canvas.boundary(vononili_poly[0],col='b')
+            Canvas.boundary(curVoronoi[0],col='b')
             pass
     
     
