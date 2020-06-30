@@ -367,7 +367,7 @@ if __name__ == '__main__':
         #field_boundary =  [ [0,0] , [0,3] , [4,5] , [8,3] , [8,0]]
 
         
-        CS_radius = 2.5
+        CS_radius = 3.5
         
     
         lst = run_program(drone, CS_radius , field_boundary, 50 , np.array([0, 0]) )

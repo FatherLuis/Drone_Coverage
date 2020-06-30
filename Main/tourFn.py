@@ -72,7 +72,7 @@ def finalPath(start, pathArr, singLvec, aMx):
             aMx[:,np.logical_not(singLvec)] = 0
             aMx[np.logical_not(singLvec),:] = 0
             
-            # SET THE INDECES FALSE 
+            # SET THE INDEx FALSE 
             singLvec[idx] = 0
         
         ###########################################  
@@ -90,39 +90,77 @@ def finalPath(start, pathArr, singLvec, aMx):
     else:
 
         
+        
+        # CONSTRUCT A SINGLETON MATRIX
+        sMx = np.copy(aMx)
+        sMx[np.ix_(np.logical_not(singLvec),np.logical_not(singLvec))] = 0
+        
+        
+        
         # GIVE THE CORRECT INDECES FOR THE PATH
-        path = np.arange(nCS)[np.logical_not(np.array(singLvec))][path[:-1]].tolist()
+        path = np.arange(nCS)[np.logical_not(np.array(singLvec))][path]
         
-        # ITERATE THROUGH EACH ROW
-        for i,(row,isSingle) in enumerate(zip(aMx,singLvec)):
+        result = np.copy(path)
+        
+        for k in path:
             
-            # CHECK IF ROW IS A SINGLETON
-            if( isSingle ):
-                
-                # GET THE INDEX OF THE VERTEX THAT CONNECTS TO THIS SINGLETON
-                next_idx = np.where(row == 1)[0][0]
-                
-                # GET THE INDEX OF THE VERTEX FROM THE PATH
-                idx = np.where(path == next_idx)[0][0]
-                
-                # INSERT THE VERTEX INDEX TO THE PATH WHERE THE VERTEX IS ALREADY FOUND
-                path.insert(idx, next_idx)
-                # INSERT THE SINGLETON INDEX INBETWEEN THE VERTEX INDECES 
-                path.insert(idx+1 , i)
-                
-                
-        result = path
-        
-        # MAKE SURE THAT THE FIRST ELEM IN THE PATH IS THE START CS ,
-        # WHICH SHOULD HAVE A VALUE OF 0
-        while not(result[0] == 0):
-            # REMOVE THE FIRST ELEMENT, ADD IT TO THE END
-            result.append(result.pop(0))
-        
-        # ADD THE FIRST ELEMENT TO THE END 
-        result.append(result[0])
+            i = k 
+            chain = np.array([])
             
+            row = sMx[i,:]
+            
+            # CHECK FOR LABELED SINGLETONS
+            while( not( sum(row) == 0 ) ):
+                
+                
+                idx = np.where(row == 1)[0][0]
 
+                chain = np.append(chain,idx)
+                
+                sMx[i,:] = 0
+                sMx[:,i] = 0
+                
+                i = idx
+                row = sMx[i,:]
+                
+                # IF THERE ARE NO MORE SINGLETONS
+                if( sum(row) == 0 ):
+                    
+                    # PATH HAS TWO CASES:
+                    # CASE I: THE FIRST ELEM IS ALSO AT THE END OF THE PATH
+                    # CASE II: THE OTHER ELEMS ONLY APPEAR ONCE
+                    # THUS, WE'LL TREAT THEM DIFFERENT
+                    
+                    
+                    p_idx = np.where(result == k)[0]
+                    
+                    # CASE I:THE FIRST ELEM IS ALSO AT THE END OF THE PATH
+                    if (len(p_idx) == 2):
+                        
+                        # USING THE FIRST MATCH
+                        # WE'LL ATTACH THE SINGLETONS TO THE LEFT
+                        # IN REVERSE
+                        
+                        
+                        result = np.insert( result , p_idx[0] ,chain[::-1] )
+                    
+                        # GET THE SECOND APPERANCE 
+                        p_idx = np.where(result == k)[0]
+                        result = np.insert( result , p_idx[-1] +1 ,chain )
+                        
+                    else:
+                        
+                        # CONTRUCT THE ARRAY THAT WE'LL BE INSERTING
+                        
+                        
+
+                        arr = np.append(chain,np.append(np.flipud(chain[:-1]),k))
+                        
+                        result = np.insert( result , p_idx[0] + 1 , arr)
+
+                        
+                        
+                    
 
     print(result)
 
@@ -443,15 +481,45 @@ if __name__ == '__main__':
     
     
 
-    adjMatrix = np.array([[0. ,0. ,0. ,1. ,0. ,1.],
-                          [0. ,0. ,1. ,1. ,1. ,0.],
-                          [0. ,1. ,0. ,0. ,1. ,0.],
-                          [1. ,1. ,0. ,0. ,1. ,1.],
-                          [0. ,1. ,1. ,1. ,0. ,1.],
-                          [1. ,0. ,0. ,1. ,1. ,0.]])
+    # adjMatrix = np.array([[0. ,0. ,0. ,1. ,0. ,1.],
+    #                       [0. ,0. ,1. ,1. ,1. ,0.],
+    #                       [0. ,1. ,0. ,0. ,1. ,0.],
+    #                       [1. ,1. ,0. ,0. ,1. ,1.],
+    #                       [0. ,1. ,1. ,1. ,0. ,1.],
+    #                       [1. ,0. ,0. ,1. ,1. ,0.]])
     
-    locs = np.array([[0.   ,8.02 ,8.36 ,3.6  ,5.54 ,1.8 ],
-                     [0.   ,1.   ,3.94 ,0.16 ,3.92 ,3.32]])    
+    # locs = np.array([[0.   ,8.02 ,8.36 ,3.6  ,5.54 ,1.8 ],
+    #                  [0.   ,1.   ,3.94 ,0.16 ,3.92 ,3.32]])    
+    
+    
+    
+    
+    
+    ### CHAINED ENTRY SINGLETONS
+    
+    # adjMatrix = np.array([ [0,1,0,0,0],
+    #                        [1,0,1,0,0],
+    #                        [0,1,0,1,1],
+    #                        [0,0,1,0,1],
+    #                        [0,0,1,1,0]])
+    
+    # locs = np.array([[0,1,2,3,3],
+    #                  [0,0,0,1,-1]])
+    
+    ### CHAINED COMPLEX SINGLETONS
+    
+    
+    adjMatrix = np.array([[0,1,0,0,0,0,0,0],
+                          [1,0,1,0,0,0,0,0],
+                          [0,1,0,1,0,1,0,0],
+                          [0,0,1,0,1,1,0,0],
+                          [0,0,0,1,0,0,0,0],
+                          [0,0,1,1,0,0,1,0],
+                          [0,0,0,0,0,1,0,1],
+                          [0,0,0,0,0,0,1,0]])
+    
+    locs = np.array([[0,1,2,3,4,3,4,5],
+                     [0,0,0,1,2,-1,-2,-3]])
     
     
     
