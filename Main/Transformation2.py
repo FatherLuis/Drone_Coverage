@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import numpy as np
 import math 
 from Triangle import Triangle
@@ -24,7 +26,6 @@ class Transformation:
         self.matrix = None 
         self.transition = None 
         self.negX = False 
-        self.BC_switch = False 
 
     ##############################################
     # Method Name: transform_triangle_prime
@@ -42,75 +43,78 @@ class Transformation:
         # TRIANGLE IS IN THE FIRST QUADRANT 
         
         # GET THE EUCLEDIAN DISTANCE FROM TWO POINTS
-        def dist(p1,p2):
-            return math.sqrt( (p2[1]-p1[1])**2 +(p2[0]-p1[0])**2)
+        dist = lambda p1,p2: math.sqrt( (p2[1]-p1[1])**2 +(p2[0]-p1[0])**2)
 
         # PERFORM A LINEAR TRANSFORMATION WITH A GIVEN MATRIX
-        def linear_trans(P):
-            return np.dot(self.matrix , np.transpose(P))
+        linear_trans = lambda P: np.dot(self.matrix , np.transpose(P))
+        
         
 
-        A,B,C = np.array(triangle.get_all_points())
+        A = None
+        B = None
+        C = None
+
+        maxDist = max(triangle.AB_dist ,triangle.AC_dist,triangle.BC_dist)
+        
+        CS = None
+        
+        if triangle.AB_dist == maxDist:
+            
+            A = triangle.A
+            B = triangle.B
+            C = triangle.C
+            
+            CS = 'A'
+            
+        elif triangle.AC_dist == maxDist:
+ 
+            A = triangle.A
+            B = triangle.C
+            C = triangle.B     
+            
+            CS = 'A'
+        
+        elif triangle.BC_dist == maxDist:
+
+            A = triangle.B
+            B = triangle.C
+            C = triangle.A
+            
+            CS = 'C'
+            
+        else:
+            
+            print('Transformation Fail')
 
 
         # A WILL BE MY TRANSITION... SINCE I WANT A TO BE IN THE ORIGIN
         self.transition = A
 
-        # GET THE DISTANCE OF A-B AND A-C
-        # THIS WILL HELP DETERMINE WHICH ON IS FARTHER
-        dist_AB = dist(A,B) 
-        dist_AC = dist(A,C)
-
-        # IF AB IS FARTHER THAN AC
-        if (  dist_AB >= dist_AC  ):
-
-            # B WILL MOVE TO ( 0, dist(A,B) )
-            # THESE ARE THE TRANSFORMATION ELEMENTS NEEDED FOR THE MATRIX
-            sin = ( B[0] - A[0] ) / dist_AB
-            cos = ( B[1] - A[1] ) / dist_AB
 
 
-            # CREATE A TRANSFORMATION MATRIX
-            # WILL BE USED IN THE LINEAR TRANSFORMATION METHOD
-            self.matrix = np.array( [ [ cos , -sin ] , [ sin , cos] ] )
+        # THESE ARE THE TRANSFORMATION ELEMENTS NEEDED FOR THE MATRIX
+        sin = ( B[0] - A[0] ) / maxDist
+        cos = ( B[1] - A[1] ) / maxDist
 
-            # GET THE TRANSFORMED POINTS
-            A_prime = linear_trans(A-A) 
-            B_prime = linear_trans(B-A)
-            C_prime = linear_trans(C-A)
-            self.BC_switch = False # IN CASE YOU WANT TO KNOW WHAT B' AND C ', BUT NOT NECESSARY FOR ALGORITHM
 
-        else:
+        # CREATE A TRANSFORMATION MATRIX
+        # WILL BE USED IN THE LINEAR TRANSFORMATION METHOD
+        self.matrix = np.array( [ [ cos , -sin ] , [ sin , cos] ] )
 
-            # C WILL MOVE TO ( 0, dist(A,B) )
-            # THESE ARE THE TRANSFORMATION ELEMENTS NEEDED FOR THE MATRIX
-            sin = ( C[0] - A[0] ) / dist_AC
-            cos = ( C[1] - A[1] ) / dist_AC
-
-            # CREATE A TRANSFORMATION MATRIX
-            # WILL BE USED IN THE LINEAR TRANSFORMATION METHOD
-            self.matrix = np.array( [ [ cos , -sin ] , [ sin , cos] ] )
-
-            # GET THE TRANSFORMED POINTS
-            A_prime = linear_trans(A-A) 
-            B_prime = linear_trans(C-A)
-            C_prime = linear_trans(B-A)
-            self.BC_switch = True # IN CASE YOU WANT TO KNOW WHAT B' AND C ', BUT NOT NECESSARY FOR ALGORITHM
+        # GET THE TRANSFORMED POINTS
+        A_prime = linear_trans(A-A) 
+        B_prime = linear_trans(B-A)
+        C_prime = linear_trans(C-A)
 
 
 
         # WE WANT TO REASSURE THAT THE TRIANGLE WILL END IN THE FIRST QUADRAINT
-        # SINCE WE KNOW THAT A WILL END IN THE ORIGIN AND THAT B/C WILL END
-        # ON THE Y-AXIS, THEN HE HAVE TO ASSURE THAT B/C END IN THE FIRST QUADRANT
+        # SINCE WE KNOW THAT A WILL END IN THE ORIGIN AND THAT B WILL END
+        # ON THE Y-AXIS, THEN HE HAVE TO ASSURE THAT C END IN THE FIRST QUADRANT
 
 
 
-        if( B_prime[0] < -0.001 ):
-            # WE APPLIED A NEGATIVE ON THE X 
-            self.negX = True
-            B_prime[0] = -B_prime[0]
-
-        elif( C_prime[0] < -0.001 ):
+        if( C_prime[0] < -0.001 ):
             # WE APPLIED A NEGATIVE ON THE X 
             self.negX = True
             C_prime[0] = -C_prime[0] 
@@ -122,8 +126,11 @@ class Transformation:
         for p in vertices:
 
             pp = np.array(p)
+            
+            if np.array_equal(pp,A):
 
-            if np.array_equal(pp,B):
+                prime_vertices.append(A_prime)
+            elif np.array_equal(pp,B):
 
                 prime_vertices.append(B_prime)
 
@@ -133,7 +140,7 @@ class Transformation:
 
 
         # RETURN THE TRANSFORMED POINTS
-        return Triangle(A_prime,B_prime,C_prime), prime_vertices
+        return CS,Triangle(A_prime,B_prime,C_prime), prime_vertices
 
 
     ##############################################
@@ -172,11 +179,33 @@ class Transformation:
 
 
 
+if __name__ == '__main__':
+    
+    
+    entryExit = [ (0,33) , (31,-8)]
+    
+    pp = [ (1.40345,1.07196), (0,1.43495) , (0,2.98667) ]   
+    
+    triangle = Triangle(*pp)
+    
+    transform = Transformation()
+    
+    CS,transTriangle, primeEntryExit= transform.transform_triangle(triangle,entryExit)
 
+    print(CS,'\n')
 
-        
-
-
+    print(triangle)
+    
+    print('')
+    
+    print(transTriangle)
+    
+    print('')
+    
+    print(primeEntryExit)
+    
+    print('')
+    print(transform.transform_path(transTriangle.get_all_points()))
 
 
 

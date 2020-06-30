@@ -1,5 +1,4 @@
 import numpy as np 
-from Utilities import dist
 
 
 ########################################
@@ -63,6 +62,8 @@ class Triangle:
     # Date:  3/2/2020
     ##############################################
     def calculate_distance(self):
+        
+        dist = lambda p1,p2 : np.sqrt( (p2[1]-p1[1])**2 +(p2[0]-p1[0])**2)
         
         self.AB_dist = dist(self.A, self.B)
         self.BC_dist = dist(self.B, self.C)

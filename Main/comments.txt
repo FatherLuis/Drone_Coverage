@@ -18,3 +18,94 @@ Bugs Note:
   even when tour was found on other runs
 
 ----------------------------------
+Date:6/3/2020
+Name: Luis
+
+* There is no validation for when the drone is returning back to the CS
+  Some type of validation is needed, otherwise, the prime vertices will go out of the
+  original triangle.
+  
+* Continue working on fixing bugs
+----------------------------------
+Date:6/4/2020
+Name: Luis
+
+
+* The validation used in the code does not work for all cases, and the prime vertices are leaving the triangle.
+* There's alot of repeated code in the algorithm and makes it hard to find a solution. Considering rewriting the algorithm to increase readiability
+    and find a solution to solve the special cases.
+
+* Continue working on fixing bugs
+----------------------------------
+Date:6/10/2020
+Name: Luis
+
+* Recontruct the Voronoi Method:
+    * Previously, I was using some code from online to create the Voronoi Regions. Turns out, it was causing some round off errors.
+    Thus, I decided to use the delete the online code and creatively use a box to bound the voronoi regions created by the Voronoi Object from Scipy.
+    
+* TestBench 
+    * More code code was added to ensure Dataframe is collecting the right information
+    
+* Continue working on fixing bugs    
+----------------------------------
+Date:6/11/2020
+Name: Luis
+
+* Recontruct the Transformation Class
+    * triangle.A is no longer the 'always' charging station. 
+    The transformation method will return a string with the identity of the CS (which vertex)
+    * Side AB is now the longest side of the triangle.
+    
+* Reconstruct the Drone Path Algorithm as a recursion
+    * Create a validation method that ensures the path stays inbound of the Triangle
+    * Create a reserve path method
+    * Ensure that all distances are measures and added to the total
+    
+* Continue working on fixing bugs
+----------------------------------
+Date:6/12/2020
+Name: Luis
+
+* Reconstruct the Tour
+    * Previously, the Tour method (not the algorithm) was creating an extra Voronoi Region
+    which was causing errors in the program. A new way to create the tour has been established.
+    * Deleted the Travel.py file, since it was no longer needed.
+* Continue working on fixing bugs
+
+----------------------------------
+Date:6/13/2020
+Name: Luis
+
+* Prof and I found some inconsistencies in the MinCharge.LinearProgram. 
+Most of it has been fixed, however, we still wonder why the linear program breaks when the set it is meant to succeed.
+
+----------------------------------
+Date:6/14/2020
+Name: Luis
+
+* Cleaned up the MinCharge.LinearProgram
+* Cleaning up Tour.py 
+* Added comments on Tour.py
+* Moved test information of Tour to the bottom of the file
+* Fixed Bugs
+
+----------------------------------
+Date:6/25/2020
+Name: Luis
+
+* Add more shapes to the TestBench.py file
+* Ensure that the code is running correctly
+* Fixed Bugs
+
+Bug:
+
+* The tour function is not returning a tour having two singletons in the tour
+----------------------------------
+Date:6/26/2020
+Name: Luis
+* Fixed the Adjacent matrix that was including the travel of a CS to itself
+* Added figures throughout the code to show what is happening in the code
+* Fixed Bugs
+
+
