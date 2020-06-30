@@ -8,11 +8,6 @@ import numpy.random as rnd
 
 
 
-# Note: 
-# (4/23/2020): Changed TourFn from Version 2 to Version 4
-
-
-
 
 
 ######################################
@@ -29,11 +24,9 @@ def logicalFn(y):
 ##############################################################################################
 
 def finalPath(start, pathArr, singLvec, aMx):
-    
-    '''Function to return path given start, edges(pathArray) 
-        and array indicating where singleton is connected'''
+
+        
     result = []
-    
     path = np.array(pathArr)
 
 
@@ -45,125 +38,95 @@ def finalPath(start, pathArr, singLvec, aMx):
     
     nCS = len(singLvec)
     
+    ###########################################  
     # CASE I : THERE ARE NO SINGLETONS
+    ###########################################  
     if np.sum(singLvec) == 0:
+        
         result = path
         
+    ###########################################    
     # CASE II: ALL VERTICES ARE SINGLETONS
+    ###########################################  
     elif np.sum(singLvec) == nCS:
         
         idx = 0
         result.append(idx)
         singLvec[idx] = 0
         
+        
+        ###########################################  
+        # GO THROUGH EACH ROW, AND FIND THE NEXT VERTICES
+        # START ON ROW 0, THEN HOP AROUND ROWS UNTIL YOU REACH THE LAST VERTEX
+        ###########################################  
         for k in range(nCS-1):
     
+            # SELECT CURRENT ROW
             row = aMx[idx,:]
+            # FIND THE INDEX OF THE NEXT VERTICES
             idx = np.where(row == 1)[0][0]
+            # ADD THE INDEX TO THE RESULT
             result.append(idx)
             
-            
+            # ZERO OUT THE CONNECTIONS TO THIS VERTICES
             aMx[:,np.logical_not(singLvec)] = 0
             aMx[np.logical_not(singLvec),:] = 0
             
+            # SET THE INDECES FALSE 
             singLvec[idx] = 0
         
-        
+        ###########################################  
         # NEED TO RETURN THE WAY I CAME IN
-
+        ###########################################  
+            
+        # CREATE A REVERSE LIST
         reverse_lst = [elem for elem in reversed(result[:-1])]
+        # ADD THE REVERSE LIST TO THE RESULT LIST
         result.extend(reverse_lst)
 
-
+    ###########################################  
     # CASE III: THERE IS A PATH AND THERE ARE SINGLETONS
+    ###########################################  
     else:
 
         
-        
+        # GIVE THE CORRECT INDECES FOR THE PATH
         path = np.arange(nCS)[np.logical_not(np.array(singLvec))][path[:-1]].tolist()
         
-        # path_idx = 0
-        # path = path[:-1]
-        
-        # last_nonSing = np.where(singLvec == False)[0][-1]
-        # for k,isSingle in enumerate(singLvec):
-            
-            
-            
-            
-        #     if isSingle  and last_nonSing > k: 
-                
-                
-        #         path[path_idx:] += 1
-        #         path_idx += 1
-                
-                
-                
-        
-        # path = path.tolist()                 
-        
-        
+        # ITERATE THROUGH EACH ROW
         for i,(row,isSingle) in enumerate(zip(aMx,singLvec)):
             
+            # CHECK IF ROW IS A SINGLETON
             if( isSingle ):
                 
-                
+                # GET THE INDEX OF THE VERTEX THAT CONNECTS TO THIS SINGLETON
                 next_idx = np.where(row == 1)[0][0]
                 
+                # GET THE INDEX OF THE VERTEX FROM THE PATH
                 idx = np.where(path == next_idx)[0][0]
                 
+                # INSERT THE VERTEX INDEX TO THE PATH WHERE THE VERTEX IS ALREADY FOUND
                 path.insert(idx, next_idx)
+                # INSERT THE SINGLETON INDEX INBETWEEN THE VERTEX INDECES 
                 path.insert(idx+1 , i)
                 
-        
-        
+                
         result = path
         
-        
+        # MAKE SURE THAT THE FIRST ELEM IN THE PATH IS THE START CS ,
+        # WHICH SHOULD HAVE A VALUE OF 0
         while not(result[0] == 0):
-            
+            # REMOVE THE FIRST ELEMENT, ADD IT TO THE END
             result.append(result.pop(0))
         
+        # ADD THE FIRST ELEMENT TO THE END 
         result.append(result[0])
-    
-        
-        
-        # path_idx = 0
-        
-        # for i,(single,row) in enumerate(zip(singLvec,aMx)):
-            
-            
-        #     if( single ):
-                
-        #         nextIdx = np.where(row == 1)[0][0]
-                
-        #         if i == 0:
-        #             result.append(nextIdx)
-        #             result.append(i)
-        #         else:
-        #             result.append(i)
-        #             result.append(nextIdx)
-
-        #         path[path_idx:] += 1
-        #     else:
-        #         nextIdx = path[path_idx]
-        #         result.append(nextIdx)
-        #         path_idx +=1
-        
-        # # IF THE THE FIRST CS WAS A SINGLETON, 
-        # # WE'LL SHIFT THE RESULT TO THE LEFT BY ONE
-        # if singLvec[0] :
-            
-        #     result.append(result.pop(0))
-            
-        # # ADD THE FIRST CS TO THE END OF THE RESULT
-        # result.append(result[0])
             
 
 
     print(result)
 
-
+    # [0 , ....... , 0]
     return result    
 
 
@@ -173,6 +136,7 @@ def finalPath(start, pathArr, singLvec, aMx):
 
 # argument for my matrix
 def tourFn(startP, locsTmp, adjMatrix):
+    
     
     ncs = locsTmp.shape[1] #size(locsTmp,2)
     
@@ -287,9 +251,9 @@ def tourFn(startP, locsTmp, adjMatrix):
     
             fmin = dotu(cVec, xNew)
             
-            
+            xNew = np.where(xNew)[0] # Change xNew to vector of indices
             # build a vector of edges connected to node 1
-            edgeSoln = edgeTmp[:,logicalFn(xNew)].astype(int) # Edges in solution
+            edgeSoln = edgeTmp[:,xNew].astype(int) # Edges in solution
             cycNodes = np.zeros(ncsTmp) # Nodes in cycle
             thisNode = 0 #start with base node
             startNode = thisNode
@@ -302,7 +266,7 @@ def tourFn(startP, locsTmp, adjMatrix):
             for jj in range(ncsTmp-1):
                 tmp = np.where(edgeSoln == thisNode)  # Find current node in list of edges
                 edgeIx = tmp[1][0]
-                cycEdges[0][edgeIx] = -1  # Mark this edge as part of the solution  ###ISSUE CHECK
+                cycEdges[0][xNew[edgeIx]] = 1  # Mark this edge as part of the solution  ###ISSUE CHECK
                 thisNode = edgeSoln[1 - tmp[0][0], edgeIx] # Next node in tour ###ISSUE CHECK
                 path.append(thisNode)
                 edgeSoln[:,edgeIx] = -1 # Zero out edge so that it's not found again
@@ -313,6 +277,9 @@ def tourFn(startP, locsTmp, adjMatrix):
                     break
     
             if flag == 0: #Didn't complete cycle
+                
+                
+                
                 A_ineq = sparse([A_ineq, matrix(cycEdges, tc = 'd')])  #Enlarge LP matrix
                 b_ineq = matrix(sparse([b_ineq, matrix([-1.0+sum(cycEdges[0])])]), tc = 'd') # Enlarge constant ###ISSUE CHECK
             
@@ -360,8 +327,8 @@ if __name__ == '__main__':
     
     startP = np.array([0, 0]) #Starting point for tour (point of origin)
     
-    locs = np.array([[0.,2.,2.,6.,5.],
-                    [0.,2.,6.,2.,5.]])
+    # locs = np.array([[0.,2.,2.,6.,5.],
+    #                 [0.,2.,6.,2.,5.]])
     
     
     # ABCDE
@@ -393,13 +360,13 @@ if __name__ == '__main__':
     
     
     
-    adjMatrix = np.array([[0. ,0. ,1. ,1.],
-                          [0. ,0. ,0. ,1.],
-                          [1. ,0. ,0. ,1.],
-                          [1. ,1. ,1. ,0.]])
-    
-    locs = np.array([[0.   ,9.44 ,2.08 ,5.76],
-                     [0.   ,2.1  ,3.24 ,2.62]])
+#    adjMatrix = np.array([[0. ,0. ,1. ,1.],
+#                          [0. ,0. ,0. ,1.],
+#                          [1. ,0. ,0. ,1.],
+#                          [1. ,1. ,1. ,0.]])
+#    
+#    locs = np.array([[0.   ,9.44 ,2.08 ,5.76],
+#                     [0.   ,2.1  ,3.24 ,2.62]])
     
     
     
