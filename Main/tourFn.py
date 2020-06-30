@@ -93,6 +93,7 @@ def finalPath(start, pathArr, singLvec, aMx):
         
         # CONSTRUCT A SINGLETON MATRIX
         sMx = np.copy(aMx)
+        # ZERO OUT THE NON SINGLETONS 
         sMx[np.ix_(np.logical_not(singLvec),np.logical_not(singLvec))] = 0
         
         
@@ -102,28 +103,41 @@ def finalPath(start, pathArr, singLvec, aMx):
         
         result = np.copy(path)
         
+        
+        ###########################################  
+        # ITERATE THROUGH EACH ELEM AND ATTACH THE SINGLETONS TO THE PATH
+        ###########################################  
         for k in path:
             
+            # WILL BE USED TO TRAVEL BETWEEN ROWS
             i = k 
+            
+            # WILL STORE THE SINGLETONS FOUND
             chain = np.array([])
             
+            # SELECT THE ROW OF INTEREST
             row = sMx[i,:]
             
             # CHECK FOR LABELED SINGLETONS
             while( not( sum(row) == 0 ) ):
                 
-                
+                # GET THE INDEX OF THE SINGLETON
                 idx = np.where(row == 1)[0][0]
 
+                # ADD THE INDEX TO THE CHAIN
                 chain = np.append(chain,idx)
                 
+                # ZERO OUT THE SINGLETON ON THE MATRIX
                 sMx[i,:] = 0
                 sMx[:,i] = 0
                 
+                # IDENTIFY TO WHICH ROW I WILL BE GOING NEXT
                 i = idx
                 row = sMx[i,:]
                 
-                # IF THERE ARE NO MORE SINGLETONS
+                
+                # CHECK IF THERE ARE SINGLETONS ON THE ROW,
+                # IF NOT, THEN ATTACH THE CHAIN TO THE PATH
                 if( sum(row) == 0 ):
                     
                     # PATH HAS TWO CASES:
@@ -140,8 +154,25 @@ def finalPath(start, pathArr, singLvec, aMx):
                         # USING THE FIRST MATCH
                         # WE'LL ATTACH THE SINGLETONS TO THE LEFT
                         # IN REVERSE
+                        # THEN, THE ON THE SECOND APPERANCE
+                        # WE'LL ATTACH THE CHAIN TO THE RIGHT
                         
                         
+                        ###########################################  
+                        # EXAMPLE:
+                        #
+                        # CHAIN = [3,2,1]
+                        # PATH = [ 4,5,6,4]
+                        #
+                        # FIRST APPERANCE (REVERSE THE CHAIN)
+                        # [1,2,3] -> [4,5,6,4]
+                        #
+                        #
+                        # SECOND APPERANCE
+                        # [1,2,3,4,5,6,4] <- [3,2,1]
+                        ###########################################  
+                        
+                        # FIRST APPERANCE 
                         result = np.insert( result , p_idx[0] ,chain[::-1] )
                     
                         # GET THE SECOND APPERANCE 
@@ -152,7 +183,21 @@ def finalPath(start, pathArr, singLvec, aMx):
                         
                         # CONTRUCT THE ARRAY THAT WE'LL BE INSERTING
                         
-                        
+                        ###########################################  
+                        # EXAMPLE:
+                        #
+                        # CHAIN = [3,2,1]
+                        # PATH = [ 4,5,6,4]
+                        #
+                        # K = 5
+                        #
+                        # CONSTRUCT ARRAY THAT'LL BE INSERTED
+                        # [3,2,1] <- [2,3] <- [K]
+                        # [3,2,1,2,3,5]
+                        #
+                        # INSERT
+                        # [4,5] -> [3,2,1,2,3,5] <- [6,4]
+                        ###########################################                          
 
                         arr = np.append(chain,np.append(np.flipud(chain[:-1]),k))
                         
@@ -193,29 +238,39 @@ def tourFn(startP, locsTmp, adjMatrix):
     aMx = np.copy(adjMatrix)
     
     ##############################################
-    #### ELIMINATE SINGLETON PATHS FROM THE dMxTmp
+    #### ELIMINATE SINGLETON FROM THE dMxTmp
     ##############################################
     
     # Check whether any singletons that are connected to only 1 site
-    # Store singletons (nodes with only one way to get there)    
+    # STA singletons (nodes with only one way to get there)    
+    
+    # WILL STORE TRUE/FALSE IF NODE IS A SINGLETON
+    # CHAINED SINGLETONS WILL ALSO BE STORED HERE AS TRUE/FALSE
     singLvec = (np.sum(adjMatrix, axis = 0) == 1)
-    singvecTemp = np.copy(singLvec) 
     
-    
-    while sum(singvecTemp) > 0:
+    # IDENTIFY ALL SINGLETONS AND CHAINED SINGLETONS
+    while (True):
+        
         
         # ZERO OUT THE SINGLETONS ON THE MATRIX
         adjMatrix[:,singLvec] = 0
-        adjMatrix[singLvec,:] = 0
+        adjMatrix[singLvec,:] = 0 
+        
+        
+        # NEWLY IDENTIFIED SINGLETONS
+        has1 = (np.sum(adjMatrix, axis = 0) == 1)
+        # PREVIOUSLY IDENTIFIED SINGLETON
+        has0 = (np.sum(adjMatrix, axis = 0) == 0)
+        # ENSURE singLvec KNOWS WHO ARE SINGLETONS
+        singLvec =  np.logical_or(has0, has1)
+        
+        # DID WE IDENTIFY MORE SINGLETONS?
+        # 0: NO
+        if sum(has1) == 0:
+            break
+          
     
-        
-        singLvec = np.logical_or(singLvec,singvecTemp)
-        
-        singvecTemp = (np.sum(adjMatrix, axis = 0) == 1)
-
-        
-        
-    # WE TAKE OFF THE SINGLETONS FROM THE MATRIX
+    # CREATE A DISTANCE MATRIX WITHOUT THE SINGLETONS
     dMxTmp = dMxTmp[np.ix_(np.logical_not(singLvec),np.logical_not(singLvec))]
         
         
@@ -522,6 +577,18 @@ if __name__ == '__main__':
                      [0,0,0,1,2,-1,-2,-3]])
     
     
+    
+    
+    ## small dimension
+    
+    # adjMatrix = np.array([ [0,0,0,1,0],
+    #                         [0,0,0,1,1],
+    #                         [0,0,0,0,1],
+    #                         [1,1,0,0,0],
+    #                         [0,1,1,0,0]])
+    
+    # locs = np.array([[0,1,2,3,3],
+    #                   [0,0,0,1,-1]])  
     
     ##################################
     
