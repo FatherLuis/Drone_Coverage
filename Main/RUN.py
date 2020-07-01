@@ -61,7 +61,7 @@ def run_program(drone, CS_radius , shape ,candidate, sp , showPlot = True):
     entryExitLst, tourOrder ,vertices = tour(start_point, drone.MAX_DISTANCE , voronoi_lst)
 
 
-
+    
     #################### FIND PATH FOR A GIVEN TRIANGLE ####################
 
 
@@ -157,14 +157,16 @@ def run_program(drone, CS_radius , shape ,candidate, sp , showPlot = True):
     
         for curVoronoi in voronoi_lst:
             #print(vononili_poly)
-            Canvas.boundary(curVoronoi[0],col='b')
+            Canvas.boundary(curVoronoi[0],col='k')
             pass
     
     
-        for path in path_lst:
-            # DRAW PATH 
-            Canvas.path(path)
-            pass
+        # for path in path_lst:
+        #     # DRAW PATH 
+        #     Canvas.path(path)
+        #     pass
+        
+        Canvas.draw_sites_path(vertices)
     
         Canvas.draw_sites(sites)
 
@@ -195,13 +197,13 @@ if __name__ == '__main__':
         #field_boundary =  [ (0,0) , (0,7) , (7,7) , (7,0)]
         #field_boundary = [ (0,0),(2.28,0),(3.88,1.61),(3.88,3.88),(2.28,5.49),(0,5.49),(-1.61,3.88),(-1.61,1.61) ]
 
-        field_boundary = [ (0,0) , (0,5) , (5,5) , (5,0)]
+        field_boundary = [ (0,0) , (0,10) , (10,10) , (10,0)]
 
         
         CS_radius = 2.5
         
     
-        lst = run_program(drone, CS_radius , field_boundary, 50, np.array([0, 0]) )
+        lst = run_program(drone, CS_radius , field_boundary, 100, np.array([0, 0]) )
         
         print('')
         print('nCS:',lst[0])

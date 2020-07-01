@@ -180,7 +180,7 @@ def tour(start,rad,voronoi_lst):
 
         vor_set = set(voronoi_lst[i][0])
 
-        for j in range(nCS):
+        for j in range(i,nCS):
             
             if not( i == j ):
 
@@ -191,8 +191,6 @@ def tour(start,rad,voronoi_lst):
                 mtx[i][j] = has_intersection
                 mtx[j][i] = has_intersection
 
-        if( i > np.ceil(nCS/2.0) ):
-            break
 
 
     #Get tour information
@@ -234,6 +232,9 @@ def tour(start,rad,voronoi_lst):
                 
                 break    
     
+    print('------------ locs --------------')
+    print(locsTmp)
+    print('')
     
     
     return start_end_lst, coor, vertices

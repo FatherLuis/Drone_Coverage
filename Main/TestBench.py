@@ -149,8 +149,7 @@ df.to_csv(file_path)
 summary_df = df.groupby(['N_Gon',
                       'Shape_Area',
                       'CS_Radius',
-                      'num_Candidates',
-                      'num_Charging_Station']).agg(['mean', 'std'])
+                      'num_Candidates']).agg(['mean', 'std'])
 
 
 filename = '{}_{}.csv'.format('Test_Data_Summary',date_time)
@@ -160,7 +159,7 @@ file_path = os.path.join(directory, filename)
 if not os.path.isdir(directory):
     os.mkdir(directory)
 
-df.to_csv(file_path)
+summary_df.to_csv(file_path)
 
                 
 

@@ -131,7 +131,8 @@ def finalPath(start, pathArr, singLvec, aMx):
                 
                 
                 # GET THE ROW
-                row = sMx2[idx,:]      
+                # (SINCE IT'S WORKING AS A REFERENCE, I NEEDED TO MAKE A COPY)
+                row = np.copy(sMx2[idx,:])      
                      
                 # ZERO OUT THE CONNECTIONS TOT HIS NODE
                 sMx2[idx,:] = 0
@@ -267,9 +268,9 @@ def finalPath(start, pathArr, singLvec, aMx):
                         result = np.insert( result , p_idx[0] + 1 , arr)
 
                         
-                        
+              
                     
-
+    
     print(result)
     
     
@@ -301,6 +302,10 @@ def tourFn(startP, locsTmp, adjMatrix):
     dMxTmp = dMxTmp * adjMatrix  # dMxTmp = dMxTmp * (my matrix) # replace 127
     
     aMx = np.copy(adjMatrix)
+    
+    print('------------ ADJ MATRIX ---------------')
+    print(aMx)
+    print('')  
     
     ##############################################
     #### ELIMINATE SINGLETON FROM THE dMxTmp
@@ -655,6 +660,18 @@ if __name__ == '__main__':
     #                   [0,4.34,8.4,0.82,3.1,7.7]])
     
     # [1 2 5 4 0 4 3 1]
+    
+    adjMatrix = np.array([[0,0,0,0,0,1],
+                          [0,0,1,0,1,1],
+                          [0,1,0,0,1,0],
+                          [0,0,0,0,1,1],
+                          [0,1,1,1,0,1],
+                          [1,1,0,1,1,0]])    
+    
+    locs = np.array([[0.   ,7.64 ,7.88 ,0.34 ,3.94 ,3.  ],
+                     [0.   ,2.44 ,7.48 ,6.84 ,7.42 ,1.82]])
+    
+    
     
     ##################################
     
