@@ -170,12 +170,16 @@ def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad ,solMax
 def tour(start,rad,voronoi_lst):
     
     
-
+    # GET THE CS LOCATIONS FROM THE VORONOI LIST
     csLocs = [x[1] for x in voronoi_lst]
 
+    # GET THE NUMBER OF CS
     nCS = len(csLocs)
+    
+    # CREATE A ZERO MATRIX OF SIZE nCS x nCS
     mtx = np.zeros( (nCS,nCS) )
 
+    # CREATE A ADJ MATRIX BASED ON THE RELATION BETWEEN VORONOI CELLS
     for i in range(nCS):
 
         vor_set = set(voronoi_lst[i][0])
@@ -193,36 +197,52 @@ def tour(start,rad,voronoi_lst):
 
 
 
-    #Get tour information
 
+    ################################
+    # 'Tour' requires:
+    # a 2D ARRAY WHERE X-VALUES ARE IN THE FIRST AND THE Y-VALUES ON THE SECOND
+    # ADJ MATRIX  
+    ################################
     locsTmp = np.array( [ [x[0] for x in csLocs ] , [y[1] for y in csLocs ]  ] )
 
-    tour = tf.tourFn(start, locsTmp, mtx)
+    tour = tf.tourFn(locsTmp, mtx)
 
 
     if tour is  None:
         raise('Empty Tour')
       
-        
-    locsTmp, coor, tourDist = tour
+    # coor : CONTAINS THE INDECES OF THE TOUR BETWEEN CS
+    locsTmp, coor = tour
     
     
     
+    ##################################################################
+    # CONSTRUCT AN ARRAY OF POINTS, WHERE YOU GO FROM ONE CS TO A VERTEX TO A CS
+    # CONSTRUCT A LIST OF ENTRY & EXIT VERTICES FOR EACH VORONOI CELL
+    ##################################################################
+    
+    # GET THE NUMBER OF CS WE'LL BE TRAVELING TO
     nTour =len(coor)
     
+    # THE FIRST POINT IS WERE WE START
     vertices = [voronoi_lst[0][1]]
+    
+    # CREATE AN ARRAY OF SIZE 1 X nCS FILLED WITH EMPTY ARRAYS
+    # WE'LL BE APPENDING THE ENTRY/EXIT POINTS FOR EACH VORONOI CELL
     start_end_lst = [ []  for i in range(nCS)]
     
     for i in range(nTour-1):
         
-    
+        # GET THE INTERSECTED POINTS BETWEEN VORONOI CELLS
         set1 = set(voronoi_lst[coor[i]][0])
         set2 = set(voronoi_lst[coor[i+1]][0])
-
         interPts = set1.intersection(set2)
 
+        # ITERATE THROUGH THE INTERSECTED POINGS
         for p in interPts:
 
+            # MAKE SURE YOU DID NOT ALREADY ADD THESE POINTS INTO THE EXIT/ENTRY ARRAY
+            # OR THE VERTICES ARRAY
             if not(p in start_end_lst[coor[i]]) and not(p in start_end_lst[coor[i+1]]):
                 start_end_lst[coor[i]].append(p)
                 start_end_lst[coor[i+1]].append(p)

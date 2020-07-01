@@ -23,7 +23,7 @@ def logicalFn(y):
 
 ##############################################################################################
 
-def finalPath(start, pathArr, singLvec, aMx):
+def finalPath(pathArr, singLvec, aMx):
 
         
     result = []
@@ -56,7 +56,7 @@ def finalPath(start, pathArr, singLvec, aMx):
         
         
         ###########################################  
-        # GO THROUGH EACH ROW, AND FIND THE NEXT VERTICES
+        # GO THROUGH EACH ROW, AND FIND THE NEXT VERTEX
         # START ON ROW 0, THEN HOP AROUND ROWS UNTIL YOU REACH THE LAST VERTEX
         ###########################################  
         for k in range(nCS-1):
@@ -68,11 +68,11 @@ def finalPath(start, pathArr, singLvec, aMx):
             # ADD THE INDEX TO THE RESULT
             result.append(idx)
             
-            # ZERO OUT THE CONNECTIONS TO THIS VERTICES
+            # ZERO OUT THE CONNECTIONS TO THIS VERTEX
             aMx[:,np.logical_not(singLvec)] = 0
             aMx[np.logical_not(singLvec),:] = 0
             
-            # SET THE INDEx FALSE 
+            # SET THE INDEX FALSE 
             singLvec[idx] = 0
         
         ###########################################  
@@ -169,7 +169,7 @@ def finalPath(start, pathArr, singLvec, aMx):
         result = np.copy(path)
         
         ###########################################  
-        # ITERATE THROUGH EACH ELEM AND ATTACH THE SINGLETONS TO THE PATH
+        # ITERATE THROUGH EACH ELEM IN PATH AND ATTACH THE SINGLETONS TO THE PATH
         ###########################################  
         for k in path:
             
@@ -270,8 +270,9 @@ def finalPath(start, pathArr, singLvec, aMx):
                         
               
                     
-    
+    print('------------ TOUR ---------------')
     print(result)
+    print('')
     
     
 
@@ -284,11 +285,12 @@ def finalPath(start, pathArr, singLvec, aMx):
 
 
 # argument for my matrix
-def tourFn(startP, locsTmp, adjMatrix):
+def tourFn(locsTmp, adjMatrix):
     
     
     ncs = locsTmp.shape[1] #size(locsTmp,2)
     
+    print('------------ CS LOCS ---------------')
     print(locsTmp)
 
     ##############################################
@@ -454,28 +456,25 @@ def tourFn(startP, locsTmp, adjMatrix):
         
                
         if status == 'optimal':
-            
-            #rows = np.arange(edgeTmp.shape[0])[:, np.newaxis] #get all rows of edgeTmp w/ new axes
-            #edgeMx = edgeTmp[rows,logicalFn(xNew)] # Edges from which cycle is drawn
-            tourDist = 0
+        
             
             #print("\nsingLmx: \n", singLmx)
             #print("dMxSingleTmp: ", dMxSingleTmp)
             
             ## PUTS PATH INDECES TOGETHER USING THE START POINT, EDGES PATH, AND THE SINGLETONS
-            fPath = finalPath(startP.reshape(-1,1), path, singLvec,aMx)#
+            fPath = finalPath(path, singLvec,aMx)#
             
             #print("****************************************************************************\n")
             #print("xNew:\n", xNew) #xNew.trans()
             #print("****************************************************************************\n")
             
-            return locsTmp, fPath, tourDist
+            return locsTmp, fPath
     
     else:
         
-        fPath = finalPath(startP.reshape(-1,1), [0], singLvec, aMx)
+        fPath = finalPath([], singLvec, aMx)
         
-        return locsTmp, fPath, 0
+        return locsTmp, fPath
         
         
         
@@ -487,8 +486,7 @@ if __name__ == '__main__':
     #################################
     # ARGUMENTS TO TEST tourFn
     #################################
-    
-    startP = np.array([0, 0]) #Starting point for tour (point of origin)
+
     
     # locs = np.array([[0.,2.,2.,6.,5.],
     #                 [0.,2.,6.,2.,5.]])
@@ -661,26 +659,24 @@ if __name__ == '__main__':
     
     # [1 2 5 4 0 4 3 1]
     
-    adjMatrix = np.array([[0,0,0,0,0,1],
-                          [0,0,1,0,1,1],
-                          [0,1,0,0,1,0],
-                          [0,0,0,0,1,1],
-                          [0,1,1,1,0,1],
-                          [1,1,0,1,1,0]])    
+    # adjMatrix = np.array([[0,0,0,0,0,1],
+    #                       [0,0,1,0,1,1],
+    #                       [0,1,0,0,1,0],
+    #                       [0,0,0,0,1,1],
+    #                       [0,1,1,1,0,1],
+    #                       [1,1,0,1,1,0]])    
     
-    locs = np.array([[0.   ,7.64 ,7.88 ,0.34 ,3.94 ,3.  ],
-                     [0.   ,2.44 ,7.48 ,6.84 ,7.42 ,1.82]])
+    # locs = np.array([[0.   ,7.64 ,7.88 ,0.34 ,3.94 ,3.  ],
+    #                  [0.   ,2.44 ,7.48 ,6.84 ,7.42 ,1.82]])
     
     
     
     ##################################
     
-    locsTmp, fPath, tourDist = tourFn(startP, locs, adjMatrix)
+    locsTmp, fPath = tourFn(locs, adjMatrix)
     
     print('\n')
     print(locsTmp)
     print('')
     print(fPath)
-    print('')
-    print(tourDist)
 
