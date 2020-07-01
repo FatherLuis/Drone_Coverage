@@ -161,12 +161,11 @@ def run_program(drone, CS_radius , shape ,candidate, sp , showPlot = True):
             pass
     
     
-        # for path in path_lst:
-        #     # DRAW PATH 
-        #     Canvas.path(path)
-        #     pass
+        for path in path_lst:
+            # DRAW PATH 
+            Canvas.path(path)
         
-        Canvas.draw_sites_path(vertices)
+        #Canvas.draw_sites_path(vertices)
     
         Canvas.draw_sites(sites)
 
@@ -197,9 +196,7 @@ if __name__ == '__main__':
         #field_boundary =  [ (0,0) , (0,7) , (7,7) , (7,0)]
         #field_boundary = [ (0,0),(2.28,0),(3.88,1.61),(3.88,3.88),(2.28,5.49),(0,5.49),(-1.61,3.88),(-1.61,1.61) ]
 
-        field_boundary = [ (0,0) , (0,10) , (10,10) , (10,0)]
-
-        
+        field_boundary =  [ (0,0) , (4.5509,0) , (7.7689,3.218) , (7.7689,7.7689) , (4.5509,10.9868) , (0,10.9869) , (-3.218,7.7689) , (-3.218,3.218) ]
         CS_radius = 2.5
         
     
