@@ -19,6 +19,9 @@ column_names = ['N_Gon','Shape_Area','CS_Radius','num_Candidates','num_Charging_
 df = pd.DataFrame(columns = column_names)
 
 
+
+
+
 #####################################
 ### INITIALIZE DRONE PROPERTIES ###
 #####################################
@@ -55,9 +58,9 @@ oct2 = [ (0,0), (3.22,0), (5.49,2.28), (5.49,5.49), (3.22,7.77), (0,7.77), (-2.2
 oct3 = [ (0,0), (4.55,0), (7.77,3.22), (7.77,7.77), (4.55,10.99), (0,10.99), (-3.22,7.77), (-3.22,3.22)  ]
 
 
-fields = [square1,square2,square3,oct1,oct2,oct3]
+fields = [square1,square2,square3 ]#,oct1,oct2,oct3]
 
-n_trials = 1
+n_trials = 2
 
 
 
@@ -117,15 +120,15 @@ for field in fields:
 
 
 #####################################
-### SAVE PANDA DATAFRAME AS CSV FILE 
+### SAVE RAW PANDA DATAFRAME AS CSV FILE 
 #####################################
-
-
 now = datetime.now() # current date and time
-date_time = now.strftime("%m_%d_%Y___%H_%M_%S")
+date_time = now.strftime("%m_%d_%Y__%H_%M_%S")
+
 
 
 directory = './data/'
+
 filename = '{}_{}.csv'.format('Test_Data',date_time)
 
 file_path = os.path.join(directory, filename)
@@ -134,6 +137,35 @@ if not os.path.isdir(directory):
     os.mkdir(directory)
 
 df.to_csv(file_path)
+
+
+
+#######################################
+### SAVE SUMMARY STATS 
+### PANDA DATAFRAME AS CSV FILE 
+#######################################
+
+
+summary_df = df.groupby(['N_Gon',
+                      'Shape_Area',
+                      'CS_Radius',
+                      'num_Candidates',
+                      'num_Charging_Station']).agg(['mean', 'std'])
+
+
+filename = '{}_{}.csv'.format('Test_Data_Summary',date_time)
+
+file_path = os.path.join(directory, filename)
+
+if not os.path.isdir(directory):
+    os.mkdir(directory)
+
+df.to_csv(file_path)
+
+                
+
+
+
 
 
 

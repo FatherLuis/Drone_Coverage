@@ -101,8 +101,71 @@ def finalPath(start, pathArr, singLvec, aMx):
         # GIVE THE CORRECT INDECES FOR THE PATH
         path = np.arange(nCS)[np.logical_not(np.array(singLvec))][path]
         
-        result = np.copy(path)
         
+        
+        ###########################################  
+        # ROTATE THE PATH SUCH THAT THE FIRST ELEMENT 
+        # IN THE PATH IS RELATED TO THE FIRST CS
+        ###########################################  
+        # WHY THIS IS NECESSARY: THE CYCLE BEGINS ON 
+        # THE FIRST NON-SINGLETON IN 'singLvec'
+        # THE FIRST CS MAY NOT BE CONNECTED ON THIS ELEM.
+        # THE ALGORITHM BELOW ASSUMES THAT THE FIRST ELEM
+        # IN THE CYCLE IS RELATED TO THE FIRST CS
+        ############################################
+        
+        # IS MY FIRST ELEM A SINGLETON?
+        if singLvec[0]:
+            
+            # CONVERT NUMPY ARRAY INTO LIST
+            path = path.tolist()
+
+            # COPY THE SINGLETON MATRIX
+            sMx2 = np.copy(sMx)       
+            
+            # START OFF ON THE FIRST ROW (TRAIL MY WAY INTO THE CYCLE)
+            idx =  0
+            
+            # ITERATE UNTIL YOU'RE IN THE CYCLE (PATH)
+            while (True):
+                
+                
+                # GET THE ROW
+                row = sMx2[idx,:]      
+                     
+                # ZERO OUT THE CONNECTIONS TOT HIS NODE
+                sMx2[idx,:] = 0
+                sMx2[:,idx] = 0      
+                
+                # IDENTIFY WHERE I AM CONNECTED TO
+                idx = np.where(row == 1)[0][0]
+                    
+                # IS THE ELEM THAT IS RELATED TO THE FIRST ELEM IN THE CYCLE?
+                if (idx in path):
+                    
+                    # WE'LL BE RECONSTRUCTING THE CYCLE
+                    # DELETE THE LAST ELEMENT IN THE PATH
+                    path.pop(-1)
+                    
+                    # ITERATE UNTIL THE ELEM 'idx' IS THE FIRST ELEMENT IN THE PATH
+                    while(not(path[0] == idx)):
+                        
+                        # REMOVE FIRST ELEMENT
+                        # ADD THE REMOVED ELEMENT TO THE END
+                        path.append(path.pop(0))
+                    
+                    # ADD THE 'idx' ELEMENT TO THE END OF THE PATH
+                    # THE CYCLE HAS BEEN RECONSTRUCTED
+                    path.append(idx)
+                    break
+                    
+                    
+                    
+                            
+        
+        
+        
+        result = np.copy(path)
         
         ###########################################  
         # ITERATE THROUGH EACH ELEM AND ATTACH THE SINGLETONS TO THE PATH
@@ -208,6 +271,8 @@ def finalPath(start, pathArr, singLvec, aMx):
                     
 
     print(result)
+    
+    
 
     # [0 , ....... , 0]
     return result    
@@ -563,7 +628,7 @@ if __name__ == '__main__':
     
     ### CHAINED COMPLEX SINGLETONS
     
-    
+    # THRON TEST SUBJECT
     adjMatrix = np.array([[0,1,0,0,0,0,0,0],
                           [1,0,1,0,0,0,0,0],
                           [0,1,0,1,0,1,0,0],
@@ -574,21 +639,22 @@ if __name__ == '__main__':
                           [0,0,0,0,0,0,1,0]])
     
     locs = np.array([[0,1,2,3,4,3,4,5],
-                     [0,0,0,1,2,-1,-2,-3]])
+                      [0,0,0,1,2,-1,-2,-3]])
     
     
     
+    # adjMatrix = np.array([[0,0,0,0,1,0],
+    #                       [0,0,1,1,1,0],
+    #                       [0,1,0,0,1,1],
+    #                       [0,1,0,0,1,0],
+    #                       [1,1,1,1,0,1],
+    #                       [0,0,1,0,1,0]])
     
-    ## small dimension
     
-    # adjMatrix = np.array([ [0,0,0,1,0],
-    #                         [0,0,0,1,1],
-    #                         [0,0,0,0,1],
-    #                         [1,1,0,0,0],
-    #                         [0,1,1,0,0]])
+    # locs = np.array([[0,8.12,7.12,6.78,2.9,2.26],
+    #                   [0,4.34,8.4,0.82,3.1,7.7]])
     
-    # locs = np.array([[0,1,2,3,3],
-    #                   [0,0,0,1,-1]])  
+    # [1 2 5 4 0 4 3 1]
     
     ##################################
     
