@@ -387,7 +387,6 @@ def tourFn(locsTmp, adjMatrix):
         bTmp = matrix(2*np.ones((ncsTmp,1), dtype = float)) #Two edges per node
         cVec = matrix(np.array(cVec, dtype = float))
         
-        flag = 0
         A_ineq = spmatrix(0.0, [0], [0], (1,nEdge), tc = 'd')
         b_ineq = matrix(np.zeros((1,1), dtype = float), tc = 'd')
         
@@ -407,7 +406,12 @@ def tourFn(locsTmp, adjMatrix):
         edgeLst = None
         cycEdges = None
         
-        while True:
+        
+        
+        flag = 0
+        isComplete = 0 
+        
+        while not(isComplete):
             
             
             # FLAG = 0 : THIS IS THE FIRST ITERATION
@@ -481,13 +485,17 @@ def tourFn(locsTmp, adjMatrix):
                     
                     
                     # DID THE CYCLE END PREMATURELY?
-                    if path[0] == path[-1] : 
+                    if path[0] == path[-1]  and (k < nsEdges -1): 
                         
                         A_ineq = sparse([A_ineq, matrix(np.array([cycEdges]), tc = 'd')])  #Enlarge LP matrix
                         b_ineq = matrix(sparse([b_ineq, matrix([-1.0+sum(cycEdges)])]), tc = 'd') # Enlarge constant
                         
                         break
+                 
+                path = np.array(path)
+                isComplete = 1
             
+
                     
                             
             elif flag == 2 :
@@ -539,17 +547,104 @@ def tourFn(locsTmp, adjMatrix):
                 # NOW THAT I HAVE THE CYCLES, I NEED TO CONNECT THEM
                 ###################################################
                         
+                cPath = np.array(cycleLst[0])
                         
-                       
+                
+                nCyclePaths = len(cycleLst)
+                
+                
+                remainEdges_idx = np.where( np.logical_not(edgeLst[0] == -1) )[0]  
+                
+                
+                for i in range(1,nCyclePaths):     
+                
+                    
+                    curCyc = cycleLst[i]
+                    
+                    for j,idx in enumerate(remainEdges_idx):
+                        
+                        
+                        curEdge = edgeLst[:,idx]
+                        
+ 
+                        
+                        isConnected_1 = ((curEdge[0] in cPath) and (curEdge[1] in curCyc) ) 
+                        isConnected_2 = ((curEdge[1] in cPath) and (curEdge[0] in curCyc) ) 
+                        
+                        
+                        if isConnected_1 :
+                            
+                            
+                            if not(curCyc[0] == curEdge[1]) :
+                                
+                                curCyc.pop(-1)
+                                
+                                while(not(curCyc[0] == curEdge[1]) ):
+                                    
+                                    curCyc.append(curCyc.pop(0))
+                            
+                            
+                                curCyc.append(curCyc[0])
+
+                            
+                            cyc_idx = np.where( cPath == curEdge[0] )[0][0]
+                            
+                            cPath = np.insert(cPath,cyc_idx+1, curCyc )
+                            
+                            
+                            remainEdges_idx = np.delete(remainEdges_idx, j )
+                            
+                            break
+                            
+                        if isConnected_2 :
+                            
+                            
+                            if not(curCyc[0] == curEdge[0]) :
+                                
+                                curCyc.pop(-1)
+                                
+                                while(not(curCyc[0] == curEdge[0]) ):
+                                    
+                                    curCyc.append(curCyc.pop(0))
+                            
+                            
+                                curCyc.append(curCyc[0])
+                            
+                            
+                            
+                            cyc_idx = np.where( cPath == curEdge[1] )[0][0]
+                            
+                            cPath = np.insert(cPath,cyc_idx+1, curCyc )
+                            
+                            remainEdges_idx = np.delete(remainEdges_idx, j )
+                            
+                            break                           
+                            
+                            
+                        
+                            
+                            
                         
             
-            
-                break
-            
-            
+                path = cPath
+                isComplete = 1 
             
             
             
+            
+    if path.size == 0:
+    
+        
+        fPath = finalPath([], singLvec, aMx)
+    
+        return locsTmp, fPath
+    
+    else:
+    
+        ## PUTS PATH INDECES TOGETHER USING THE START POINT, EDGES PATH, AND THE SINGLETONS
+        fPath = finalPath(path, singLvec,aMx)#
+
+        return locsTmp, fPath
             
             
             
@@ -778,17 +873,17 @@ if __name__ == '__main__':
     ### CHAINED COMPLEX SINGLETONS
     
     # THRON TEST SUBJECT
-    # adjMatrix = np.array([[0,1,0,0,0,0,0,0],
-    #                       [1,0,1,0,0,0,0,0],
-    #                       [0,1,0,1,0,1,0,0],
-    #                       [0,0,1,0,1,1,0,0],
-    #                       [0,0,0,1,0,0,0,0],
-    #                       [0,0,1,1,0,0,1,0],
-    #                       [0,0,0,0,0,1,0,1],
-    #                       [0,0,0,0,0,0,1,0]])
+    adjMatrix = np.array([[0,1,0,0,0,0,0,0],
+                          [1,0,1,0,0,0,0,0],
+                          [0,1,0,1,0,1,0,0],
+                          [0,0,1,0,1,1,0,0],
+                          [0,0,0,1,0,0,0,0],
+                          [0,0,1,1,0,0,1,0],
+                          [0,0,0,0,0,1,0,1],
+                          [0,0,0,0,0,0,1,0]])
     
-    # locs = np.array([[0,1,2,3,4,3,4,5],
-    #                   [0,0,0,1,2,-1,-2,-3]])
+    locs = np.array([[0,1,2,3,4,3,4,5],
+                      [0,0,0,1,2,-1,-2,-3]])
     
     
     
@@ -817,16 +912,16 @@ if __name__ == '__main__':
     
     # FAILED (07/1/2020)
     #------------ CS LOCS ---------------
-    locs = np.array([[ 0.    ,7.06  ,3.78 ,11.06  ,1.04  ,6.92 ,10.78],
-                     [ 0.    ,0.26  ,2.1   ,1.46  ,2.56  ,3.04  ,3.96]])
-    #------------ ADJ MATRIX ---------------
-    adjMatrix = np.array([[0. ,0. ,1. ,0. ,1. ,0. ,0.],
-                          [0. ,0. ,1. ,1. ,0. ,1. ,0.],
-                          [1. ,1. ,0. ,0. ,1. ,1. ,0.],
-                          [0. ,1. ,0. ,0. ,0. ,1. ,1.],
-                          [1. ,0. ,1. ,0. ,0. ,0. ,0.],
-                          [0. ,1. ,1. ,1. ,0. ,0. ,1.],
-                          [0. ,0. ,0. ,1. ,0. ,1. ,0.]])
+    # locs = np.array([[ 0.    ,7.06  ,3.78 ,11.06  ,1.04  ,6.92 ,10.78],
+    #                  [ 0.    ,0.26  ,2.1   ,1.46  ,2.56  ,3.04  ,3.96]])
+    # #------------ ADJ MATRIX ---------------
+    # adjMatrix = np.array([[0. ,0. ,1. ,0. ,1. ,0. ,0.],
+    #                       [0. ,0. ,1. ,1. ,0. ,1. ,0.],
+    #                       [1. ,1. ,0. ,0. ,1. ,1. ,0.],
+    #                       [0. ,1. ,0. ,0. ,0. ,1. ,1.],
+    #                       [1. ,0. ,1. ,0. ,0. ,0. ,0.],
+    #                       [0. ,1. ,1. ,1. ,0. ,0. ,1.],
+    #                       [0. ,0. ,0. ,1. ,0. ,1. ,0.]])
     
     
     ##################################
