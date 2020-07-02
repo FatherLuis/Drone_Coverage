@@ -68,7 +68,7 @@ oct3 = [ (0,0) , (4.5509,0) , (7.7689,3.218) , (7.7689,7.7689) , (4.5509,10.9868
 
 fields = [square1,square2,square3,rect1,rect2,rect3,oct1,oct2,oct3]
 
-n_trials = 2
+n_trials = 1
 
 
 
@@ -159,7 +159,7 @@ df.to_csv(file_path)
 summary_df = df.groupby(['N_Gon',
                       'Shape_Area',
                       'CS_Radius',
-                      'num_Candidates']).agg(['mean', 'std'])
+                      'num_Candidates']).agg(['mean', 'std']).round(2)
 
 
 filename = '{}_{}.csv'.format('Test_Data_Summary',date_time)

@@ -14,7 +14,7 @@ import numpy as np
 import traceback
 
 
-def run_program(drone, CS_radius , shape ,candidate, sp , showPlot = True):
+def run_program(drone, CS_radius , shape ,candidate, sp , showPlot = False):
     
     
     #################### INITIALS ####################
@@ -196,11 +196,11 @@ if __name__ == '__main__':
         #field_boundary =  [ (0,0) , (0,7) , (7,7) , (7,0)]
         #field_boundary = [ (0,0),(2.28,0),(3.88,1.61),(3.88,3.88),(2.28,5.49),(0,5.49),(-1.61,3.88),(-1.61,1.61) ]
 
-        field_boundary =  [ (0,0) , (4.5509,0) , (7.7689,3.218) , (7.7689,7.7689) , (4.5509,10.9868) , (0,10.9869) , (-3.218,7.7689) , (-3.218,3.218) ]
+        field_boundary =  [ (0,0) , (0,4.0825) , (12.2474,4.0825), (12.2474,0)]
         CS_radius = 2.5
         
     
-        lst = run_program(drone, CS_radius , field_boundary, 100, np.array([0, 0]) )
+        lst = run_program(drone, CS_radius , field_boundary, 50, np.array([0, 0]) )
         
         print('')
         print('nCS:',lst[0])

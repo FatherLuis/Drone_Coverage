@@ -366,7 +366,8 @@ def tourFn(locsTmp, adjMatrix):
                 if dMxTmp[jj,kk] > 0:
                     idx = np.array([[jj],[kk]])
                     edgeTmp = np.append(edgeTmp, idx, axis = 1)
-                    cVec.append((dMxTmp[jj,kk]))
+                    #cVec.append((dMxTmp[jj,kk]))
+                    cVec.append(1)  # Minimize number of edges used
         
         nEdge = len(cVec) #Number of edges (variables)
         
@@ -400,81 +401,226 @@ def tourFn(locsTmp, adjMatrix):
         ##############################################     
         
     
+        # SCOPE ISSUE
+        path = None       
+        edgeSoln = None
+        edgeLst = None
+        cycEdges = None
         
-        while flag == 0: #Flag denotes cycle has been achieved
-            global xNew
+        while True:
+            
+            
+            # FLAG = 0 : THIS IS THE FIRST ITERATION
+            # FLAG = 1 : LINEAR PROGRAM HAS EXECUTED SUCCESSFULLY ATLEAST ONCE
+            # FLAG = 2 : LINEAR PROGRAM FAILED AFTER ADDITIONAL CONTRAINTS ADDED
+            #            WHICH MEANS THERE IS MORE THAN ONCE CYCLE FOUND. 
+            
             #Solve linear program
             status, xNew = ilp(cVec, A_ineq, b_ineq, TSPmx, bTmp, I = set(), B = set(range(nEdge)))
             
-    
-            if status != 'optimal': # If no solution is found
-                #print("Solution not found!\n\n")
+            
+            # LINEAR PROGRAM FAILED ON FIRST TRY 
+            if status != 'optimal' and flag == 0:
+                
                 raise('No Tour Found')
-                fmin = 1E100 # Mark this as impossible
-                flag = 1 # Exit
+
+            if status != 'optimal' and flag == 1:
+                
+                flag = 2
+                 
+            else:    
+                # LINEAR PROGRAM HAS EXECUTED SUCCESSFULLY ATLEAST ONCE
+                flag = 1
+                       
+    
+    
+            ###############################################
+            # RESET VARIABLES TO WORK FOR NEW xNew SOLUTION
+            ###############################################
+            
+            if flag == 1:
+                # CAST CVXOPT.MATRIX TO NUMPY ARRAY AS ROW VECTOR
+                edgeSoln = np.array(xNew.T).astype(int)[0]   
+                            
+                # GET A COPY OF THE 'edgeTmp' TO MANIPULATE
+                edgeLst = np.copy(edgeTmp).astype(int)
+                
+                # WILL STORE TRUE/FALSE IF I HAVE TRAVELED TO THAT EDGE
+                cycEdges = np.zeros(nEdge)        
+        
+                # STARTING NODE
+                path = [0]
+                
+                # NUMBER OF EDGES IN SOLUTION
+                nsEdges = sum(edgeSoln)
+                
+                
+                
+                for k in range(nsEdges):
+                
+                    
+                    # LOCATE WHERE TO GO CURRENT NODE IS
+                    possibleEdges = np.where(  np.logical_and( (edgeLst == path[-1]) , (edgeSoln==1) ) )
+                    
+                    # GET THE INDEX OF THE FIRST POTENTIAL EDGE
+                    edgeIx = possibleEdges[1][0]
+                    
+                    # GET THE EDGE WHERE MY NODE IS
+                    curEdge = edgeLst[:,edgeIx]
+                    
+                    # GET THE NEXT NODE I NEED TO TRAVEL TO
+                    nextNode = curEdge[0] if curEdge[1] == path[-1] else curEdge[1]
+                    path.append(nextNode)
+                    
+                    # LET 'cycEdge' KNOW THAT I TRAVELED ON THAT EDGE
+                    cycEdges[edgeIx] = 1
+                    
+                    # MARK THE EDGE SO THAT IT IS NOT FOUND AGAIN
+                    edgeLst[:,edgeIx] = -1
+                    
+                    
+                    
+                    # DID THE CYCLE END PREMATURELY?
+                    if path[0] == path[-1] : 
+                        
+                        A_ineq = sparse([A_ineq, matrix(np.array([cycEdges]), tc = 'd')])  #Enlarge LP matrix
+                        b_ineq = matrix(sparse([b_ineq, matrix([-1.0+sum(cycEdges)])]), tc = 'd') # Enlarge constant
+                        
+                        break
+            
+                    
+                            
+            elif flag == 2 :
+                
+                cycleLst = [path]
+                
+                
+                
+                while( not( np.all(np.equal( (edgeLst[0] == -1 ) , edgeSoln) )) ):    
+                    
+                    edgeIx= np.where(  np.logical_and( np.logical_not(edgeLst == -1) , edgeSoln ) )[1][0] 
+                    
+                    curPath = [  edgeLst[:,edgeIx][0] ]
+                    
+                    
+                    nEdgesLeft = sum(cycEdges == 0)
+                    
+                    for k in range(nEdgesLeft):
+                    
+                    
+                        # LOCATE WHERE TO GO CURRENT NODE IS
+                        possibleEdges = np.where(  np.logical_and( (edgeLst == curPath[-1]) , (edgeSoln==1) ) )
+                        
+                        # GET THE INDEX OF THE FIRST POTENTIAL EDGE
+                        edgeIx = possibleEdges[1][0]
+                        
+                        # GET THE EDGE WHERE MY NODE IS
+                        curEdge = edgeLst[:,edgeIx]
+                        
+                        # GET THE NEXT NODE I NEED TO TRAVEL TO
+                        nextNode = curEdge[0] if curEdge[1] == curPath[-1] else curEdge[1]
+                        curPath.append(nextNode)
+                        
+                        # LET 'cycEdge' KNOW THAT I TRAVELED ON THAT EDGE
+                        cycEdges[edgeIx] = 1
+                        
+                        # MARK THE EDGE SO THAT IT IS NOT FOUND AGAIN
+                        edgeLst[:,edgeIx] = -1           
+                
+                    
+                        # DID THE CYCLE END?
+                        if curPath[0] == curPath[-1]:
+                
+                            cycleLst.append(curPath)
+                            break
+                
+                
+                ###################################################
+                # NOW THAT I HAVE THE CYCLES, I NEED TO CONNECT THEM
+                ###################################################
+                        
+                        
+                       
+                        
+            
+            
+                break
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
             
     
-            fmin = dotu(cVec, xNew)
+            # if status != 'optimal': # If no solution is found
+            #     #print("Solution not found!\n\n")
+            #     raise('No Tour Found')
+            #     fmin = 1E100 # Mark this as impossible
+            #     flag = 1 # Exit
             
-            xNew = np.where(xNew)[0] # Change xNew to vector of indices
-            # build a vector of edges connected to node 1
-            edgeSoln = edgeTmp[:,xNew].astype(int) # Edges in solution
-            cycNodes = np.zeros(ncsTmp) # Nodes in cycle
-            thisNode = 0 #start with base node
-            startNode = thisNode
-            cycNodes[0] = thisNode # starting node
-            cycEdges = np.zeros((1, nEdge)) #edges in cycle
-            flag = 1
-            path = [thisNode]
-            
-            #print("\nEdgeSoln: \n", edgeSoln, "\n")
-            for jj in range(ncsTmp-1):
-                tmp = np.where(edgeSoln == thisNode)  # Find current node in list of edges
-                edgeIx = tmp[1][0]
-                cycEdges[0][xNew[edgeIx]] = 1  # Mark this edge as part of the solution  ###ISSUE CHECK
-                thisNode = edgeSoln[1 - tmp[0][0], edgeIx] # Next node in tour ###ISSUE CHECK
-                path.append(thisNode)
-                edgeSoln[:,edgeIx] = -1 # Zero out edge so that it's not found again
-                
-                # DID THE CYCLE END PREMATURELY?
-                if thisNode == cycNodes[0]: # Finished cycle
-                    flag = 0
-                    break
     
-            if flag == 0: #Didn't complete cycle
-                
-                
-                
-                A_ineq = sparse([A_ineq, matrix(cycEdges, tc = 'd')])  #Enlarge LP matrix
-                b_ineq = matrix(sparse([b_ineq, matrix([-1.0+sum(cycEdges[0])])]), tc = 'd') # Enlarge constant ###ISSUE CHECK
+            # fmin = dotu(cVec, xNew)
             
-            path.append(startNode)
-            path = np.asarray(path)
+            # xNew = np.where(xNew)[0] # Change xNew to vector of indices
+            # # build a vector of edges connected to node 1
+            # edgeSoln = edgeTmp[:,xNew].astype(int) # Edges in solution
+            # cycNodes = np.zeros(ncsTmp) # Nodes in cycle
+            # thisNode = 0 #start with base node
+            # startNode = thisNode
+            # cycNodes[0] = thisNode # starting node
+            # cycEdges = np.zeros((1, nEdge)) #edges in cycle
+            # flag = 1
+            # path = [thisNode]
+            
+            # #print("\nEdgeSoln: \n", edgeSoln, "\n")
+            # for jj in range(ncsTmp-1):
+            #     tmp = np.where(edgeSoln == thisNode)  # Find current node in list of edges
+            #     edgeIx = tmp[1][0]
+            #     cycEdges[0][xNew[edgeIx]] = 1  # Mark this edge as part of the solution  ###ISSUE CHECK
+            #     thisNode = edgeSoln[1 - tmp[0][0], edgeIx] # Next node in tour ###ISSUE CHECK
+            #     path.append(thisNode)
+            #     edgeSoln[:,edgeIx] = -1 # Zero out edge so that it's not found again
+                
+            #     # DID THE CYCLE END PREMATURELY?
+            #     if thisNode == cycNodes[0]: # Finished cycle
+            #         flag = 0
+            #         break
     
-        #print("path: ", path)
+            # if flag == 0: #Didn't complete cycle
+                
+                
+                
+            #     A_ineq = sparse([A_ineq, matrix(cycEdges, tc = 'd')])  #Enlarge LP matrix
+            #     b_ineq = matrix(sparse([b_ineq, matrix([-1.0+sum(cycEdges[0])])]), tc = 'd') # Enlarge constant ###ISSUE CHECK
+            
+    #         path.append(startNode)
+    #         path = np.asarray(path)
+    
+    #     #print("path: ", path)
         
         
                
-        if status == 'optimal':
-        
+    #     if status == 'optimal':
             
-            #print("\nsingLmx: \n", singLmx)
-            #print("dMxSingleTmp: ", dMxSingleTmp)
+    #         ## PUTS PATH INDECES TOGETHER USING THE START POINT, EDGES PATH, AND THE SINGLETONS
+    #         fPath = finalPath(path, singLvec,aMx)#
+
             
-            ## PUTS PATH INDECES TOGETHER USING THE START POINT, EDGES PATH, AND THE SINGLETONS
-            fPath = finalPath(path, singLvec,aMx)#
-            
-            #print("****************************************************************************\n")
-            #print("xNew:\n", xNew) #xNew.trans()
-            #print("****************************************************************************\n")
-            
-            return locsTmp, fPath
+    #         return locsTmp, fPath
     
-    else:
+    # else:
         
-        fPath = finalPath([], singLvec, aMx)
+    #     fPath = finalPath([], singLvec, aMx)
         
-        return locsTmp, fPath
+    #     return locsTmp, fPath
         
         
         
@@ -632,17 +778,17 @@ if __name__ == '__main__':
     ### CHAINED COMPLEX SINGLETONS
     
     # THRON TEST SUBJECT
-    adjMatrix = np.array([[0,1,0,0,0,0,0,0],
-                          [1,0,1,0,0,0,0,0],
-                          [0,1,0,1,0,1,0,0],
-                          [0,0,1,0,1,1,0,0],
-                          [0,0,0,1,0,0,0,0],
-                          [0,0,1,1,0,0,1,0],
-                          [0,0,0,0,0,1,0,1],
-                          [0,0,0,0,0,0,1,0]])
+    # adjMatrix = np.array([[0,1,0,0,0,0,0,0],
+    #                       [1,0,1,0,0,0,0,0],
+    #                       [0,1,0,1,0,1,0,0],
+    #                       [0,0,1,0,1,1,0,0],
+    #                       [0,0,0,1,0,0,0,0],
+    #                       [0,0,1,1,0,0,1,0],
+    #                       [0,0,0,0,0,1,0,1],
+    #                       [0,0,0,0,0,0,1,0]])
     
-    locs = np.array([[0,1,2,3,4,3,4,5],
-                      [0,0,0,1,2,-1,-2,-3]])
+    # locs = np.array([[0,1,2,3,4,3,4,5],
+    #                   [0,0,0,1,2,-1,-2,-3]])
     
     
     
@@ -669,6 +815,18 @@ if __name__ == '__main__':
     # locs = np.array([[0.   ,7.64 ,7.88 ,0.34 ,3.94 ,3.  ],
     #                  [0.   ,2.44 ,7.48 ,6.84 ,7.42 ,1.82]])
     
+    # FAILED (07/1/2020)
+    #------------ CS LOCS ---------------
+    locs = np.array([[ 0.    ,7.06  ,3.78 ,11.06  ,1.04  ,6.92 ,10.78],
+                     [ 0.    ,0.26  ,2.1   ,1.46  ,2.56  ,3.04  ,3.96]])
+    #------------ ADJ MATRIX ---------------
+    adjMatrix = np.array([[0. ,0. ,1. ,0. ,1. ,0. ,0.],
+                          [0. ,0. ,1. ,1. ,0. ,1. ,0.],
+                          [1. ,1. ,0. ,0. ,1. ,1. ,0.],
+                          [0. ,1. ,0. ,0. ,0. ,1. ,1.],
+                          [1. ,0. ,1. ,0. ,0. ,0. ,0.],
+                          [0. ,1. ,1. ,1. ,0. ,0. ,1.],
+                          [0. ,0. ,0. ,1. ,0. ,1. ,0.]])
     
     
     ##################################
