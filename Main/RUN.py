@@ -58,7 +58,7 @@ def run_program(drone, CS_radius , shape ,candidate, sp , showPlot = False):
     voronoi_lst = field.create_voronoi_polygons(site=sites, boundary=field_boundary)
     
     # ordered
-    entryExitLst, tourOrder ,vertices = tour(start_point, drone.MAX_DISTANCE , voronoi_lst)
+    entryExitLst, tourOrder ,vertices = tour(voronoi_lst)
 
 
     
@@ -163,7 +163,8 @@ def run_program(drone, CS_radius , shape ,candidate, sp , showPlot = False):
     
         for path in path_lst:
             # DRAW PATH 
-            Canvas.path(path)
+            #Canvas.path(path)
+            pass
         
         #Canvas.draw_sites_path(vertices)
     
@@ -196,11 +197,11 @@ if __name__ == '__main__':
         #field_boundary =  [ (0,0) , (0,7) , (7,7) , (7,0)]
         #field_boundary = [ (0,0),(2.28,0),(3.88,1.61),(3.88,3.88),(2.28,5.49),(0,5.49),(-1.61,3.88),(-1.61,1.61) ]
 
-        field_boundary =  [ (0,0) , (0,4.0825) , (12.2474,4.0825), (12.2474,0)]
-        CS_radius = 2.5
+        field_boundary = [ (0,0) , (0,4.0825) , (12.2474,4.0825), (12.2474,0)]
+        CS_radius = 3.5
         
     
-        lst = run_program(drone, CS_radius , field_boundary, 50, np.array([0, 0]) )
+        lst = run_program(drone, CS_radius , field_boundary, 50, np.array([0, 0]) , True)
         
         print('')
         print('nCS:',lst[0])

@@ -12,7 +12,7 @@ import os.path
 #####################################
 
 
-column_names = ['N_Gon','Shape_Area','CS_Radius','num_Candidates','num_Charging_Station',
+column_names = ['Shape','N_Gon','Shape_Area','CS_Radius','num_Candidates','num_Charging_Station',
                 'Total_Time','Total_Distance_Travel']
 
 
@@ -47,6 +47,7 @@ CS_radius = [2.5,3.5]
 #####################################
 
 # SQUARES
+squareName = 'Square'
 square1 = [ (0,0) , (0,5) , (5,5) , (5,0)]
 square2 = [ (0,0) , (0,7.0711) , (7.0711,7.0711) , (7.0711,0)]
 square3 = [ (0,0) , (0,10) , (10,10) , (10,0)]
@@ -54,6 +55,7 @@ square3 = [ (0,0) , (0,10) , (10,10) , (10,0)]
 
 
 # RECTANGLES
+rectName = 'Rectangle'
 rect1 = [ (0,0) , (0,2.8868) , (8.6603,2.8868), (8.6603,0) ]
 rect2 = [ (0,0) , (0,4.0825) , (12.2474,4.0825), (12.2474,0)]
 rect3 = [ (0,0) , (0,5.7735) , (17.3205,5.7735), (17.3205,0)]
@@ -61,19 +63,27 @@ rect3 = [ (0,0) , (0,5.7735) , (17.3205,5.7735), (17.3205,0)]
 
 
 # OCTAGONS
+octName = 'Octagon'
 oct1 = [ (0,0) , (2.2754,0) , (3.8844,1.609) , (3.8844,3.8844) , (2.2754,5.4934) , (0,5.4934) , (-1.609,3.8844), (-1.609,1.609) ]
 oct2 = [ (0,0) , (3.218,0) , (5.4934,2.2754) , (5.4934,5.4934) , (3.218,7.7689) , (0,7.7689) , (-2.2754,5.4934) , (-2.2754,2.2754) ]
 oct3 = [ (0,0) , (4.5509,0) , (7.7689,3.218) , (7.7689,7.7689) , (4.5509,10.9868) , (0,10.9869) , (-3.218,7.7689) , (-3.218,3.218) ]
 
 
-fields = [square1,square2,square3,rect1,rect2,rect3,oct1,oct2,oct3]
-
-n_trials = 1
-
-
+fields = [square1,square2,square3,
+          rect1,rect2,rect3,
+          oct1,oct2,oct3]
 
 
-for field in fields:
+names = [squareName,squareName,squareName,
+         rectName,rectName,rectName,
+         octName,octName,octName]
+
+n_trials = 2
+
+
+
+
+for name,field in zip(names,fields):
 
     curShape = geometry.Polygon(field)
     
@@ -101,7 +111,8 @@ for field in fields:
                 tot_time = 3*(lst[1] / velocity)
                 
         
-                df = df.append({'N_Gon': len(field),
+                df = df.append({'Shape': name,
+                                'N_Gon': len(field),
                                 'Shape_Area': shape_area ,
                                 'CS_Radius': mdv,
                                 'num_Candidates':cand,
@@ -114,7 +125,8 @@ for field in fields:
     
             except:
     
-                df = df.append({'N_Gon': len(field),
+                df = df.append({'Shape': name,
+                                'N_Gon': len(field),
                                 'Shape_Area':curShape.area,
                                 'CS_Radius': mdv,
                                 'num_Candidates':cand,
@@ -156,10 +168,11 @@ df.to_csv(file_path)
 #######################################
 
 
-summary_df = df.groupby(['N_Gon',
-                      'Shape_Area',
-                      'CS_Radius',
-                      'num_Candidates']).agg(['mean', 'std']).round(2)
+summary_df = df.groupby(['Shape',
+                         'N_Gon',
+                         'Shape_Area',
+                         'CS_Radius',
+                         'num_Candidates']).agg(['mean', 'std']).round(2)
 
 
 filename = '{}_{}.csv'.format('Test_Data_Summary',date_time)

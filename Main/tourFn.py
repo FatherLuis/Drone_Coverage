@@ -407,8 +407,9 @@ def tourFn(locsTmp, adjMatrix):
         cycEdges = None
         
         
-        
+        # DETERMINES WHICH ACTION TO TAKE WHILE IN THE LOOP
         flag = 0
+        # DETERMINES IF A CYCLE WAS FOUND
         isComplete = 0 
         
         while not(isComplete):
@@ -438,11 +439,17 @@ def tourFn(locsTmp, adjMatrix):
                        
     
     
-            ###############################################
-            # RESET VARIABLES TO WORK FOR NEW xNew SOLUTION
-            ###############################################
-            
+
+            # LINEAR PROGRAM HAS EXECUTED SUCCESSFULLY ATLEAST ONCE
+            # TRY TO CREATE A CYCLE BASED ON THE xNew SOLUTION
             if flag == 1:
+                
+                
+                ###############################################
+                # RESET VARIABLES TO WORK FOR NEW xNew SOLUTION
+                ###############################################
+                
+                
                 # CAST CVXOPT.MATRIX TO NUMPY ARRAY AS ROW VECTOR
                 edgeSoln = np.array(xNew.T).astype(int)[0]   
                             
@@ -459,7 +466,7 @@ def tourFn(locsTmp, adjMatrix):
                 nsEdges = sum(edgeSoln)
                 
                 
-                
+                # ITERATE BY THE NUMBER OF EDGES IN THE SOLUTION
                 for k in range(nsEdges):
                 
                     
@@ -484,7 +491,7 @@ def tourFn(locsTmp, adjMatrix):
                     
                     
                     
-                    # DID THE CYCLE END PREMATURELY?
+                    # DID THE CYCLE END PREMATURELY? (NOT ALL EDGES IN SOLUTION WERE USED)
                     if path[0] == path[-1]  and (k < nsEdges -1): 
                         
                         A_ineq = sparse([A_ineq, matrix(np.array([cycEdges]), tc = 'd')])  #Enlarge LP matrix
@@ -492,27 +499,41 @@ def tourFn(locsTmp, adjMatrix):
                         
                         break
                  
-                path = np.array(path)
-                isComplete = 1
+                 
+                    # IF ALL THE EDGES WERE USED, THEN THE CYCLE IS COMPLETE
+                    if (k == nsEdges - 1 ):
+                        
+                        path = np.array(path)
+                        isComplete = 1
             
 
                     
-                            
+            # LINEAR PROGRAM FAILED AFTER ADDITIONAL CONTRAINTS ADDED
+            # WHICH MEANS THERE IS MORE THAN ONCE CYCLE FOUND.    
+            # FIND THE REMAINING CYCLES AND CONNECT THEM USING THE
+            # EDGES NOT IN THE PREVIOUS SOLUTION
             elif flag == 2 :
                 
+                # CREATE A LIST FOR THE CYCLES
                 cycleLst = [path]
+                   
                 
-                
-                
+                # ITERATE UNTIL ALL THE EDGES IN THE SOLUTION ARE USED
                 while( not( np.all(np.equal( (edgeLst[0] == -1 ) , edgeSoln) )) ):    
                     
+                    
+                    # IDENTIFY THE INDEX OF THE FIRST EDGE 
+                    # IN THE SOLUTION THAT WAS NOT USED
                     edgeIx= np.where(  np.logical_and( np.logical_not(edgeLst == -1) , edgeSoln ) )[1][0] 
                     
+                    # VARIABLE USED TO STORE THE VALUES FOR THE CURRENT CYCLE
                     curPath = [  edgeLst[:,edgeIx][0] ]
                     
-                    
+                    # NUMBER OF SOLUTION EDGES NOT USED
                     nEdgesLeft = sum(cycEdges == 0)
                     
+                    
+                    # ITERATE BY THE NUMBER OF EDGES REMAINING
                     for k in range(nEdgesLeft):
                     
                     
@@ -536,7 +557,7 @@ def tourFn(locsTmp, adjMatrix):
                         edgeLst[:,edgeIx] = -1           
                 
                     
-                        # DID THE CYCLE END?
+                        # DID THE CYCLE END? 
                         if curPath[0] == curPath[-1]:
                 
                             cycleLst.append(curPath)
@@ -546,78 +567,98 @@ def tourFn(locsTmp, adjMatrix):
                 ###################################################
                 # NOW THAT I HAVE THE CYCLES, I NEED TO CONNECT THEM
                 ###################################################
-                        
+                    
+                # WE'LL USED THIS VARIABLE TO CONNECT THE OTHER CYCLES TO IT
                 cPath = np.array(cycleLst[0])
                         
-                
+                # NUMBER OF CYCLES THAT ARE IN THE LIST
                 nCyclePaths = len(cycleLst)
                 
-                
+                # IDENTIFY THE LOCATION OF THE NON-SOLUTION EDGES
+                # THESE WILL BE USED TO CONNECT THE CYCLES
                 remainEdges_idx = np.where( np.logical_not(edgeLst[0] == -1) )[0]  
                 
-                
+                # ITERATE UNTIL ALL CYCLES ARE SEEN
                 for i in range(1,nCyclePaths):     
                 
-                    
+                    # CURRENT CYCLE THAT WILL BE CONNECTED
                     curCyc = cycleLst[i]
                     
+                    
+                    # ITERATE THROUGHT THE NON-SOLUTION EDGES
                     for j,idx in enumerate(remainEdges_idx):
                         
-                        
+                        # CURRENT NON-SOLUTION EDGE IN THE ITERATION
                         curEdge = edgeLst[:,idx]
                         
  
-                        
+                        # GOES THIS EDGE CONNECT THE CYCLE?
                         isConnected_1 = ((curEdge[0] in cPath) and (curEdge[1] in curCyc) ) 
                         isConnected_2 = ((curEdge[1] in cPath) and (curEdge[0] in curCyc) ) 
                         
-                        
+                        # IF THE NON-SOLUTION EDGE  CONNECTS THE CYCLES, 
+                        # THEN ATTACH THEM TOGETHER
                         if isConnected_1 :
                             
-                            
+                            # IF THE FIRST ELEM IN THE CYCLE IS 
+                            # NOT THE SAME VALUE AS THE EDGE
+                            # THEN WE'LL NEED TO REORDER THE CYCLE
                             if not(curCyc[0] == curEdge[1]) :
                                 
+                                # REMOVE THE LAST ELEM ( THE REPEATED ELEM)
                                 curCyc.pop(-1)
                                 
+                                # ITERATE UNTIL THE EDGE VALUE IS THE SAME 
+                                # AS THE FIRST ELEM IN CYCLE
                                 while(not(curCyc[0] == curEdge[1]) ):
                                     
                                     curCyc.append(curCyc.pop(0))
                             
-                            
+                                # ALL THE FIRST ELEM TO THE END
                                 curCyc.append(curCyc[0])
 
-                            
+                            # IDENTIFY WHERE I AM CONNECTING THE 
+                            # CYCLE TO THE 'cPath'
                             cyc_idx = np.where( cPath == curEdge[0] )[0][0]
                             
+                            # CONNECT THE CYCLES
                             cPath = np.insert(cPath,cyc_idx+1, curCyc )
                             
-                            
+                            # DELETE THE NON-SOLUTION EDGE USED
                             remainEdges_idx = np.delete(remainEdges_idx, j )
                             
+                            # END THE EDGE ITERATION, GO TO THE NEXT CYCLE IN LIST (IF ANY)
                             break
                             
+                        # IF THE NON-SOLUTION EDGE  CONNECTS THE CYCLES, 
+                        # THEN ATTACH THEM TOGETHER
                         if isConnected_2 :
                             
                             
                             if not(curCyc[0] == curEdge[0]) :
                                 
+                                # REMOVE THE LAST ELEM ( THE REPEATED ELEM)
                                 curCyc.pop(-1)
                                 
+                                # ITERATE UNTIL THE EDGE VALUE IS THE SAME 
+                                # AS THE FIRST ELEM IN CYCLE
                                 while(not(curCyc[0] == curEdge[0]) ):
                                     
                                     curCyc.append(curCyc.pop(0))
-                            
-                            
+  
                                 curCyc.append(curCyc[0])
                             
-                            
-                            
+                            # IDENTIFY WHERE I AM CONNECTING THE 
+                            # CYCLE TO THE 'cPath'
                             cyc_idx = np.where( cPath == curEdge[1] )[0][0]
                             
+                            # CONNECT THE CYCLES
                             cPath = np.insert(cPath,cyc_idx+1, curCyc )
                             
+                            # DELETE THE NON-SOLUTION EDGE USED
                             remainEdges_idx = np.delete(remainEdges_idx, j )
                             
+                            # END THE EDGE ITERATION, GO TO THE NEXT CYCLE IN LIST (IF ANY)
                             break                           
                             
                             
@@ -625,24 +666,26 @@ def tourFn(locsTmp, adjMatrix):
                             
                             
                         
-            
+                # ALL THE CYCLES ARE NOW CONNECTED
                 path = cPath
+                # STATE THIS IS SO
                 isComplete = 1 
             
             
             
             
-    if path.size == 0:
-    
-        
-        fPath = finalPath([], singLvec, aMx)
+
+        # IF I MADE IT TO THIS LINE,
+        # THEN, A PATH WAS FOUND
+                
+        fPath = finalPath(path, singLvec, aMx)
     
         return locsTmp, fPath
     
     else:
     
         ## PUTS PATH INDECES TOGETHER USING THE START POINT, EDGES PATH, AND THE SINGLETONS
-        fPath = finalPath(path, singLvec,aMx)#
+        fPath = finalPath([], singLvec,aMx)#
 
         return locsTmp, fPath
             

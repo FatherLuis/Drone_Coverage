@@ -12,7 +12,7 @@ from cvxopt.blas import dotu
 import numpy as np
 import matplotlib.pyplot as plt
 import random as r
-import tourFn as tf
+import tourfn2 as tf
 
 from Field import Field
 
@@ -30,6 +30,15 @@ def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad ,solMax
     #plt.pcolor(binMatrix)
     #plt.show()
 
+    
+
+    # converts numerical values in an array to boolean/logicals'''
+    logicalFn = lambda y: np.asarray(list(map(lambda x: bool(x), y))) 
+    
+    
+    
+    
+    
 
     rad2 = rad**2
 
@@ -66,9 +75,9 @@ def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad ,solMax
     # LOCATE THE AREA WHERE THE FIRST CHARGING STATION CANNOT REACHES
     iVec = ((xVec - start[0])**2 + (yVec-start[1])**2) > rad2; # points not covered by start
     # SELECT THE AREAS THAT ARE NOT COVERED BY THE FIRST CHARGING STATION ( GIVES A BOOLEAN MATRIX)
-    iMx = iMx[tf.logicalFn(iVec), :] #Logical coverage matrix for remaining points
+    iMx = iMx[logicalFn(iVec), :] #Logical coverage matrix for remaining points
     # SELECT THE AREAS THAT ARE NOT COVERED BY THE FIRST CHARGING STATION ( GIVES A DISTANCE MATRIX)
-    d2Mx = d2Mx[tf.logicalFn(iVec), :] #Distance matrix for remaining points
+    d2Mx = d2Mx[logicalFn(iVec), :] #Distance matrix for remaining points
     np_eff = iMx.shape[0]#size(iMx,1) #Number of points not covered by start
 
     #Set up linear program which finds the minimum number of charging stations required
@@ -131,7 +140,7 @@ def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad ,solMax
         
         minDistVec = 1E50 * np.ones(len(xVec))
         
-        csLocs = locs[:, tf.logicalFn(solMx[ii,:])] #select charging stations for current solution
+        csLocs = locs[:, logicalFn(solMx[ii,:])] #select charging stations for current solution
         csLocs = np.append(startConjT, csLocs, axis = 1) #add starting point
         
         # Construct minDistMx and regMx
@@ -167,7 +176,7 @@ def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad ,solMax
 
 
 
-def tour(start,rad,voronoi_lst):
+def tour(voronoi_lst):
     
     
     # GET THE CS LOCATIONS FROM THE VORONOI LIST
@@ -200,19 +209,17 @@ def tour(start,rad,voronoi_lst):
 
     ################################
     # 'Tour' requires:
-    # a 2D ARRAY WHERE X-VALUES ARE IN THE FIRST AND THE Y-VALUES ON THE SECOND
     # ADJ MATRIX  
     ################################
-    locsTmp = np.array( [ [x[0] for x in csLocs ] , [y[1] for y in csLocs ]  ] )
 
-    tour = tf.tourFn(locsTmp, mtx)
+    tour = tf.tourFn(mtx)
 
 
     if tour is  None:
         raise('Empty Tour')
       
     # coor : CONTAINS THE INDECES OF THE TOUR BETWEEN CS
-    locsTmp, coor = tour
+    coor = tour
     
     
     
@@ -253,6 +260,7 @@ def tour(start,rad,voronoi_lst):
                 break    
     
     print('------------ locs --------------')
+    locsTmp = np.array( [ [x[0] for x in csLocs ] , [y[1] for y in csLocs ]  ] )
     print(locsTmp)
     print('')
     
