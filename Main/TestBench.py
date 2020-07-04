@@ -12,11 +12,34 @@ import os.path
 #####################################
 
 
-column_names = ['Shape','N_Gon','Shape_Area','CS_Radius','num_Candidates','num_Charging_Station',
-                'Total_Time','Total_Distance_Travel']
+column_names = ['Shape',
+                'N_Gon',
+                'Shape_Area',
+                'CS_Radius',
+                'numCandidates',
+                'numChargingStation',
+                'Total_Time',
+                'Total_Distance_Travel']
+
+
+
 
 
 df = pd.DataFrame(columns = column_names)
+
+df = df.astype({'Shape':'object',
+           'N_Gon': 'int64',
+           'Shape_Area': 'int64',
+           'CS_Radius':'float64',
+           'numCandidates':'int64',
+           'numChargingStation': 'int64',
+           'Total_Time':'float64',
+           'Total_Distance_Travel':'float64'})
+
+
+
+
+
 
 
 
@@ -54,29 +77,31 @@ square3 = [ (0,0) , (0,10) , (10,10) , (10,0)]
 
 
 
-# RECTANGLES
-rectName = 'Rectangle'
-rect1 = [ (0,0) , (0,2.8868) , (8.6603,2.8868), (8.6603,0) ]
-rect2 = [ (0,0) , (0,4.0825) , (12.2474,4.0825), (12.2474,0)]
-rect3 = [ (0,0) , (0,5.7735) , (17.3205,5.7735), (17.3205,0)]
+# # RECTANGLES
+# rectName = 'Rectangle'
+# rect1 = [ (0,0) , (0,2.8868) , (8.6603,2.8868), (8.6603,0) ]
+# rect2 = [ (0,0) , (0,4.0825) , (12.2474,4.0825), (12.2474,0)]
+# rect3 = [ (0,0) , (0,5.7735) , (17.3205,5.7735), (17.3205,0)]
 
 
 
-# OCTAGONS
-octName = 'Octagon'
-oct1 = [ (0,0) , (2.2754,0) , (3.8844,1.609) , (3.8844,3.8844) , (2.2754,5.4934) , (0,5.4934) , (-1.609,3.8844), (-1.609,1.609) ]
-oct2 = [ (0,0) , (3.218,0) , (5.4934,2.2754) , (5.4934,5.4934) , (3.218,7.7689) , (0,7.7689) , (-2.2754,5.4934) , (-2.2754,2.2754) ]
-oct3 = [ (0,0) , (4.5509,0) , (7.7689,3.218) , (7.7689,7.7689) , (4.5509,10.9868) , (0,10.9869) , (-3.218,7.7689) , (-3.218,3.218) ]
+# # OCTAGONS
+# octName = 'Octagon'
+# oct1 = [ (0,0) , (2.2754,0) , (3.8844,1.609) , (3.8844,3.8844) , (2.2754,5.4934) , (0,5.4934) , (-1.609,3.8844), (-1.609,1.609) ]
+# oct2 = [ (0,0) , (3.218,0) , (5.4934,2.2754) , (5.4934,5.4934) , (3.218,7.7689) , (0,7.7689) , (-2.2754,5.4934) , (-2.2754,2.2754) ]
+# oct3 = [ (0,0) , (4.5509,0) , (7.7689,3.218) , (7.7689,7.7689) , (4.5509,10.9868) , (0,10.9869) , (-3.218,7.7689) , (-3.218,3.218) ]
 
 
-fields = [square1,square2,square3,
-          rect1,rect2,rect3,
-          oct1,oct2,oct3]
+fields = [square1,square2,square3]
+          # ,
+          # rect1,rect2,rect3,
+          # oct1,oct2,oct3]
 
 
-names = [squareName,squareName,squareName,
-         rectName,rectName,rectName,
-         octName,octName,octName]
+names = [squareName,squareName,squareName]
+         # ,
+         # rectName,rectName,rectName,
+         # octName,octName,octName]
 
 n_trials = 2
 
@@ -108,15 +133,18 @@ for name,field in zip(names,fields):
                                   showPlot = False)
                 
                 
+                # CALCULATE TOTAL TIME BASED ON DRONE
+                # VELOCITY AND THEO. CHARGING TIME
                 tot_time = 3*(lst[1] / velocity)
+                
                 
         
                 df = df.append({'Shape': name,
                                 'N_Gon': len(field),
                                 'Shape_Area': shape_area ,
                                 'CS_Radius': mdv,
-                                'num_Candidates':cand,
-                                'num_Charging_Station':lst[0],
+                                'numCandidates': cand,
+                                'numChargingStation':lst[0],
                                 'Total_Time': tot_time,
                                 'Total_Distance_Travel': lst[1]},
                               ignore_index = True)
@@ -129,8 +157,8 @@ for name,field in zip(names,fields):
                                 'N_Gon': len(field),
                                 'Shape_Area':curShape.area,
                                 'CS_Radius': mdv,
-                                'num_Candidates':cand,
-                                'num_Charging_Station':0,
+                                'numCandidates':cand,
+                                'numChargingStation':0,
                                 'Total_Time': 0,
                                 'Total_Distance_Travel': 0},
                               ignore_index = True)
@@ -172,7 +200,10 @@ summary_df = df.groupby(['Shape',
                          'N_Gon',
                          'Shape_Area',
                          'CS_Radius',
-                         'num_Candidates']).agg(['mean', 'std']).round(2)
+                         'numCandidates']).agg(['mean', 'std'])
+
+
+print(summary_df)
 
 
 filename = '{}_{}.csv'.format('Test_Data_Summary',date_time)
