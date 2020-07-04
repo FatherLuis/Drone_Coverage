@@ -212,6 +212,10 @@ class Drone_Path():
 
     def reserve_path(self):
 
+        
+        endAlg = False
+        #inBound(self,loc,pi,pNi,pf,pNf)
+
         if not(len(self.entryExit) == 0) :
             
             for p in self.entryExit:
@@ -219,31 +223,71 @@ class Drone_Path():
                 if self.farNode == 'BC':
     
                     if( np.allclose(p,self.triangle.B)  ):
+                        
+                        loc = 'AB'
         
-                            pNi, pNf = self.segment_AB(info = 'path')
-                            self.elim_edges('AB', pNi, pNf)
+                        pNi, pNf = self.segment_AB(info = 'path')
+                        
+                        
+                        
+                        endAlg,a,b = self.inBound(loc,pNi,pNi,pNf,pNf)
+                        
+                        if endAlg:
+                            break
+                        
+                        self.elim_edges('AB', pNi, pNf)
         
         
                     elif( np.allclose(p,self.triangle.C) ):
+                        
+                        loc = 'AC'
         
-                            pNi, pNf = self.segment_AC(info = 'path')
-                            self.elim_edges('AC', pNi, pNf)
+                        pNi, pNf = self.segment_AC(info = 'path')
+                        
+                        
+                        
+                        endAlg,a,b = self.inBound(loc,pNi,pNi,pNf,pNf)
+                        
+                        if endAlg:
+                            break
+                        
+                        self.elim_edges('AC', pNi, pNf)
                             
                 else:
                     
                     if( np.allclose(p,self.triangle.A)  ):
+                        
+                        
+                        loc = 'CA'
         
-                            pNi, pNf = self.segment_AC(info = 'path',reverse = True)
-                            self.elim_edges('CA', pNi, pNf)
+                        pNi, pNf = self.segment_AC(info = 'path',reverse = True)
+                        
+                        
+                        endAlg,a,b = self.inBound(loc,pNi,pNi,pNf,pNf)
+                        
+                        if endAlg:
+                            break
+                        
+                        
+                        self.elim_edges('CA', pNi, pNf)
         
                             
                     elif( np.allclose(p,self.triangle.B)  ):
+                        
+                        loc = 'CB'
         
-                            pNi, pNf = self.segment_BC(info = 'path', reverse = True)
-                            self.elim_edges('CB', pNi, pNf)
+                        pNi, pNf = self.segment_BC(info = 'path', reverse = True)
+                        
+                        
+                        endAlg,a,b = self.inBound(loc,pNi,pNi,pNf,pNf)
+                        
+                        if endAlg:
+                            break
+                        
+                        self.elim_edges('CB', pNi, pNf)
            
 
-
+        return endAlg
 
 
 
@@ -569,19 +613,28 @@ class Drone_Path():
         
         
         ## 5/12/2020 Reserve Paths
-        self.reserve_path()
+        endAlg = self.reserve_path()
         
         
+        if endAlg:
+            return  self.drone,[]
+        
+        
+        
+            
         drone_copy = self.drone
-
         path1 = self.next_step(CS,loc)
         
         
         if(len(path1)==0 or path1 is None):
             self.drone = drone_copy
             return self.drone,[]
-        
+    
+    
         return self.drone,path+path1 
+        
+        
+        
 
 
 
@@ -836,37 +889,42 @@ if __name__ == '__main__':
 
     from Draw import Draw
     from Transformation2 import Transformation
+    import matplotlib.pyplot as plt
     
-    canvas = Draw()
+    
+
+    fig1 = plt.figure(1)
+    ax1 = fig1.add_subplot(111)
+    
+    canvas = Draw(ax1)
 
 
-    drone = Drone(radius= 0.025, max_distance = 8)    
+    drone = Drone(radius= 0.1, max_distance = 25)    
  
     
-    entryExit = [ (0,1.43495) , (0,2.98667)]
+    entryExit = [ (0,5) , (0.1,4)]
     
-    pp=  [ (2,4), (4,4) , (3,6) ]  
+    pp=  [ (0,0), (0,5) , (0.1,4) ]  
     
     #pp = [ (0,0), (0,33) , (30,20) ]   
     
     triangle = Triangle(*pp)
     
-    transform = Transformation()
+    # transform = Transformation()
     
-    curCS,transTriangle, primeEntryExit= transform.transform_triangle(triangle,entryExit)
-    #print('\n',triangle)
+    # curCS,transTriangle, primeEntryExit= transform.transform_triangle(triangle,entryExit)
+
+    curCS = 'A'
     
-    #curCS = 'C'
-    
-    DP = Drone_Path(transTriangle,drone,primeEntryExit)  
+    DP = Drone_Path(triangle,drone,entryExit)  
 
     drone, path = DP.algorithm(curCS)
 
     canvas.boundary(pp)
 
-    canvas.path(transform.transform_path(path))
+    canvas.path(path)
 
-    canvas.show_plot()
+    plt.show()
 
 
 
