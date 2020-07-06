@@ -244,34 +244,38 @@ summary_df.to_csv(file_path)
 # #######################################           
 
 
-# summary_AreaCSRadius_df = df[df['numChargingStation'] > 0][['Shape_Area',
-#                                                'CS_Radius',
-#                                                'numCandidates',
-#                                                 'numChargingStation',
-#                                                 'Total_Time',
-#                                                 'Total_Distance_Travel',
-#                                                 'isSuccessful']].groupby(['Shape_Area',
-#                                                                          'CS_Radius',
-#                                                                          'numCandidates']).agg({'numChargingStation':['mean', 'std'],
-#                                                                                                 'Total_Time': ['mean', 'std'],
-#                                                                                                 'Total_Distance_Travel': ['mean', 'std'],
-#                                                                                                 'isSuccessful': ['sum']}).round(2)
+criteria = df['numChargingStation'] > 0
+col = ['Shape_Area',
+        'CS_Radius',
+        'numCandidates',
+        'numChargingStation',
+        'Total_Time',
+        'Total_Distance_Travel',
+        'isSuccessful']
 
-                                                                                                
-                                                                                                
-# # summary_AreaCSRadius_df['csDIVarea'] = summary_AreaCSRadius_df['numChargingStation'] / summary_AreaCSRadius_df['Shape_Area']                                                                                            
-# # summary_AreaCSRadius_df['distDIVarea'] = summary_AreaCSRadius_df['Total_Distance_Travel'] / summary_AreaCSRadius_df['Shape_Area']                                                                                                 
+areaCSRadius_df = df[criteria][col].groupby(['Shape_Area',
+                                    'CS_Radius',
+                                    'numCandidates'],as_index = False).agg({'numChargingStation':['mean', 'std'],
+                                                          'Total_Time': ['mean', 'std'],
+                                                          'Total_Distance_Travel': ['mean', 'std'],
+                                                          'isSuccessful': ['sum']}).round(2)  
+
+                                                           
+                                                       
+                                                           
+areaCSRadius_df['csDIVarea'] = areaCSRadius_df['numChargingStation']['mean']  / areaCSRadius_df['Shape_Area']                                                                                            
+areaCSRadius_df['distDIVarea'] = areaCSRadius_df['Total_Distance_Travel']['mean']  / areaCSRadius_df['Shape_Area']                                                                                                 
+                                                                                    
 
 
+filename = '{}.csv'.format('TestDataSummary_ByAreaCSRadius')
 
-# filename = '{}.csv'.format('TestDataSummary_ByAreaCSRadius')
+file_path = os.path.join(directory, filename)
 
-# file_path = os.path.join(directory, filename)
+if not os.path.isdir(directory):
+    os.mkdir(directory)
 
-# if not os.path.isdir(directory):
-#     os.mkdir(directory)
-
-# summary_AreaCSRadius_df.to_csv(file_path)
+areaCSRadius_df.to_csv(file_path)
 
 
 
