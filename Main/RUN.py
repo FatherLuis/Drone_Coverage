@@ -20,6 +20,7 @@ def run_program(drone, CS_radius , shape ,candidate, sp , showPlot = False):
     #################### INITIALS ####################
     field = Field()
     
+    
     dist = lambda p1,p2: np.sqrt( (p2[1]-p1[1])**2 +(p2[0]-p1[0])**2)
 
     #################### FIELD MATRIX ####################
@@ -64,12 +65,9 @@ def run_program(drone, CS_radius , shape ,candidate, sp , showPlot = False):
     
     #################### FIND PATH FOR A GIVEN TRIANGLE ####################
 
-
-
     hasTravel = np.zeros(len(sites))
     # STORE LIST OF PATHS 
     path_lst = []
-
 
     for i,curNode in enumerate(tourOrder[:-1]):
         
@@ -163,7 +161,7 @@ def run_program(drone, CS_radius , shape ,candidate, sp , showPlot = False):
     
         for path in path_lst:
             # DRAW PATH 
-            #Canvas.path(path)
+            Canvas.path(path)
             pass
         
         #Canvas.draw_sites_path(vertices)
@@ -187,27 +185,29 @@ if __name__ == '__main__':
 
     # IF THIS FILE IS RUN, THE FOLLOWING CODE WILL BE READ
     
-    try:
-        
-        
-         ### INITIALIZE DRONE PROPERTIES ###
-
-        drone = Drone(radius=0.025, max_distance = 8)       
+    for i in range(1):
+        try:
+            print('----------- RUN {} ------------'.format(i))
+            
+            
+             ### INITIALIZE DRONE PROPERTIES ###
     
-        #field_boundary =  [ (0,0) , (0,7) , (7,7) , (7,0)]
-        #field_boundary = [ (0,0),(2.28,0),(3.88,1.61),(3.88,3.88),(2.28,5.49),(0,5.49),(-1.61,3.88),(-1.61,1.61) ]
-
-        field_boundary = [ (0,0) , (0,4.0825) , (12.2474,4.0825), (12.2474,0)]
-        CS_radius = 3.5
+            drone = Drone(radius=0.025, max_distance = 8)       
         
+            #field_boundary =  [ (0,0) , (0,7) , (7,7) , (7,0)]
+            #field_boundary = [ (0,0),(2.28,0),(3.88,1.61),(3.88,3.88),(2.28,5.49),(0,5.49),(-1.61,3.88),(-1.61,1.61) ]
     
-        lst = run_program(drone, CS_radius , field_boundary, 50, np.array([0, 0]) , True)
+            field_boundary = [ (0,0) , (4.5509,0) , (7.7689,3.218) , (7.7689,7.7689) , (4.5509,10.9868) , (0,10.9869) , (-3.218,7.7689) , (-3.218,3.218) ]
+            CS_radius = 2.0
+            
         
-        print('')
-        print('nCS:',lst[0])
-        print('Time:',lst[1]/25)
-        print('Travel',lst[1])
-        
-    except:
-        
-        print(traceback.format_exc())
+            lst = run_program(drone, CS_radius , field_boundary, 100, np.array([0, 0]) , False)
+            
+            print('')
+            print('nCS:',lst[0])
+            print('Time:',lst[1]/25)
+            print('Travel',lst[1])
+            
+        except:
+            
+            print(traceback.format_exc())

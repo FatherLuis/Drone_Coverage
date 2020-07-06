@@ -16,10 +16,6 @@ from scipy.sparse.csgraph import shortest_path
 
 
 def tourFn(adjMatrix):
-    
-    print('------------ ADJ MATRIX ---------------')
-    print(adjMatrix)
-    print('')  
 
     
     def get_path(Pr, i, j):
@@ -33,6 +29,13 @@ def tourFn(adjMatrix):
     
     # GET THE NUMBER OF VERTICES
     nCS = adjMatrix.shape[0]
+    
+    
+    
+    if nCS == 2:
+        
+        return np.array([0,1,0])
+    
     
     
     graph = csr_matrix(adjMatrix)
@@ -82,6 +85,10 @@ def tourFn(adjMatrix):
     
         # LINEAR PROGRAM FAILED
         if status != 'optimal':
+            
+            print('------------ ADJ MATRIX ---------------')
+            print(adjMatrix)
+            print('')  
             
             raise('No Tour Found')
         
@@ -163,9 +170,6 @@ def tourFn(adjMatrix):
                 
                 isComplete = True
     
-    print('-------- PATH ---------')
-    print(path)
-    print('')
 
     return path
 
@@ -198,15 +202,32 @@ if __name__ == '__main__':
     #                       [1,1,1],
     #                       [1,1,1]])
     
-    adjMatrix = np.array([[0. ,0. ,1. ,0. ,1. ,0. ,0.],
-                          [0. ,0. ,1. ,1. ,0. ,1. ,0.],
-                          [1. ,1. ,0. ,0. ,1. ,1. ,0.],
-                          [0. ,1. ,0. ,0. ,0. ,1. ,1.],
-                          [1. ,0. ,1. ,0. ,0. ,0. ,0.],
-                          [0. ,1. ,1. ,1. ,0. ,0. ,1.],
-                          [0. ,0. ,0. ,1. ,0. ,1. ,0.]])
+    # adjMatrix = np.array([[0. ,0. ,1. ,0. ,1. ,0. ,0.],
+    #                       [0. ,0. ,1. ,1. ,0. ,1. ,0.],
+    #                       [1. ,1. ,0. ,0. ,1. ,1. ,0.],
+    #                       [0. ,1. ,0. ,0. ,0. ,1. ,1.],
+    #                       [1. ,0. ,1. ,0. ,0. ,0. ,0.],
+    #                       [0. ,1. ,1. ,1. ,0. ,0. ,1.],
+    #                       [0. ,0. ,0. ,1. ,0. ,1. ,0.]])
 
-    tourFn(adjMatrix)
+
+
+
+    # adjMatrix = np.array([[0,0,0,1,0,1,1,0,0,0],
+    #                       [0,0,0,0,0,1,1,0,0,1],
+    #                       [0,0,0,0,1,0,0,1,1,0],
+    #                       [1,0,0,0,0,0,1,1,1,0],
+    #                       [0,0,1,0,0,0,0,1,0,1],
+    #                       [1,1,0,0,0,0,1,0,0,0],
+    #                       [1,1,0,1,0,1,0,1,0,1],
+    #                       [0,0,1,1,1,0,1,0,1,1],
+    #                       [0,0,1,1,0,0,0,1,0,0],
+    #                       [0,1,0,0,1,0,1,1,0,0]])
+
+    adjMatrix = np.array([[1,0],
+                         [0,1]])
+
+    print(tourFn(adjMatrix))
 
 
 
