@@ -25,7 +25,7 @@ from Field import Field
 # start: Starting point for tour (point of origin) 
 # nx: Number of cells on the x-axis
 # ny: Number of cells on the y-axis
-def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad ,solMax, start):
+def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad, droneRange, solMax, start):
 
     #plt.pcolor(binMatrix)
     #plt.show()
@@ -36,14 +36,11 @@ def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad ,solMax
     logicalFn = lambda y: np.asarray(list(map(lambda x: bool(x), y))) 
     
     
-    
-    
-    
 
     rad2 = rad**2
 
     #To the edges
-    power = 2 #Penalty for large distances
+    power = 0.5 #Penalty for large distances
     solMx = np.array([])
 
 
@@ -94,7 +91,6 @@ def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad ,solMax
     # A negative is placed in the parameter because ilp only does Ax <= B
     
     for ii in range(solMax):
-        
         fmin0 = 1*fmin
         status, solNew = ilp(c, 
                              -1*iMx, 
@@ -149,12 +145,15 @@ def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad ,solMax
             
             #If power is larger, farther points are counted more
             tmpDistVec = ((xVec-csLocs[0,jj])**2 + (yVec-csLocs[1,jj])**2)**power
-            # MINIMUM
+            # minDistVec gives value of r
             minDistVec = np.minimum(minDistVec,tmpDistVec)
             
             
+        # Compute the best-case distance for this example
+        nVec = np.arange(1,len(minDistVec)+1); # Value of n for each r
+        minDistVec = np.sort(minDistVec)
         #Save best value so far
-        distStat[ii] = sum(minDistVec)
+        distStat[ii] = max((len(minDistVec) - nVec) / ( droneRange - minDistVec));
         #distStat[ii] = min(distStat[ii],distStat[ii - (ii > 0)])
 
 
@@ -165,16 +164,8 @@ def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad ,solMax
     csLocs = locs[:, np.asarray(list(map(lambda x: bool(x), solMx[bestIx,:] ))) ] 
     csLocs = np.append(startConjT,csLocs, axis = 1) #add starting point
 
-
-
-
-
     # print(csLocs)
-    return csLocs
-
-
-        
-
+    return csLocs,bestVal
 
 
 def tour(voronoi_lst):
@@ -345,8 +336,9 @@ if __name__ == '__main__':
     plt.pcolor(inclMx)
     plt.show()
 
-    CS = linear_program(inclMx,0,200,0,200,200,200,ns,1,rad,solMax,start)
+    CS,bestVal = linear_program(inclMx,0,200,0,200,200,200,ns,1,rad,8, solMax,start)
 
     print(CS)
-
+    print(bestVal)
+    
 

@@ -31,7 +31,7 @@ column_names = ['Shape',
 df = pd.DataFrame(columns = column_names)
 
 
-df = df.astype({'Shape':'object',
+df = df.astype({'Shape':'string',
            'N_Gon': 'int64',
            'Shape_Area': 'int64',
            'CS_Radius':'float64',
@@ -112,20 +112,20 @@ fields = [square1,
 names = [squareName,
          squareName,
          squareName,
-           rectName,
-           rectName,
-           rectName,
-           octName,
-           octName,
-           octName]
+            rectName,
+            rectName,
+            rectName,
+            octName,
+            octName,
+            octName]
 
 
 
 # HOW MANY TIMES DO YOU WANT TO RUN EACH CONFIGURATION
-n_trials = 20
+n_trials = 1
 
 
-# 
+
 # START TEST BENCH
 for name,field in zip(names,fields):
 
@@ -140,7 +140,8 @@ for name,field in zip(names,fields):
         
         drone = Drone(radius=rad, max_distance = mxDist)  
         
-        for i in range(n_trials):
+        i = 0
+        while( i < n_trials):
             try:
                 
                 # lst is ['num_Charging_Station','Total_Distance_Travel']
@@ -169,7 +170,7 @@ for name,field in zip(names,fields):
                                 'isSuccessful': 1},
                               ignore_index = True)
     
-            
+                i+= 1
     
             except:
     
@@ -187,6 +188,10 @@ for name,field in zip(names,fields):
     
                   
                 print(traceback.format_exc())
+
+
+df['cs_DIV_area'] = df['numChargingStation']/ df['Shape_Area']                                                                                            
+df['dist_DIV_area'] = df['Total_Distance_Travel'] / df['Shape_Area']                                                                                                 
 
 
 
@@ -216,15 +221,17 @@ df.to_csv(file_path)
 ### PANDA DATAFRAME AS CSV FILE 
 #######################################
 
-
-summary_df = df[df['numChargingStation'] > 0].groupby(['Shape',
+criteria = df['isSuccessful'] > 0
+summary_df = df[criteria].groupby(['Shape',
                          'N_Gon',
                          'Shape_Area',
                          'CS_Radius',
-                         'numCandidates']).agg({'numChargingStation':['mean', 'std'],
-                                                'Total_Time': ['mean', 'std'],
-                                                'Total_Distance_Travel': ['mean', 'std'],
-                                                'isSuccessful': ['sum']}).round(2)
+                         'numCandidates'],as_index = False).agg({'numChargingStation':['mean', 'std'],
+                                                                'Total_Time': ['mean', 'std'],
+                                                                'Total_Distance_Travel': ['mean', 'std'],
+                                                                'cs_DIV_area': ['mean', 'std'],
+                                                                'dist_DIV_area': ['mean', 'std'],
+                                                                'isSuccessful': ['sum']}).round(2)
 
 
 
@@ -244,28 +251,26 @@ summary_df.to_csv(file_path)
 # #######################################           
 
 
-criteria = df['numChargingStation'] > 0
 col = ['Shape_Area',
         'CS_Radius',
         'numCandidates',
         'numChargingStation',
         'Total_Time',
         'Total_Distance_Travel',
+        'cs_DIV_area',
+        'dist_DIV_area',
         'isSuccessful']
 
 areaCSRadius_df = df[criteria][col].groupby(['Shape_Area',
                                     'CS_Radius',
                                     'numCandidates'],as_index = False).agg({'numChargingStation':['mean', 'std'],
                                                           'Total_Time': ['mean', 'std'],
-                                                          'Total_Distance_Travel': ['mean', 'std'],
+                                                          'Total_Distance_Travel': ['mean', 'std'],                                         
+                                                          'dist_DIV_area': ['mean', 'std'],
+                                                          'cs_DIV_area': ['mean', 'std'],
                                                           'isSuccessful': ['sum']}).round(2)  
 
-                                                           
-                                                       
-                                                           
-areaCSRadius_df['csDIVarea'] = areaCSRadius_df['numChargingStation']['mean']  / areaCSRadius_df['Shape_Area']                                                                                            
-areaCSRadius_df['distDIVarea'] = areaCSRadius_df['Total_Distance_Travel']['mean']  / areaCSRadius_df['Shape_Area']                                                                                                 
-                                                                                    
+                                                                                                                                                                                                 
 
 
 filename = '{}.csv'.format('TestDataSummary_ByAreaCSRadius')
@@ -280,54 +285,96 @@ areaCSRadius_df.to_csv(file_path)
 
 
 
-# #######################################
-# ### CREATE FIGURES TO REPRESENT THE DATA 
-# #######################################    
-
-
-# fig1 = plt.figure(1)
-# ax1 = fig1.add_subplot(1,3,1)
-# ax2 = fig1.add_subplot(1,3,1)
-# ax3 = fig1.add_subplot(1,3,1)
+# # #######################################
+# # ### CREATE FIGURES TO REPRESENT THE DATA 
+# # #######################################    
 
 
 
+fig1 , ( (ax1,ax2,ax3) , (ax4,ax5,ax6) ) = plt.subplots(2,3)
+fig1.set_size_inches(19.20, 10.80)
+
+mark = 0
+curAx1 = 0
+curAx2 = 0
 
 
 
-# mark = 0
-# curAx = 0
-
-# for name in names:
+for index, row in summary_df.iterrows():
     
+
     
-#     if(name == 'Square'):
-#         mark = '*'
-#         curAx = ax1
-#     if(name == 'Rectangle'):
-#         mark = 'o'   
-#         curAx = ax2
-#     if name == 'Octagon':
-#         mark = '-'
-#         curAx = ax3
+    name = row['Shape'].to_numpy()[0]
+    area = row['Shape_Area'].to_numpy()[0]
     
-    
-#     for csRadius in CS_radius:
+    if(name == 'Square'):
+        mark = '*'
+        color = 'k'
         
-#         y = summary_AreaCSRadius_df[df['CS_Radius'] == csRadius & df['Shape'] == name]['csDIVarea']
+    elif(name == 'Rectangle'):
+        mark = 'o'   
+        color = 'b'
+    elif name == 'Octagon':
+        mark = 'v'
+        color = 'r'
+           
+    if( area== 25):
+        curAx1 = ax1
+        curAx2 = ax4
+    elif( area == 50):
+        curAx1 = ax2   
+        curAx2 = ax5
+    elif( area == 100):
+        curAx1 = ax3     
+        curAx2 = ax6
         
-#         curAx.scatter( csRadius, y ,marker = mark)
+    
+    curAx1.scatter( row['CS_Radius'], row['cs_DIV_area']['mean'],marker = mark , c = color)
+    curAx2.scatter( row['CS_Radius'], row['dist_DIV_area']['mean'], marker = mark , c = color)
 
 
-# filename = '{}.png'.format('csDIVarea_plot')
 
-# file_path = os.path.join(directory, filename)
+ax1.set_title('Field with $25km^{2}$ area')
+ax1.set_ylabel('Mean nCS / Area')
+ax1.set_xlabel('CS coverage radius')
 
-# if not os.path.isdir(directory):
-#     os.mkdir(directory)
+ax2.set_title('Field with $50km^{2}$ area')
+ax2.set_ylabel('Mean nCS / Area')
+ax2.set_xlabel('CS coverage radius')
 
-# plt.savefig(file_path)
+ax3.set_title('Field with $100km^{2}$ area')
+ax3.set_ylabel('Mean nCS / Area')
+ax3.set_xlabel('CS coverage radius')
 
+
+ax4.set_title('Field with $25km^{2}$ area')
+ax4.set_ylabel('mean travel distance / Area')
+ax4.set_xlabel('CS coverage radius')
+
+ax5.set_title('Field with $50km^{2}$ area')
+ax5.set_ylabel('mean travel distance / Area')
+ax5.set_xlabel('CS coverage radius')
+
+ax6.set_title('Field with $100km^{2}$ area')
+ax6.set_ylabel('mean travel distance / Area')
+ax6.set_xlabel('CS coverage radius')
+
+
+plt.subplots_adjust(left=0.125 , wspace =0.7, hspace = 0.7)
+
+
+imType = ['.png','.eps','.svg']
+
+for im in imType:
+    
+    filename= '{}{}'.format('TestDataSummary_plot',im)
+    
+    file_path = os.path.join(directory, filename)
+    
+    if not os.path.isdir(directory):
+        os.mkdir(directory)
+    
+    plt.savefig(file_path)
 
 
 

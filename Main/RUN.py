@@ -38,13 +38,14 @@ def run_program(drone, CS_radius , shape ,candidate, sp , showPlot = False):
     #################### LOCATING CHARGING STATIONS ####################
     # USE LINEAR PROGRAMMING TO OPTIMIZE THE LOCATION OF THE CHARGING STATIONS IN A FIELD
 
-    half_distance  = CS_radius
-    numberStations = candidate
-    max_solutions = 10
-    start_point = sp
 
-    CS = linear_program( binMatrix = matrix, xmin=xmin, xmax=xmax,ymin=ymin,ymax=ymax,nx = nx, ny = ny, step = step,
-                        ns = numberStations , rad = half_distance , solMax = max_solutions, start = start_point)
+    numberStations = candidate
+    max_solutions = 2
+    start_point = sp
+    droneRange = float(drone.MAX_DISTANCE)/2
+
+    CS,bestVal = linear_program( binMatrix = matrix, xmin=xmin, xmax=xmax,ymin=ymin,ymax=ymax,nx = nx, ny = ny, step = step,
+                        ns = numberStations , rad = CS_radius, droneRange = droneRange, solMax = max_solutions, start = start_point)
 
 
     
@@ -175,7 +176,7 @@ def run_program(drone, CS_radius , shape ,candidate, sp , showPlot = False):
 
     #   'num_Charging_Station','Total_Time','Total_Distance_Travel'
 
-    return len(sites),drone.total_distance_travel
+    return len(sites),drone.total_distance_travel,bestVal
 
 
 
@@ -194,11 +195,11 @@ if __name__ == '__main__':
     
             drone = Drone(radius=0.025, max_distance = 8)       
         
-            #field_boundary =  [ (0,0) , (0,7) , (7,7) , (7,0)]
+            field_boundary =  [ (0,0) , (0,7) , (7,7) , (7,0)]
             #field_boundary = [ (0,0),(2.28,0),(3.88,1.61),(3.88,3.88),(2.28,5.49),(0,5.49),(-1.61,3.88),(-1.61,1.61) ]
     
-            field_boundary = [ (0,0) , (4.5509,0) , (7.7689,3.218) , (7.7689,7.7689) , (4.5509,10.9868) , (0,10.9869) , (-3.218,7.7689) , (-3.218,3.218) ]
-            CS_radius = 2.0
+            #field_boundary = [ (0,0) , (4.5509,0) , (7.7689,3.218) , (7.7689,7.7689) , (4.5509,10.9868) , (0,10.9869) , (-3.218,7.7689) , (-3.218,3.218) ]
+            CS_radius = 4.0
             
         
             lst = run_program(drone, CS_radius , field_boundary, 100, np.array([0, 0]) , False)
@@ -207,6 +208,7 @@ if __name__ == '__main__':
             print('nCS:',lst[0])
             print('Time:',lst[1]/25)
             print('Travel',lst[1])
+            print('Best value',lst[2])
             
         except:
             
