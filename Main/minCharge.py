@@ -154,6 +154,7 @@ def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad, droneR
         minDistVec = np.sort(minDistVec)
         #Save best value so far
         distStat[ii] = max((len(minDistVec) - nVec) / ( droneRange - minDistVec));
+        distStat[ii] = distStat[ii] * droneRange / len(minDistVec);
         #distStat[ii] = min(distStat[ii],distStat[ii - (ii > 0)])
 
 
