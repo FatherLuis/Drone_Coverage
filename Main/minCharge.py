@@ -287,8 +287,15 @@ def tour(voronoi_lst):
                 vertices.append(voronoi_lst[coor[i+1]][1]) 
                 break
                 
-                   
-    
+         
+    # THE FIRST TWO VERTICES ACTUALL BELONG AT THE END OF THE LIST
+    # DELETE THE LAST ELEM ( BECAUSE IT RETURNS TO THE FIRST ELEM)
+    # WE'LL SHIFT THE ARRAY BY 2
+    # THEN, WE'LL ADD THE FIRST ELEM OT THE END
+    vertices.pop(-1)       
+    for i in range(2):
+        vertices.append(vertices.pop(0))
+    vertices.append(vertices[0])
 
     
     print('------------ locs --------------')

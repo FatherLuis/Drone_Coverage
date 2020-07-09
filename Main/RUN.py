@@ -40,7 +40,7 @@ def run_program(drone, CS_radius , shape ,candidate, sp , showPlot = False):
 
 
     numberStations = candidate
-    max_solutions = 2
+    max_solutions = 10
     start_point = sp
     droneRange = float(drone.MAX_DISTANCE)/2
 

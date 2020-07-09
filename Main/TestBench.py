@@ -124,7 +124,7 @@ names = [squareName,
 
 
 # HOW MANY TIMES DO YOU WANT TO RUN EACH CONFIGURATION
-n_trials = 3
+n_trials = 25
 
 
 
