@@ -5,7 +5,7 @@ from Drone_Path2 import Drone_Path
 from Draw import Draw
 from Transformation2 import Transformation 
 from Field import Field
-from minCharge_LUIS import linear_program,tour
+from minCharge import linear_program,tour
 import matplotlib.pyplot as plt
 
 
@@ -14,11 +14,12 @@ import numpy as np
 import traceback
 
 
-def run_program(drone, CS_radius , shape ,candidate, sp , showPlot = True):
+def run_program(drone, CS_radius , shape ,candidate, sp , showPlot = False):
     
     
     #################### INITIALS ####################
     field = Field()
+    
     
     dist = lambda p1,p2: np.sqrt( (p2[1]-p1[1])**2 +(p2[0]-p1[0])**2)
 
@@ -37,13 +38,14 @@ def run_program(drone, CS_radius , shape ,candidate, sp , showPlot = True):
     #################### LOCATING CHARGING STATIONS ####################
     # USE LINEAR PROGRAMMING TO OPTIMIZE THE LOCATION OF THE CHARGING STATIONS IN A FIELD
 
-    half_distance  = CS_radius
+
     numberStations = candidate
     max_solutions = 10
     start_point = sp
+    droneRange = float(drone.MAX_DISTANCE)/2
 
-    CS = linear_program( binMatrix = matrix, xmin=xmin, xmax=xmax,ymin=ymin,ymax=ymax,nx = nx, ny = ny, step = step,
-                        ns = numberStations , rad = half_distance , solMax = max_solutions, start = start_point)
+    CS,bestVal = linear_program( binMatrix = matrix, xmin=xmin, xmax=xmax,ymin=ymin,ymax=ymax,nx = nx, ny = ny, step = step,
+                        ns = numberStations , rad = CS_radius, droneRange = droneRange, solMax = max_solutions, start = start_point)
 
 
     
@@ -55,87 +57,84 @@ def run_program(drone, CS_radius , shape ,candidate, sp , showPlot = True):
 
     sites = [ (x,y) for x,y in zip( CS[0][:], CS[1][:] ) ]
 
-    vononili_lst = field.create_voronoi_polygons(site=sites, boundary=field_boundary)
+    voronoi_lst = field.create_voronoi_polygons(site=sites, boundary=field_boundary)
     
     # ordered
-    vononili_polys,entryExitLst, vertices = tour(start_point, drone.MAX_DISTANCE , vononili_lst)
+    entryExitLst, tourOrder ,vertices = tour(voronoi_lst)
 
+
+    
     #################### FIND PATH FOR A GIVEN TRIANGLE ####################
 
+    hasTravel = np.zeros(len(sites))
+    # STORE LIST OF PATHS 
     path_lst = []
+
+    for i,curNode in enumerate(tourOrder[:-1]):
+        
+        if not(hasTravel[curNode]):
+            
+            hasTravel[curNode] = 1
+            
+            curVoronoi = voronoi_lst[curNode]
+            entryExit = entryExitLst[curNode]
+
+            # CREATE TRIANGLES FROM THE POLYGON, STORE AS LIST
+            triangle_lst = field.create_triangle(poly = curVoronoi[0] , vertex = curVoronoi[1])
     
-    N = len(vononili_polys)
+            # LOOP THROUGH A LIST OF TRIANGLES, FIND PATH THAT COVERS THE AREA OF EACH
     
-    k = 0
-
-    for i,vononili_poly in enumerate(vononili_polys):
-        
-        #print('\n----- Voronoi ',i,' ------')
-
-        
-        # CREATE TRIANGLES FROM THE POLYGON, STORE AS LIST
-        triangle_lst = field.create_triangle(poly = vononili_poly[0] , vertex = vononili_poly[1] ,)
-
-        # LOOP THROUGH A LIST OF TRIANGLES, FIND PATH THAT COVERS THE AREA OF EACH
-
-        for triangle in triangle_lst:    
-
-            #print('\n--- Triangle ', k, ' ---')
-
-            ### LINEAR TRANSFORMATIONS ###
-            transform =  Transformation()
-            
-            curCS, trans_triangle, entryExit = transform.transform_triangle(triangle,entryExitLst[i])
-
-            ### ALGORITHM ###
-
-            DP = Drone_Path(trans_triangle , drone , entryExit)
-            
-            drone,path = DP.algorithm(curCS)
-
-            trans_path = transform.transform_path(path) # TRANSFORM PATH TO FIT ORIGINAL SHAPE
-
-
-            # ADD PATH TAKEN TO THE PATH LIST 
-            path_lst.append(trans_path)
-            #Canvas.boundary(triangle.get_all_points())
-
-            # SET DRONE POSITION TO [0,0]
-            drone.curPoint = np.array([0,0])       
-            drone.curMax_distance = drone.MAX_DISTANCE
-            
-
-        # HERE, WE WILL ADD THE DISTANCE FROM ONE CHARGING STATION TO ANOTHER
-        
-        
-        
-        if i == N-1:         
-            nVert = len(vertices)
-        else:
-            nVert = k + 2
-            
-        while(k < nVert-1):
-            
-            curCS = vertices[k]
-            nextVert = vertices[k+1]
-            nextCS = vertices[k+2]
-            
-            dist_curCS_nextVert = dist(curCS,nextVert)
-            dist_nextVert_nextCS = dist(nextVert,nextCS)
-            
-            req_dist_travel = dist_curCS_nextVert + dist_nextVert_nextCS
-            
-            if(drone.curMax_distance >= req_dist_travel):
+            for triangle in triangle_lst:    
+    
+                #print('\n--- Triangle ', k, ' ---')
+    
+                ### LINEAR TRANSFORMATIONS ###
+                transform =  Transformation()
                 
-                drone.total_distance_travel += req_dist_travel
-                drone.curMax_distance -= req_dist_travel         
+                curCS, trans_triangle, entryExitTransform = transform.transform_triangle(triangle,entryExit)
+    
+                ### ALGORITHM ###
+    
+                DP = Drone_Path(trans_triangle , drone , entryExitTransform)
+                
+                drone,path = DP.algorithm(curCS)
+    
+                trans_path = transform.transform_path(path) # TRANSFORM PATH TO FIT ORIGINAL SHAPE
+    
+        
+    
+                # ADD PATH TAKEN TO THE PATH LIST 
+                path_lst.append(trans_path)
+                #Canvas.boundary(triangle.get_all_points())
+    
+                # SET DRONE POSITION TO [0,0]
+                drone.curPoint = np.array([0,0])       
                 drone.curMax_distance = drone.MAX_DISTANCE
 
+
+        # MOVE TO THE NEXT CS
                 
-                k += 2   
-                
-            else:
-                raise('Could not Travel to next CS')
+        k = 2*i
+        curCS = vertices[k]
+        nextVert = vertices[k+1]
+        nextCS = vertices[k+2]
+        
+        dist_curCS_nextVert = dist(curCS,nextVert)
+        dist_nextVert_nextCS = dist(nextVert,nextCS)
+        
+        req_dist_travel = dist_curCS_nextVert + dist_nextVert_nextCS
+
+
+
+        if(drone.curMax_distance >= req_dist_travel):
+            
+            drone.total_distance_travel += req_dist_travel
+            drone.curMax_distance -= req_dist_travel         
+            drone.curMax_distance = drone.MAX_DISTANCE 
+            
+        else:
+            raise('Could not Travel to next CS')
+
 
 
 
@@ -155,9 +154,9 @@ def run_program(drone, CS_radius , shape ,candidate, sp , showPlot = True):
         # DRAW SHAPE BOUNDARY
         Canvas.boundary(field_boundary)
     
-        for vononili_poly in vononili_polys:
+        for curVoronoi in voronoi_lst:
             #print(vononili_poly)
-            #Canvas.boundary(vononili_poly[0],col='b')
+            Canvas.boundary(curVoronoi[0],col='k')
             pass
     
     
@@ -165,6 +164,8 @@ def run_program(drone, CS_radius , shape ,candidate, sp , showPlot = True):
             # DRAW PATH 
             Canvas.path(path)
             pass
+        
+        #Canvas.draw_sites_path(vertices)
     
         Canvas.draw_sites(sites)
 
@@ -175,7 +176,7 @@ def run_program(drone, CS_radius , shape ,candidate, sp , showPlot = True):
 
     #   'num_Charging_Station','Total_Time','Total_Distance_Travel'
 
-    return len(sites),drone.total_distance_travel
+    return len(sites),drone.total_distance_travel,bestVal
 
 
 
@@ -185,29 +186,30 @@ if __name__ == '__main__':
 
     # IF THIS FILE IS RUN, THE FOLLOWING CODE WILL BE READ
     
-    try:
-        
-        
-         ### INITIALIZE DRONE PROPERTIES ###
-
-        drone = Drone(radius=0.025, max_distance = 8)       
+    for i in range(1):
+        try:
+            print('----------- RUN {} ------------'.format(i))
+            
+            
+             ### INITIALIZE DRONE PROPERTIES ###
     
-        #field_boundary =  [ (0,0) , (0,7) , (7,7) , (7,0)]
-        #field_boundary = [ (0,0),(2.28,0),(3.88,1.61),(3.88,3.88),(2.28,5.49),(0,5.49),(-1.61,3.88),(-1.61,1.61) ]
-
-        field_boundary = [ (0,0) , (0,5) , (5,5) , (5,0)]
-
+            drone = Drone(radius=0.025, max_distance = 8)       
         
-        CS_radius = 2.5
-        
+            field_boundary =  [ (0,0) , (0,7) , (7,7) , (7,0)]
+            #field_boundary = [ (0,0),(2.28,0),(3.88,1.61),(3.88,3.88),(2.28,5.49),(0,5.49),(-1.61,3.88),(-1.61,1.61) ]
     
-        lst = run_program(drone, CS_radius , field_boundary, 50, np.array([0, 0]) )
+            #field_boundary = [ (0,0) , (4.5509,0) , (7.7689,3.218) , (7.7689,7.7689) , (4.5509,10.9868) , (0,10.9869) , (-3.218,7.7689) , (-3.218,3.218) ]
+            CS_radius = 4.0
+            
         
-        print('')
-        print('nCS:',lst[0])
-        print('Time:',lst[1]/25)
-        print('Travel',lst[1])
-        
-    except:
-        
-        print(traceback.format_exc())
+            lst = run_program(drone, CS_radius , field_boundary, 100, np.array([0, 0]) , False)
+            
+            print('')
+            print('nCS:',lst[0])
+            print('Time:',lst[1]/25)
+            print('Travel',lst[1])
+            print('Best value',lst[2])
+            
+        except:
+            
+            print(traceback.format_exc())

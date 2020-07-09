@@ -2,8 +2,7 @@ import numpy as np
 from Triangle import Triangle
 from scipy.spatial import Voronoi
 from shapely.geometry import Polygon
-
-
+from shapely.geometry import LineString
 
 ########################################
 # Class name: Edge
@@ -317,101 +316,181 @@ class Field():
     # Purpose: Given a polygon, split the polygon into triangles from a given point within the polygon
     # Parameter: poly: a list of points that define the perimeter of a polygon
     #            vertex: a point inside the polygon that will be used to split the polygon into triangles
-    #            vertex_acute_angle: allows user split the triangle vertex angle into two triangles if vertex angle is bigger than 90 degrees
     # Method used: none
     # Return Value: return a list of triangles
     # Date: 3/26/2020
     ##############################################
-    def create_triangle(self, poly, vertex , vertex_acute_angle = False):
+    def create_triangle(self, poly, vertex):
 
-        if vertex in poly:
-
-            poly = list(poly)
+        
+        
+        def isOnEdge(vertices,pOI):
             
-            for i in range(len(poly)):
-
-                if not(vertex == poly[0]):
-
-                    poly.append( poly.pop(0) )
-
-                else:
+            isOn = False
+            edge = None
+            dist = lambda p1,p2: np.sqrt( (p2[1]-p1[1])**2 +(p2[0]-p1[0])**2)
+            
+            # CREATE A LIST OF VERTICES
+            lst1 = vertices.copy()
+            
+            # CREATE A LIST OF VERTICES WITH A SHIFT OF 1 
+            # THAT IS, THE FIRST ELEM IS MOVED TO THE END OF THE LIST
+            lst2 = vertices.copy()
+            lst2.append(lst2.pop(0))
+            
+            EPSILON = 1E-8
+            
+            # WE'LL CREATE AN EDGE USING THE LSTS CREATED ABOVE
+            
+            for p1,p2 in zip(lst1,lst2):
+                
+                if abs(dist(p1, pOI) + dist(p2, pOI) - dist(p1, p2)) < EPSILON:
                     
+                    isOn = True
+                    edge = [p1,p2]
                     break
+                
+            return isOn,edge
+        
 
-            start = 1
-
-        else:
-            start = 0
-
-
-
-
-        # THE VERTEX WILL BE THE POINT WE'LL USE TO SPLIT THE POLYGON INTO TRIANGLES
-        A = vertex
+        
+        # THERE ARE THREE CASES TO CONSIDER
+        # CASE 1: VERTEX IS ONE OF THE VERTICES OF THE POLYGON
+        # CASE 2: VERTEX IS ON THE EDGE OF THE POLYGON
+        # CASE 3: VERTEX IS INSIDE THE POLYGON
+        
+        
+        # NOTE: WE ARE ASSUMING POINT OF INTEREST 
+        #       WILL NOT BE OUTSIDE THE POLYGON
+        
+        
+        # POINT OF INTEREST
+        pOI = list(vertex)
+        
+        # LIST OF VERTICES
+        # ( MAKE SURE THE ELEMS ARE OF TYPE LIST: SAME AS THE 'pOI')
+        vertices = list(poly)
+        vertices = [list(x) for x in vertices]
+        
+        
+        # LIST THAT WILL STORE THE TRIANGLE OBJECTS
+        triangleLst = [] 
+        
+        nV = len(vertices)
+        
+        A = pOI
         B = None
         C = None
-        triangles = []
+       
+        
 
-        # GET THE NUMBER OF POINTS IN THE LIST
-        N = len(poly)
-        # ITERATE THROUGH ALL THE POINTS
-        for i in range(start,N-start):
+        
+        ############################
+        # CASE I: pOI IS ONE OF THE VERTICES OF THE POLYGON
+        ############################
+        
+        if vertex in poly:
+
+            
+            # LET THE VERTEX BE THE FIRST ELEMENT IN THE LIST
+            while not(np.array_equal(pOI,vertices[0])):
+                # POP OFF THE FIRST ELEM, AND PLACE IT AT THE END OF THE LIST
+                vertices.append(vertices.pop(0))           
+                    
+            for i in range(1,nV-1):
+                
+                B = vertices[i]
+                C = vertices[i+1]
+                
+                
+                tri = Triangle(A,B,C)
+                
+                triangleLst.append(tri)
+                
+            return triangleLst
+                
+
+        
+        
+        ############################
+        # CASE II: pOI IS ON THE EDGE OF THE POLYGON
+        ############################
+        
+        # CHECK IF POINT IS ON THE EDGE
+        # EDGE: CONTAINS THE POINTS THAT CREATE THE EDGE IN WHICH 
+        # THE POINT IS LOCATED
+        isOn , edge = isOnEdge(vertices,pOI)
+        
+        if isOn:
+            
+            
+            for i in range(nV):
+                
+                
+                if i == nV-1:
+                    
+                    B = vertices[0]
+                    C = vertices[-1]  
+                    
+                else: 
+                    
+                    B = vertices[i]
+                    C = vertices[i+1]
+
+                # CHECK IF B AND C ARE THE VERTICES OF THE EDGE
+                isEdgeVertex1 = ( np.array_equal(B,edge[0]) or np.array_equal(B,edge[1])) 
+                isEdgeVertex2 = ( np.array_equal(C,edge[0]) or np.array_equal(C,edge[1]))
+                
+                # IF B AND C ARE NOT BOTH THE VERTICES OF THE  EDGE
+                if not(isEdgeVertex1 and isEdgeVertex2):
+                    
+                    tri = Triangle(A,B,C)
+                    
+                    triangleLst.append(tri)
+         
+                    
+            return triangleLst        
+        
+        
+        
+        ############################
+        # CASE III: pOI IS INSIDE THE POLYGON
+        ############################
+        
+        # pOI WAS NOT A VERTEX NOR WAS IT ON THE EDGE OF THE POLYGON
+        # THIS, IT MUST BE INSIDE THE POLYGON
+                
+        
+        for i in range(nV):
 
             # IF THIS IS THE LAST POINT IN THE LIST, THEN WE'LL CREATE A TRIANGLE
             # USING THE LAST POINT, VERTEX, AND THE FIRST POINT
-            if(i == N-1 and start == 0):
+            if(i == nV-1):
                 
                 # VERTEX B IS THE LAST POINT IN THE LIST
-                B = np.array(poly[i])
+                B = vertices[i]
                 # VERTEX C IS THE FIRST POINT IN THE LIST
-                C = np.array(poly[0])
+                C = vertices[0]
             
             else:
                 # VERTEX B IS THE CURRENT POINT IN THE LIST
-                B = np.array(poly[i])
+                B = vertices[i]
                 # VERTEX C IS THE NEXT POINT IN THE LIST
-                C = np.array(poly[i+1])
+                C = vertices[i+1]
 
             # CREATE A TRIANGLE BASED ON THE THREE POINTS GIVEN
             curTriangle =  Triangle(A,B,C)
 
-            # IF THE PARAMETER VERTEX_ACUTE_ANGLE IS TRUE, THAT IS, THE USER
-            # WANTS THE ANGLE IN A TO BE ACUTE, THEN WE'LL SPLIT THE CURRENT TRIANGLE
-            # BY HALF, CREATING TWO TRIANGLES
-            if( vertex_acute_angle and curTriangle.A_angle > np.pi/2):
-
-                # CREATE AN ARRAY WITH THE X-VALUES
-                x = np.array(  [ B[0],C[0]  ]    )
-                # CREATE AN ARRAY WITH THE Y-VALUES
-                y = np.array(  [ B[1],C[1]  ]    )
-
-                # GET THE MEAN OF THE VALUES IN X, Y
-                x_mean = np.mean(x)
-                y_mean = np.mean(y)
-
-                # CREATE A 2X1 ARRAY USING THE MEAN VALUES
-                xy_mean = np.array( [x_mean , y_mean] )
-
-                # CREATE A TRIANGLE USING A, B, XY_MEAN
-                triangle1 = Triangle(A , B , xy_mean)
-                # CREATE A TRIANGLE USING A, XY_MEAN, C
-                triangle2 = Triangle(A , xy_mean , C)
-
-                # ADD THESE TWO TRIANGLES IN THE ARRAY
-                triangles.append(triangle1)
-                triangles.append(triangle2)
-            
-            else:
-                # ADD THE TRIANGLE IN THE ARRAY
-                triangles.append(curTriangle)
-
-            
-            
-        # RETURN ARRAY OF TRIANGLES
-        return triangles
+            # ADD THE TRIANGLE IN THE ARRAY
+            triangleLst.append(curTriangle)     
+        
+        
+        return triangleLst
+        
 
 
-    # Note: Number of sites n>3
+
+
     def create_voronoi_polygons(self,site=None,boundary = None):
         # site is a list
 
@@ -438,30 +517,28 @@ class Field():
         ymax += 5*diffy          
         
         
-        
+        # CREATE FOUR PROXY SITES TO BOUND THE VORONOI REGIONS OF INTEREST
         box = [ [xmin,ymin] , [xmin,ymax], [xmax,ymax] , [xmax,ymin] ] 
         
         
         ###################################
 
-
+        # CREATE VORONOI REGIONS USING SCIPY LIBRARY
         vor = Voronoi(site + box)
         
+        # CREATE A LIST THAT WILL STORE THE VORONOI REGIONS (LIST OF VERTICES)
         voronois = []
         
+        # CONNECTING THE INFORMATION GIVEN BY THE VORONOI CLASS
+        # TO CREATE OUR REGIONS OF INTEREST
         for i in vor.point_region:
             
             reg = np.array(vor.regions[i])
             
             if np.all(reg >= 0) and reg.size > 0:
                 voronois.append(vor.vertices[reg])
-                
-              
-        ############################################      
-        #from scipy.spatial import voronoi_plot_2d
-        #import matplotlib.pyplot as plt
-        #fig = voronoi_plot_2d(vor)
-        #plt.show()
+            
+
         
 
         boundary_poly = Polygon(boundary)
@@ -499,31 +576,3 @@ class Field():
 
 
 
-
-
-
-
-
-#field = np.array( [ (0,0),(0,5),(5,5),(5,0) ] )
-#points = np.array( [  [1, 2], [2, 1], [2, 3] ] )
-#lst_voronoi = create_voronoi_polygons(sites=points , boundary=field)
-#
-
-
-
-
-########### Testing the Field Class ###################################################
-
-#poly = [ (1,1) , (5,1) , (5,5) ]
-#poly = [ (1,1), (1,5),(5,5),(5,1) ]
-#poly = [ (0,0) , (3,0) , (5,4), (4,7) , (2,5)]
-#poly = [ (0,0) , (3,1), (6,0) , (9,1), (4,7), (0,4) ]
-#poly = [ (0,2), (4,2), (4,6),(8,6),(8,2),(12,2),(12,10),(0,10)  ]
-# poly = [ (0,0) , (3,0) , (6,0), (4,1), (3,4), (1,1), (0,4)  ]
-# field = Field( poly )
-
-# matrix = field.create_matrix_field(pixel = 200)
-
-# #print(matrix)
-
-# np.savetxt("field.txt" ,matrix, fmt='%0.f' )

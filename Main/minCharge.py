@@ -12,19 +12,12 @@ from cvxopt.blas import dotu
 import numpy as np
 import matplotlib.pyplot as plt
 import random as r
-import tourFn as tf
+import tourfn2 as tf
 
 from Field import Field
 
 
 
-
-
-# Note: Changed code from Script to Method
-# (4/23/2020): Changed minCharge from Version 2 to Version 4
-# (4/23/2020): Changed TourFn from Version 2 to Version 4
-# https://www.zanaducloud.com/2AE3C865-980D-4561-BBA2-BC42028DAD54
-# print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n")
 
 # ns: Number of possible charging station positions
 # rad: coverage radius
@@ -32,20 +25,26 @@ from Field import Field
 # start: Starting point for tour (point of origin) 
 # nx: Number of cells on the x-axis
 # ny: Number of cells on the y-axis
-def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad ,solMax, start):
+def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad, droneRange, solMax, start):
 
     #plt.pcolor(binMatrix)
     #plt.show()
 
+    
+
+    # converts numerical values in an array to boolean/logicals'''
+    logicalFn = lambda y: np.asarray(list(map(lambda x: bool(x), y))) 
+    
+    
 
     rad2 = rad**2
 
     #To the edges
-    power = 2 #Penalty for large distances
+    power = 0.5 #Penalty for large distances
     solMx = np.array([])
 
-    inclVec = binMatrix.flatten().astype(bool)
 
+    inclVec = binMatrix.flatten().astype(bool)
 
     xVec = np.repeat( np.arange(xmin,xmax,step), ny )[inclVec]
     yVec = np.tile(np.arange(ymin,ymax,step), nx )[inclVec]
@@ -55,11 +54,6 @@ def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad ,solMax
 
 
 
-
-
-    ######################################
-    # CODE AFTER HERE REFLECTS SHAUNNA WORK
-    ######################################
 
     # Locate charging stations
     locs0 = r.sample(range(np_tot),ns) #k Random locations for charging station
@@ -78,9 +72,9 @@ def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad ,solMax
     # LOCATE THE AREA WHERE THE FIRST CHARGING STATION CANNOT REACHES
     iVec = ((xVec - start[0])**2 + (yVec-start[1])**2) > rad2; # points not covered by start
     # SELECT THE AREAS THAT ARE NOT COVERED BY THE FIRST CHARGING STATION ( GIVES A BOOLEAN MATRIX)
-    iMx = iMx[tf.logicalFn(iVec), :] #Logical coverage matrix for remaining points
+    iMx = iMx[logicalFn(iVec), :] #Logical coverage matrix for remaining points
     # SELECT THE AREAS THAT ARE NOT COVERED BY THE FIRST CHARGING STATION ( GIVES A DISTANCE MATRIX)
-    d2Mx = d2Mx[tf.logicalFn(iVec), :] #Distance matrix for remaining points
+    d2Mx = d2Mx[logicalFn(iVec), :] #Distance matrix for remaining points
     np_eff = iMx.shape[0]#size(iMx,1) #Number of points not covered by start
 
     #Set up linear program which finds the minimum number of charging stations required
@@ -93,11 +87,10 @@ def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad ,solMax
 
     
     #Minimize cx
-    # subject to Ax <= b
-    # A negative is placed in the parameter because ilp only does Ax >= B
+    # subject to Ax >= b
+    # A negative is placed in the parameter because ilp only does Ax <= B
     
     for ii in range(solMax):
-        
         fmin0 = 1*fmin
         status, solNew = ilp(c, 
                              -1*iMx, 
@@ -132,6 +125,7 @@ def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad ,solMax
 
     # CHECK IF THE NUMPY ARRAY IS NOT EMPRY
     if solMx.size == 0:
+
         raise('Solution Not Found')
 
 
@@ -143,7 +137,7 @@ def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad ,solMax
         
         minDistVec = 1E50 * np.ones(len(xVec))
         
-        csLocs = locs[:, tf.logicalFn(solMx[ii,:])] #select charging stations for current solution
+        csLocs = locs[:, logicalFn(solMx[ii,:])] #select charging stations for current solution
         csLocs = np.append(startConjT, csLocs, axis = 1) #add starting point
         
         # Construct minDistMx and regMx
@@ -151,12 +145,16 @@ def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad ,solMax
             
             #If power is larger, farther points are counted more
             tmpDistVec = ((xVec-csLocs[0,jj])**2 + (yVec-csLocs[1,jj])**2)**power
-            # MINIMUM
+            # minDistVec gives value of r
             minDistVec = np.minimum(minDistVec,tmpDistVec)
             
             
+        # Compute the best-case distance for this example
+        nVec = np.arange(1,len(minDistVec)+1); # Value of n for each r
+        minDistVec = np.sort(minDistVec)
         #Save best value so far
-        distStat[ii] = sum(minDistVec)
+        distStat[ii] = max((len(minDistVec) - nVec) / ( droneRange - minDistVec));
+        distStat[ii] = distStat[ii] * droneRange / len(minDistVec);
         #distStat[ii] = min(distStat[ii],distStat[ii - (ii > 0)])
 
 
@@ -167,36 +165,28 @@ def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad ,solMax
     csLocs = locs[:, np.asarray(list(map(lambda x: bool(x), solMx[bestIx,:] ))) ] 
     csLocs = np.append(startConjT,csLocs, axis = 1) #add starting point
 
-
-
-
-
     # print(csLocs)
-    return csLocs
+    return csLocs,bestVal
 
 
-        
-
-
-
-def tour(start,rad,voronoi_lst):
+def tour(voronoi_lst):
     
     
-
+    # GET THE CS LOCATIONS FROM THE VORONOI LIST
     csLocs = [x[1] for x in voronoi_lst]
+
+    # GET THE NUMBER OF CS
+    nCS = len(csLocs)
     
-    print('-------------Charging Stations-------------------')
-    for x in csLocs:
-        print(x)
+    # CREATE A ZERO MATRIX OF SIZE nCS x nCS
+    mtx = np.zeros( (nCS,nCS) )
 
-    n = len(csLocs)
-    mtx = np.zeros( (n,n) )
-
-    for i in range(n):
+    # CREATE A ADJ MATRIX BASED ON THE RELATION BETWEEN VORONOI CELLS
+    for i in range(nCS):
 
         vor_set = set(voronoi_lst[i][0])
 
-        for j in range(n):
+        for j in range(i,nCS):
             
             if not( i == j ):
 
@@ -207,73 +197,115 @@ def tour(start,rad,voronoi_lst):
                 mtx[i][j] = has_intersection
                 mtx[j][i] = has_intersection
 
-        if( i > np.ceil(n/2.0) ):
-            break
 
-    print('------------- ADJ Matrix ----------------')
-    print('')
-    print(mtx)
-    print('')
 
-    #Get tour information
 
-    locsTmp = np.array( [ [x[0] for x in csLocs ] , [y[1] for y in csLocs ]  ] )
+    ################################
+    # 'Tour' requires:
+    # ADJ MATRIX  
+    ################################
 
-    tour = tf.tourFn(start, locsTmp, mtx)
+    tour = tf.tourFn(mtx)
 
-    ordered_voronoiLst = None
 
     if tour is  None:
         raise('Empty Tour')
       
-        
-    locsTmp, coor, tourDist = tour
+    # coor : CONTAINS THE INDECES OF THE TOUR BETWEEN CS
+    coor = tour
     
-    #############################
-    ## GET THE ORDER (WITHOUT REPETITION) OF THE CS
-    ## REORDER THE VORONOI LIST BASED ON THE ORDERLIST
-    #############################
-    coor_unique = []
-    for c in coor:
-        if not(c in coor_unique):
-            coor_unique.append(c)
     
-    ordered_voronoiLst = [voronoi_lst[i] for i in coor_unique]
-
-
-    #############################
-    ## FIND THE INTERSECTION OF THE CONSECUTIVE VORONOI REGIONS
-    ## CREATE AN ARRAY OF ARRAYS THAT CONTAIN THE INTERSECTED VERTICES
-    ## BETWEEN CONSECUTIVE VORONOI REGIONS
-    #############################
     
-    N = len(coor)
-
-    start_end_lst = [ []  for i in range(len(coor_unique))]
-
+    ##################################################################
+    # CONSTRUCT AN ARRAY OF POINTS, WHERE YOU GO FROM ONE CS TO A VERTEX TO A CS
+    # CONSTRUCT A LIST OF ENTRY & EXIT VERTICES FOR EACH VORONOI CELL
+    ##################################################################
+    
+    # GET THE NUMBER OF CS WE'LL BE TRAVELING TO
+    nTour =len(coor)
+    
+    # THE FIRST POINT IS WERE WE START
     vertices = []
-    for i in range(N-1):
+    
+    # CREATE AN ARRAY OF SIZE 1 X nCS FILLED WITH EMPTY ARRAYS
+    # WE'LL BE APPENDING THE ENTRY/EXIT POINTS FOR EACH VORONOI CELL
+    start_end_lst = [ []  for i in range(nCS)]
+    
+   
+    # TO ENSURE THAT MY TOUR RETURNS TO THE FIRST, FIND THE PATH FROM THE LAST
+    # CS OF THE TOUR TO THE FIRST CS. THIS WILL ENSURE THE PATH HAS AN EDGE 
+    # THAT RETURNS TO THE FIRST CS
+    #######################################
+    
+    # GET THE INTERSECTED POINTS BETWEEN VORONOI CELLS
+    set1 = set(voronoi_lst[coor[-2]][0])
+    set2 = set(voronoi_lst[coor[-1]][0])
+    interPts = set1.intersection(set2)       
 
+
+    # ITERATE THROUGH THE INTERSECTED POINTS
+    for p in interPts:
+
+        # MAKE SURE YOU DID NOT ALREADY ADD THESE POINTS INTO THE EXIT/ENTRY ARRAY
+        # OR THE VERTICES ARRAY
+        if not(p in start_end_lst[coor[i]]) and not(p in start_end_lst[coor[i+1]]):
+            
+            # STORE THE INTERSECTED VERTEX INTO THE ENTRY'EXIT ARRAY
+            start_end_lst[coor[i]].append(p)
+            start_end_lst[coor[i+1]].append(p)
+            
+            # ADD THE INTERSECTED VERTEX INTO THE VERTICES LIST
+            vertices.append(voronoi_lst[coor[-2]][1])
+            vertices.append(p)
+            vertices.append(voronoi_lst[coor[-1]][1]) 
+            break
+    ######################################
+    
+    
+    for i in range(nTour-2):
+
+        # GET THE INTERSECTED POINTS BETWEEN VORONOI CELLS
         set1 = set(voronoi_lst[coor[i]][0])
         set2 = set(voronoi_lst[coor[i+1]][0])
-
-        interPts = set1.intersection(set2)
-
+        interPts = set1.intersection(set2)       
+    
+    
+        # ITERATE THROUGH THE INTERSECTED POINTS
         for p in interPts:
 
+            # MAKE SURE YOU DID NOT ALREADY ADD THESE POINTS INTO THE EXIT/ENTRY ARRAY
+            # OR THE VERTICES ARRAY
             if not(p in start_end_lst[coor[i]]) and not(p in start_end_lst[coor[i+1]]):
+                
+                # STORE THE INTERSECTED VERTEX INTO THE ENTRY'EXIT ARRAY
                 start_end_lst[coor[i]].append(p)
                 start_end_lst[coor[i+1]].append(p)
                 
-                vertices.append(voronoi_lst[coor[i]][1])
+                # ADD THE INTERSECTED VERTEX INTO THE VERTICES LIST
+                
                 vertices.append(p)
+                vertices.append(voronoi_lst[coor[i+1]][1]) 
                 break
-          
-    vertices.append(voronoi_lst[coor[0]][1])     
-            
-    start_end_lst = [start_end_lst[i] for i in coor_unique]
+                
+         
+    # THE FIRST TWO VERTICES ACTUALL BELONG AT THE END OF THE LIST
+    # DELETE THE LAST ELEM ( BECAUSE IT RETURNS TO THE FIRST ELEM)
+    # WE'LL SHIFT THE ARRAY BY 2
+    # THEN, WE'LL ADD THE FIRST ELEM OT THE END
+    vertices.pop(-1)       
+    for i in range(2):
+        vertices.append(vertices.pop(0))
+    vertices.append(vertices[0])
 
-    return ordered_voronoiLst,start_end_lst,vertices
+    
+    print('------------ locs --------------')
+    locsTmp = np.array( [ [x[0] for x in csLocs ] , [y[1] for y in csLocs ]  ] )
+    print(locsTmp)
+    print('')
+    
+    
+    return start_end_lst, coor, vertices
+    
 
 
 
@@ -319,8 +351,9 @@ if __name__ == '__main__':
     plt.pcolor(inclMx)
     plt.show()
 
-    CS = linear_program(inclMx,0,200,0,200,200,200,ns,1,rad,solMax,start)
+    CS,bestVal = linear_program(inclMx,0,200,0,200,200,200,ns,1,rad,8, solMax,start)
 
     print(CS)
-
+    print(bestVal)
+    
 
