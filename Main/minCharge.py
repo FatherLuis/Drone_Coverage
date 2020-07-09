@@ -225,64 +225,71 @@ def tour(voronoi_lst):
     nTour =len(coor)
     
     # THE FIRST POINT IS WERE WE START
-    vertices = [voronoi_lst[0][1]]
+    vertices = []
     
     # CREATE AN ARRAY OF SIZE 1 X nCS FILLED WITH EMPTY ARRAYS
     # WE'LL BE APPENDING THE ENTRY/EXIT POINTS FOR EACH VORONOI CELL
     start_end_lst = [ []  for i in range(nCS)]
     
+   
+    # TO ENSURE THAT MY TOUR RETURNS TO THE FIRST, FIND THE PATH FROM THE LAST
+    # CS OF THE TOUR TO THE FIRST CS. THIS WILL ENSURE THE PATH HAS AN EDGE 
+    # THAT RETURNS TO THE FIRST CS
+    #######################################
     
-    # FIND THE INTERSECTION BETWEEN THE FIRST VORONOI 
-    # AND LAST VORONOI IN THE TOUR
-    set1 = set(voronoi_lst[coor[-1]][0])
-    set2 = set(voronoi_lst[coor[-2]][0])
-    previous = set1.intersection(set2)  
+    # GET THE INTERSECTED POINTS BETWEEN VORONOI CELLS
+    set1 = set(voronoi_lst[coor[-2]][0])
+    set2 = set(voronoi_lst[coor[-1]][0])
+    interPts = set1.intersection(set2)       
+
+
+    # ITERATE THROUGH THE INTERSECTED POINTS
+    for p in interPts:
+
+        # MAKE SURE YOU DID NOT ALREADY ADD THESE POINTS INTO THE EXIT/ENTRY ARRAY
+        # OR THE VERTICES ARRAY
+        if not(p in start_end_lst[coor[i]]) and not(p in start_end_lst[coor[i+1]]):
+            
+            # STORE THE INTERSECTED VERTEX INTO THE ENTRY'EXIT ARRAY
+            start_end_lst[coor[i]].append(p)
+            start_end_lst[coor[i+1]].append(p)
+            
+            # ADD THE INTERSECTED VERTEX INTO THE VERTICES LIST
+            vertices.append(voronoi_lst[coor[-2]][1])
+            vertices.append(p)
+            vertices.append(voronoi_lst[coor[-1]][1]) 
+            break
+    ######################################
     
     
-    for i in range(nTour-1):
-        
+    for i in range(nTour-2):
+
         # GET THE INTERSECTED POINTS BETWEEN VORONOI CELLS
         set1 = set(voronoi_lst[coor[i]][0])
         set2 = set(voronoi_lst[coor[i+1]][0])
-        interPts = set1.intersection(set2)
-        
-        
-        # INDICATE IF YOU HAVE TRAVELED TO A VERTEX
-        flag  = 0
-        # ITERATE THROUGH THE PREVIOUS INTERSECTED VERTICES
-        # SO THAT YOU DONT USE THEM
-        for prev in previous:
-            
-            # INDICATE IF A VERTEX HAS BEEN FOUND
-            if flag == 0:
-            
-                # ITERATE THROUGH THE INTERSECTED POINTS
-                for p in interPts:
-        
-                    # DONT USE VERTICES THAT IS SHARED WITH ANOTHER VORONOI
-                    if not( np.array_equal(prev, p)):
-                        
-                        # MAKE SURE YOU DID NOT ALREADY ADD THESE POINTS INTO THE EXIT/ENTRY ARRAY
-                        # OR THE VERTICES ARRAY
-                        if not(p in start_end_lst[coor[i]]) and not(p in start_end_lst[coor[i+1]]):
-                            
-                            # STORE THE INTERSECTED VERTEX INTO THE ENTRY'EXIT ARRAY
-                            start_end_lst[coor[i]].append(p)
-                            start_end_lst[coor[i+1]].append(p)
-                            
-                            # ADD THE INTERSECTED VERTEX INTO THE VERTICES LIST
-                            vertices.append(p)
-                            vertices.append(voronoi_lst[coor[i+1]][1])
-                            
-                            # STORE THE INTERSECTED POINTS FOR NEXT VORONOI INTERSECTIOSN
-                            previous = interPts
-                            
-                            # INDICATE THAT YOU HAVE FOUND A VERTEX
-                            flag = 1
-                            break 
-            
-            
-            
+        interPts = set1.intersection(set2)       
+    
+    
+        # ITERATE THROUGH THE INTERSECTED POINTS
+        for p in interPts:
+
+            # MAKE SURE YOU DID NOT ALREADY ADD THESE POINTS INTO THE EXIT/ENTRY ARRAY
+            # OR THE VERTICES ARRAY
+            if not(p in start_end_lst[coor[i]]) and not(p in start_end_lst[coor[i+1]]):
+                
+                # STORE THE INTERSECTED VERTEX INTO THE ENTRY'EXIT ARRAY
+                start_end_lst[coor[i]].append(p)
+                start_end_lst[coor[i+1]].append(p)
+                
+                # ADD THE INTERSECTED VERTEX INTO THE VERTICES LIST
+                
+                vertices.append(p)
+                vertices.append(voronoi_lst[coor[i+1]][1]) 
+                break
+                
+                   
+    
+
     
     print('------------ locs --------------')
     locsTmp = np.array( [ [x[0] for x in csLocs ] , [y[1] for y in csLocs ]  ] )

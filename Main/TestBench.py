@@ -196,7 +196,7 @@ for name,field in zip(names,fields):
 
 df['cs_DIV_area'] = df['numChargingStation']/ df['Shape_Area']                                                                                            
 df['dist_DIV_area'] = df['Total_Distance_Travel'] / df['Shape_Area']                                                                                                 
-df['CS_Efficiency'] = 1.0 / (np.pi * (df['CS_Radius']**2) * df['cs_DIV_area'] )
+df['CS_Efficiency'] = 1.0 / ( (3.0*np.sqrt(2.0)/2.0)* (df['CS_Radius']**2) * df['cs_DIV_area'] )
 
 
 #####################################
@@ -345,6 +345,8 @@ ax7.get_shared_y_axes().join(ax7,ax8,ax9)
 shape_names = pd.unique(summary_df['Shape'])
 shape_areas = pd.unique(summary_df['Shape_Area'])
 
+std_mean_const = 1 / np.sqrt(n_trials)
+
 for name in shape_names:
     for area in shape_areas:
 
@@ -381,14 +383,29 @@ for name in shape_names:
         x = summary_df[crit1 & crit2]['CS_Radius']
         
         y1 = summary_df[crit1 & crit2]['csDIVarea_mean']
+        y1_err = summary_df[crit1 & crit2]['csDIVarea_std'] * std_mean_const 
+        
         y2 = summary_df[crit1 & crit2]['CS_Efficiency_mean']
-        y3 = summary_df[crit1 & crit2]['distDIVarea_mean']
+        y2_err = summary_df[crit1 & crit2]['CS_Efficiency_std'] * std_mean_const 
+        
+        
+        y3 = summary_df[crit1 & crit2]['distDIVarea_mean'] / 20.0
+        y3_err = summary_df[crit1 & crit2]['distDIVarea_std'] * std_mean_const / 20.0
+        
         y4 = summary_df[crit1 & crit2]['Intrinsic_Inefficiency_mean']
         
         
         curAx1.scatter( x, y1 , marker = mark , label = name, c = color)
+        curAx1.errorbar(x, y1, yerr = y1_err , fmt = 'none', ecolor = color)
+        
+        
         curAx2.scatter( x, y2 , marker = mark , label = name, c = color)
-        curAx3.scatter( x, y3 / 20.0 , marker = mark , label = name, c = color)
+        curAx2.errorbar(x, y2, yerr = y2_err , fmt = 'none', ecolor = color)
+        
+        
+        curAx3.scatter( x, y3 , marker = mark , label = name, c = color)
+        curAx3.errorbar(x, y3, yerr = y3_err , fmt = 'none', ecolor = color)
+        
         curAx3.plot( x, y4 , linestyle = '-' , label = '{} Intrinsic Inefficiency'.format(name), c = color)
 
 
@@ -434,17 +451,17 @@ ax6.legend(prop={'size': 6})
 
 
 ax7.set_title('Field with $25 km^{2}$ area')
-ax7.set_ylabel('mean travel distance / min. coverage distance')
+ax7.set_ylabel('Travel distance ratio')
 ax7.set_xlabel('CS coverage radius')
 ax7.legend(prop={'size': 6})
 
 ax8.set_title('Field with $50 km^{2}$ area')
-ax8.set_ylabel('mean travel distance / min. coverage distance')
+ax8.set_ylabel('Travel distance ratio')
 ax8.set_xlabel('CS coverage radius')
 ax8.legend(prop={'size': 6})
 
 ax9.set_title('Field with $100 km^{2}$ area')
-ax9.set_ylabel('mean travel distance / min. coverage distance')
+ax9.set_ylabel('Travel distance ratio')
 ax9.set_xlabel('CS coverage radius')
 ax9.legend(prop={'size': 6})
 
