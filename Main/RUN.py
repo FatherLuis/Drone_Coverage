@@ -202,7 +202,7 @@ if __name__ == '__main__':
             CS_radius = 4.0
             
         
-            lst = run_program(drone, CS_radius , field_boundary, 100, np.array([0, 0]) , False)
+            lst = run_program(drone, CS_radius , field_boundary, 100, np.array([0, 0]) , True)
             
             print('')
             print('nCS:',lst[0])

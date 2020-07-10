@@ -345,8 +345,6 @@ ax7.get_shared_y_axes().join(ax7,ax8,ax9)
 shape_names = pd.unique(summary_df['Shape'])
 shape_areas = pd.unique(summary_df['Shape_Area'])
 
-std_mean_const = 1 / np.sqrt(n_trials)
-
 for name in shape_names:
     for area in shape_areas:
 
@@ -383,14 +381,14 @@ for name in shape_names:
         x = summary_df[crit1 & crit2]['CS_Radius']
         
         y1 = summary_df[crit1 & crit2]['csDIVarea_mean']
-        y1_err = summary_df[crit1 & crit2]['csDIVarea_std'] * std_mean_const 
+        y1_err = summary_df[crit1 & crit2]['csDIVarea_std'] 
         
         y2 = summary_df[crit1 & crit2]['CS_Efficiency_mean']
-        y2_err = summary_df[crit1 & crit2]['CS_Efficiency_std'] * std_mean_const 
+        y2_err = summary_df[crit1 & crit2]['CS_Efficiency_std'] 
         
         
         y3 = summary_df[crit1 & crit2]['distDIVarea_mean'] / 20.0
-        y3_err = summary_df[crit1 & crit2]['distDIVarea_std'] * std_mean_const / 20.0
+        y3_err = summary_df[crit1 & crit2]['distDIVarea_std']  / 20.0
         
         y4 = summary_df[crit1 & crit2]['Intrinsic_Inefficiency_mean']
         
