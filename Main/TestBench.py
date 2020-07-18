@@ -7,6 +7,7 @@ from RUN import run_program
 import traceback
 import os.path
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 #####################################
 # CREATE PANDA DATAFRAME
@@ -194,9 +195,15 @@ for name,field in zip(names,fields):
                 print(traceback.format_exc())
 
 
+
 df['cs_DIV_area'] = df['numChargingStation']/ df['Shape_Area']                                                                                            
 df['dist_DIV_area'] = df['Total_Distance_Travel'] / df['Shape_Area']                                                                                                 
 df['CS_Efficiency'] = 1.0 / ( (3.0*np.sqrt(2.0)/2.0)* (df['CS_Radius']**2) * df['cs_DIV_area'] )
+
+df['TheoBestDist'] = ( df['Shape_Area'] / 0.05 ) * df['Intrinsic_Inefficiency']
+df['TheoBestTime'] = ( df['TheoBestDist'] / 25.0) * 3 
+
+
 
 
 #####################################
@@ -240,8 +247,10 @@ summary_df = df[criteria].groupby(select_col,as_index = False).agg({'numCharging
                                                                 'dist_DIV_area': ['mean', 'std'],
                                                                 'CS_Efficiency':['mean', 'std'],
                                                                 'Intrinsic_Inefficiency':['mean', 'std'],
+                                                                'TheoBestDist': ['mean', 'std'], 
+                                                                'TheoBestTime': ['mean', 'std'], 
                                                                 'isSuccessful': ['sum']}).round(2)
-    
+   
                                                                   
 new_col_names = ['nCS_mean',
                  'nCS_std',
@@ -257,7 +266,11 @@ new_col_names = ['nCS_mean',
                  'CS_Efficiency_std',
                  'Intrinsic_Inefficiency_mean',
                  'Intrinsic_Inefficiency_std',
-                 'Total_Success']                                                                
+                 'TheoBestDist_mean',
+                 'TheoBestDist_std',
+                 'TheoBestTime_mean',
+                 'TheoBestTime_std',
+                 'Total_Success']                                                               
                                                                   
 summary_df.columns = select_col + new_col_names  
 summary_df.reset_index()  
@@ -289,6 +302,8 @@ areaCSRadius_df = df[criteria].groupby(select_col2,as_index = False).agg({'numCh
                                                                 'dist_DIV_area': ['mean', 'std'],
                                                                 'CS_Efficiency':['mean', 'std'],
                                                                 'Intrinsic_Inefficiency':['mean', 'std'],
+                                                                'TheoBestDist': ['mean', 'std'], 
+                                                                'TheoBestTime': ['mean', 'std'],                                                                 
                                                                 'isSuccessful': ['sum']}).round(2)
 
 
@@ -305,9 +320,14 @@ new_col_names = ['nCS_mean',
                  'CS_Efficiency_mean',
                  'CS_Efficiency_std',
                  'Intrinsic_Inefficiency_mean',
-                 'Intrinsic_Inefficiency_std',
+                 'Intrinsic_Inefficiency_std',   
+                 'TheoBestDist_mean',
+                 'TheoBestDist_std',
+                 'TheoBestTime_mean',
+                 'TheoBestTime_std',
                  'Total_Success']                                                                 
-                                                                  
+   
+                                                               
 areaCSRadius_df.columns = select_col2 + new_col_names  
 areaCSRadius_df.reset_index()                                                                                                                                                                                
 
@@ -330,86 +350,96 @@ areaCSRadius_df.to_csv(file_path)
 
 
 
+graph_df = df[ df['isSuccessful'] > 0 ]
+
+
+
 fig1 , ( (ax1,ax2,ax3) , (ax4,ax5,ax6) , (ax7,ax8,ax9) ) = plt.subplots(3,3)
-fig1.set_size_inches(19.20, 10.80)
+fig1.set_size_inches(12.0, 10.0)
 
 mark = 0
 curAx1 = 0
 curAx2 = 0
-
+curAx3 = 0
 
 ax1.get_shared_y_axes().join(ax1,ax2,ax3)
 ax4.get_shared_y_axes().join(ax4,ax5,ax6)
 ax7.get_shared_y_axes().join(ax7,ax8,ax9)
 
-shape_names = pd.unique(summary_df['Shape'])
-shape_areas = pd.unique(summary_df['Shape_Area'])
 
-for name in shape_names:
-    for area in shape_areas:
+shape_areas = pd.unique(graph_df['Shape_Area'])
 
+
+sns.set(style="darkgrid")
+
+
+graph_df['dist_DIV_area'] = graph_df['dist_DIV_area'] / 20.0
+
+mark = ['.','.','.']
+
+graph_df['intrinsicLabel'] = graph_df['Shape'] + ' Intrinsic Inefficiency'
+
+for area in shape_areas:
+    
+    crit2 = (graph_df['Shape_Area'] == area)  
+    
+    if( area== 25):
+        curAx1 = ax1
+        curAx2 = ax4
+        curAx3 = ax7
+    elif( area == 50):
+        curAx1 = ax2   
+        curAx2 = ax5
+        curAx3 = ax8
+    elif( area == 100):
+        curAx1 = ax3     
+        curAx2 = ax6
+        curAx3 = ax9
+    
     
 
+    sns.pointplot(x="CS_Radius", y="cs_DIV_area", 
+                data= graph_df[crit2] ,
+                markers = mark,
+                hue = 'Shape', dodge = True,
+                join = False,
+                style="time",
+                scale = 1.1 ,
+                ax = curAx1)
+
+
+
+    sns.pointplot(x="CS_Radius", y="CS_Efficiency", 
+                data= graph_df[crit2] ,
+                markers = mark,
+                hue = 'Shape', dodge = True,
+                join = False,
+                style="time",
+                scale = 1.1 ,
+                ax = curAx2)
+
+
+
+
+
+
+
+    sns.lineplot(x="CS_Radius", y="Intrinsic_Inefficiency",
+                hue="intrinsicLabel",
+                data= graph_df[crit2],
+                ax = curAx3)
     
-        if(name == 'Square'):
-            mark = '*'
-            color = 'k'
-        elif(name == 'Rectangle'):
-            mark = 'o'   
-            color = 'b'
-        elif name == 'Octagon':
-            mark = 'v'
-            color = 'r'
-               
-        if( area== 25):
-            curAx1 = ax1
-            curAx2 = ax4
-            curAx3 = ax7
-        elif( area == 50):
-            curAx1 = ax2   
-            curAx2 = ax5
-            curAx3 = ax8
-        elif( area == 100):
-            curAx1 = ax3     
-            curAx2 = ax6
-            curAx3 = ax9
-            
-        
-        crit1 = summary_df['Shape'] == name 
-        crit2 = summary_df['Shape_Area'] == area      
-        
-        x = summary_df[crit1 & crit2]['CS_Radius']
-        
-        y1 = summary_df[crit1 & crit2]['csDIVarea_mean']
-        y1_err = summary_df[crit1 & crit2]['csDIVarea_std'] 
-        
-        y2 = summary_df[crit1 & crit2]['CS_Efficiency_mean']
-        y2_err = summary_df[crit1 & crit2]['CS_Efficiency_std'] 
-        
-        
-        y3 = summary_df[crit1 & crit2]['distDIVarea_mean'] / 20.0
-        y3_err = summary_df[crit1 & crit2]['distDIVarea_std']  / 20.0
-        
-        y4 = summary_df[crit1 & crit2]['Intrinsic_Inefficiency_mean']
-        
-        
-        curAx1.scatter( x, y1 , marker = mark , label = name, c = color)
-        curAx1.errorbar(x, y1, yerr = y1_err , fmt = 'none', ecolor = color)
-        
-        
-        curAx2.scatter( x, y2 , marker = mark , label = name, c = color)
-        curAx2.errorbar(x, y2, yerr = y2_err , fmt = 'none', ecolor = color)
-        
-        
-        curAx3.scatter( x, y3 , marker = mark , label = name, c = color)
-        curAx3.errorbar(x, y3, yerr = y3_err , fmt = 'none', ecolor = color)
-        
-        curAx3.plot( x, y4 , linestyle = '-' , label = '{} Intrinsic Inefficiency'.format(name), c = color)
+    
+    sns.pointplot(x="CS_Radius", y="dist_DIV_area", 
+                data= graph_df[crit2] ,
+                markers = mark,
+                hue = 'Shape', dodge = True,
+                join = False,
+                style="time",
+                scale = 1.1 ,
+                ax = curAx3)   
 
-
-
-
-
+    
 ax1.set_title('Field with $25 km^{2}$ area')
 ax1.set_ylabel('Mean nCS / Area')
 ax1.set_xlabel('CS coverage radius')
@@ -451,17 +481,33 @@ ax6.legend(prop={'size': 6})
 ax7.set_title('Field with $25 km^{2}$ area')
 ax7.set_ylabel('Travel distance ratio')
 ax7.set_xlabel('CS coverage radius')
-ax7.legend(prop={'size': 6})
+ax7.set( ylim = (1.0,2.0) )
+#ax7.legend(prop={'size': 6})
 
 ax8.set_title('Field with $50 km^{2}$ area')
 ax8.set_ylabel('Travel distance ratio')
 ax8.set_xlabel('CS coverage radius')
-ax8.legend(prop={'size': 6})
+ax8.set( ylim = (1.0,2.0) )
+#ax8.legend(prop={'size': 6})
 
 ax9.set_title('Field with $100 km^{2}$ area')
 ax9.set_ylabel('Travel distance ratio')
 ax9.set_xlabel('CS coverage radius')
-ax9.legend(prop={'size': 6})
+ax9.set( ylim = (1.0,2.0) )
+#
+
+
+for curAx in [ax7,ax8,ax9]:
+    
+    handle,label = curAx.get_legend_handles_labels()
+    curAx.legend(handles = handle[1:],
+                 labels = label[1:],
+                 prop={'size': 6})
+
+
+
+
+
 
 
 plt.subplots_adjust(left=0.2, wspace =0.3, hspace = 0.5)
@@ -473,11 +519,9 @@ for im in imType:
     
     filename= '{}{}'.format('TestDataSummary_plot',im)
     
-    file_path = os.path.join(directory, filename)
+    file_path = os.path.join('./', filename)
     
-    if not os.path.isdir(directory):
-        os.mkdir(directory)
-    
+
     plt.savefig(file_path)
 
 
