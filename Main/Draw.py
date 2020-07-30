@@ -36,7 +36,7 @@ class Draw():
     # Return Value: None
     # Date:  3/12/2020
     ##############################################
-    def boundary(self, lst_pts, col = 'k', lines = "solid"):
+    def boundary(self, lst_pts, col = 'k', lines = "solid", linwidth = 2):
         
         # GET THE SIZE OF THE LIST
         N = len(lst_pts)
@@ -61,7 +61,7 @@ class Draw():
                 y2 = lst_pts[i+1][1]              
 
                 # DRAW A LINE FROM i ELEMENT TO i+1 ELEMENT
-                self.ax.plot( (x1,x2) , (y1,y2) ,color=col, linestyle = lines)
+                self.ax.plot( (x1,x2) , (y1,y2) ,color=col, linestyle = lines,linewidth = linwidth)
 
     ##############################################
     # Method Name: path()
@@ -71,7 +71,7 @@ class Draw():
     # Return Value: None
     # Date:  3/12/2020
     ##############################################
-    def path(self,path_pts):
+    def path(self,path_pts, linwidth = 1):
 
         # CREATE A TUPLE WITH THREE RANDOM NUMBERS ( USED FOR RGM COLORING)
         colors = np.random.rand(3,)
@@ -95,7 +95,7 @@ class Draw():
                 colors = np.random.rand(3,)
           
             # DRAW A LINE FROM i ELEMENT TO i+1 ELEMENT
-            self.ax.plot( (x1,x2) , (y1,y2) , c = colors , linewidth = 1, alpha = 0.7 )
+            self.ax.plot( (x1,x2) , (y1,y2) , c = colors , linewidth = linwidth, alpha = 0.7 )
 
 
     def draw_sites_path(self,site_pts):

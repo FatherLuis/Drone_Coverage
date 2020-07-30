@@ -896,18 +896,22 @@ if __name__ == '__main__':
     fig1 = plt.figure(1)
     ax1 = fig1.add_subplot(111)
     
+    ax1.set_xlabel('kilometers (km)')
+    ax1.set_ylabel('kilometers (km)')
+    # ax1.set_xticks([])
+    # ax1.set_yticks([])
+    
     canvas = Draw(ax1)
 
 
-    drone = Drone(radius= 0.1, max_distance = 25)    
+    drone = Drone(radius= 0.025, max_distance = 8)    
  
     
-    entryExit = [ (0,5) , (0.1,4)]
+    entryExit = [ (0,65) , (0.16,4)]
     
-    pp=  [ (0,0), (0,5) , (0.1,4) ]  
+    pp=  [ (0,0), (0,3) , (2,2) ]  
     
-    #pp = [ (0,0), (0,33) , (30,20) ]   
-    
+    plt.gca().set_aspect('equal',adjustable='box')
     triangle = Triangle(*pp)
     
     # transform = Transformation()
@@ -920,9 +924,9 @@ if __name__ == '__main__':
 
     drone, path = DP.algorithm(curCS)
 
-    canvas.boundary(pp)
+    canvas.boundary(pp, lines = 'dotted')
 
-    canvas.path(path)
+    canvas.path(path, linwidth = 2)
 
     plt.show()
 

@@ -40,6 +40,8 @@ def tourFn(adjMatrix):
     
     graph = csr_matrix(adjMatrix)
     dMtx, predecessors = shortest_path(csgraph=graph, directed=False, return_predecessors=True)
+    
+    
 
     # Create variables from finite entries of reduced matrix
     edgeTmp = np.array([[], []]) # All edges
@@ -56,8 +58,6 @@ def tourFn(adjMatrix):
                 cVec.append(dMtx[jj,kk])  # Minimize number of edges used
     
     nEdge = len(cVec) #Number of edges (variables)
-
-
 
 
     # Set up TSP (variables are connections, nodes are constraints)
@@ -117,7 +117,7 @@ def tourFn(adjMatrix):
         # STARTING NODE
         path = [0]
         
-        
+
         # ITERATE BY THE NUMBER OF EDGES IN THE SOLUTION
         for k in range(nsEdges):
         
@@ -132,7 +132,6 @@ def tourFn(adjMatrix):
             # GET THE EDGE WHERE MY NODE IS
             curEdge = edgeLst[:,edgeIx]
             
-    
             ####################################
             ### CHECK THE WEIGHT OF THE EDGE 
             ####################################
@@ -147,7 +146,7 @@ def tourFn(adjMatrix):
                 
                 curNode,nxtNode = (curEdge[1],curEdge[0]) if curEdge[1] == path[-1] else (curEdge[0],curEdge[1]) 
                 
-                lst = get_path(predecessors,curNode,nxtNode)
+                lst = get_path(predecessors,curNode,nxtNode)            
             
                 path.extend(lst[1:]) 
             
@@ -202,13 +201,13 @@ if __name__ == '__main__':
     #                       [1,1,1],
     #                       [1,1,1]])
     
-    # adjMatrix = np.array([[0. ,0. ,1. ,0. ,1. ,0. ,0.],
-    #                       [0. ,0. ,1. ,1. ,0. ,1. ,0.],
-    #                       [1. ,1. ,0. ,0. ,1. ,1. ,0.],
-    #                       [0. ,1. ,0. ,0. ,0. ,1. ,1.],
-    #                       [1. ,0. ,1. ,0. ,0. ,0. ,0.],
-    #                       [0. ,1. ,1. ,1. ,0. ,0. ,1.],
-    #                       [0. ,0. ,0. ,1. ,0. ,1. ,0.]])
+    adjMatrix = np.array([[0. ,0. ,1. ,0. ,1. ,0. ,0.],
+                          [0. ,0. ,1. ,1. ,0. ,1. ,0.],
+                          [1. ,1. ,0. ,0. ,1. ,1. ,0.],
+                          [0. ,1. ,0. ,0. ,0. ,1. ,1.],
+                          [1. ,0. ,1. ,0. ,0. ,0. ,0.],
+                          [0. ,1. ,1. ,1. ,0. ,0. ,1.],
+                          [0. ,0. ,0. ,1. ,0. ,1. ,0.]])
 
 
 
@@ -224,8 +223,8 @@ if __name__ == '__main__':
     #                       [0,0,1,1,0,0,0,1,0,0],
     #                       [0,1,0,0,1,0,1,1,0,0]])
 
-    adjMatrix = np.array([[1,0],
-                         [0,1]])
+    # adjMatrix = np.array([[1,0],
+    #                      [0,1]])
 
     print(tourFn(adjMatrix))
 
