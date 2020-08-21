@@ -14,7 +14,18 @@ import numpy as np
 import traceback
 
 
-def run_program(drone, CS_radius , shape ,candidate, sp , showPlot = False):
+def run_program(drone, CS_radius , shape ,meshStep, candidate, sp , direction = 'cw', showPlot = False):
+    
+    ''' 
+    :param drone: Drone object that contains max distance and FOV ( radius coverage)
+    :param CS_Radius: Farthest distance drone can travel and return to charging station
+    :param shape: Field that will be covered
+    
+    :param meshStep: scalar quantity used to create the mask for the shape
+    :param candidate: number of charging station candidates for the field
+    :param sp: Starting charging station and starting location of Drone
+    :param direction: counterclockwise(ccw) or clockwise(cw) orientation of the shape vertices list     
+    '''
     
     
     #################### INITIALS ####################
@@ -30,9 +41,9 @@ def run_program(drone, CS_radius , shape ,candidate, sp , showPlot = False):
     #field_boundary =  [  (0,0) , (10,20) , (15,40), (35,45),
     #                     (45,35) , (50,25) , (45,15), (25,5) ]
 
-    step = 0.02
+    
 
-    matrix, xmin, xmax, ymin, ymax, nx, ny = field.create_matrix_field(poly = field_boundary ,step = step)
+    maskVector, xVector,yVector, nx, ny = field.create_matrix_field(poly = field_boundary ,step = meshStep, direction = direction)
 
 
     #################### LOCATING CHARGING STATIONS ####################
@@ -44,7 +55,7 @@ def run_program(drone, CS_radius , shape ,candidate, sp , showPlot = False):
     start_point = sp
     droneRange = float(drone.MAX_DISTANCE)/2
 
-    CS,bestVal = linear_program( binMatrix = matrix, xmin=xmin, xmax=xmax,ymin=ymin,ymax=ymax,nx = nx, ny = ny, step = step,
+    CS,bestVal = linear_program( maskVec = maskVector, xVec = xVector , yVec = yVector, step = meshStep,
                         ns = numberStations , rad = CS_radius, droneRange = droneRange, solMax = max_solutions, start = start_point)
 
 
@@ -194,15 +205,12 @@ if __name__ == '__main__':
              ### INITIALIZE DRONE PROPERTIES ###
     
             drone = Drone(radius=0.025, max_distance = 8)       
-        
-            field_boundary =  [ (0,0) , (0,7) , (7,7) , (7,0)]
-            #field_boundary = [ (0,0),(2.28,0),(3.88,1.61),(3.88,3.88),(2.28,5.49),(0,5.49),(-1.61,3.88),(-1.61,1.61) ]
-    
-            #field_boundary = [ (0,0) , (4.5509,0) , (7.7689,3.218) , (7.7689,7.7689) , (4.5509,10.9868) , (0,10.9869) , (-3.218,7.7689) , (-3.218,3.218) ]
-            CS_radius = 4.0
+            CS_radius = 3.0
             
-        
-            lst = run_program(drone, CS_radius , field_boundary, 100, np.array([0, 0]) , True)
+            #field_boundary = [ (0,0) , (0,5.7735) , (17.3205,5.7735), (17.3205,0)]
+            field_boundary = [ (0,0), (-3.218,3.218), (-3.218,7.7689), (0,10.9869), (4.5509,10.9868), (7.7689,7.7689), (7.7689,3.218), (4.5509,0) ]
+
+            lst = run_program(drone, CS_radius , field_boundary, 0.02 , 100, np.array([0, 0]) , 'cw', True)
             
             print('')
             print('nCS:',lst[0])

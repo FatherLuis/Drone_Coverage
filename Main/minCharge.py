@@ -25,7 +25,7 @@ from Field import Field
 # start: Starting point for tour (point of origin) 
 # nx: Number of cells on the x-axis
 # ny: Number of cells on the y-axis
-def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad, droneRange, solMax, start):
+def linear_program(maskVec,xVec,yVec,step,ns, rad, droneRange, solMax, start):
 
     #plt.pcolor(binMatrix)
     #plt.show()
@@ -44,13 +44,15 @@ def linear_program(binMatrix, xmin,xmax,ymin,ymax,nx, ny , ns ,step, rad, droneR
     solMx = np.array([])
 
 
-    inclVec = binMatrix.flatten().astype(bool)
-
-    xVec = np.repeat( np.arange(xmin,xmax,step), ny )[inclVec]
-    yVec = np.tile(np.arange(ymin,ymax,step), nx )[inclVec]
+    #inclVec = binMatrix.flatten().astype(bool)
+    #xVec = np.repeat( np.arange(xmin,xmax,step), ny )[inclVec]
+    #yVec = np.tile(np.arange(ymin,ymax,step), nx )[inclVec]
+    
+    xVec = xVec[maskVec]
+    yVec = yVec[maskVec]
    
 
-    np_tot = np.sum(inclVec) # Number of points in region
+    np_tot = np.sum(maskVec) # Number of points in region
 
 
 
@@ -310,50 +312,52 @@ def tour(voronoi_lst):
 
 
 
-if __name__ == '__main__':
-
-    # IF THIS FILE IS RUN, THE FOLLOWING CODE WILL BE READ
-
-
-    ns = 50
-    rad = 60
-    solMax = 5
-    start = np.array([20, 20])
-
-    ng = np.array([200,200]) #number of cells on each side of grid
-    ng_tot = ng[0] * ng[1]
-    ns = 50 # Number of possible charging station positions
-    rad = 60 #coverage radius
-    solMax = 5 #Maximum number of solutions
-    start = np.array([20, 20]) #Starting point for tour (point of origin)
-
-    #Determine region to be covered 
-    ##NEEDS TO BE POLYGONAL
-    gMeans = np.array([[50, 50, 150, 150], [50, 150, 50, 150]]) #Means of Gaussian used to determine regions
-    gStd = np.array([[30, 30, 30, 30], [30, 30, 30, 30]]) #Std's of Guassions used to determine region
-    theta_g = 0.4 #Threshold to decide inclusion in region
-
-    #x and y coordinates of grid
-    xVecGrid = np.floor(np.arange(ng_tot)/ ng[0]) + 1 #Integer values for x and y
+# if __name__ == '__main__':
+    
+#     OUTDATED
+    
+#     # IF THIS FILE IS RUN, THE FOLLOWING CODE WILL BE READ
 
 
-    yVecGrid = (np.arange(ng_tot) % ng[0]) + 1
+#     ns = 50
+#     rad = 60
+#     solMax = 5
+#     start = np.array([20, 20])
 
-    inclVec = 0 * xVecGrid
+#     ng = np.array([200,200]) #number of cells on each side of grid
+#     ng_tot = ng[0] * ng[1]
+#     ns = 50 # Number of possible charging station positions
+#     rad = 60 #coverage radius
+#     solMax = 5 #Maximum number of solutions
+#     start = np.array([20, 20]) #Starting point for tour (point of origin)
 
-    #Find points in region
-    for ii in range(gMeans.shape[1]):
-        inclVec = inclVec + np.exp(-(xVecGrid - gMeans[0,ii])**2/(2*gStd[0,ii]**2)-(yVecGrid - gMeans[1,ii])**2/(2*gStd[1,ii]**2))
+#     #Determine region to be covered 
+#     ##NEEDS TO BE POLYGONAL
+#     gMeans = np.array([[50, 50, 150, 150], [50, 150, 50, 150]]) #Means of Gaussian used to determine regions
+#     gStd = np.array([[30, 30, 30, 30], [30, 30, 30, 30]]) #Std's of Guassions used to determine region
+#     theta_g = 0.4 #Threshold to decide inclusion in region
+
+#     #x and y coordinates of grid
+#     xVecGrid = np.floor(np.arange(ng_tot)/ ng[0]) + 1 #Integer values for x and y
+
+
+#     yVecGrid = (np.arange(ng_tot) % ng[0]) + 1
+
+#     inclVec = 0 * xVecGrid
+
+#     #Find points in region
+#     for ii in range(gMeans.shape[1]):
+#         inclVec = inclVec + np.exp(-(xVecGrid - gMeans[0,ii])**2/(2*gStd[0,ii]**2)-(yVecGrid - gMeans[1,ii])**2/(2*gStd[1,ii]**2))
         
-    inclVec = inclVec > theta_g
-    inclMx = np.reshape(inclVec, ng) # Matrix for inclusion in region (used in plotting)
+#     inclVec = inclVec > theta_g
+#     inclMx = np.reshape(inclVec, ng) # Matrix for inclusion in region (used in plotting)
 
-    plt.pcolor(inclMx)
-    plt.show()
+#     plt.pcolor(inclMx)
+#     plt.show()
 
-    CS,bestVal = linear_program(inclMx,0,200,0,200,200,200,ns,1,rad,8, solMax,start)
+#     CS,bestVal = linear_program(inclMx,0,200,0,200,200,200,ns,1,rad,8, solMax,start)
 
-    print(CS)
-    print(bestVal)
+#     print(CS)
+#     print(bestVal)
     
 

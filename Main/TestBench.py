@@ -64,6 +64,7 @@ velocity = 25
  
 start = np.array([0, 0])
 
+step = 0.02
 
 #####################################
 ### Charging Station Properties 
@@ -96,10 +97,9 @@ rect3 = [ (0,0) , (0,5.7735) , (17.3205,5.7735), (17.3205,0)]
 
 # OCTAGONS
 octName = 'Octagon'
-oct1 = [ (0,0) , (2.2754,0) , (3.8844,1.609) , (3.8844,3.8844) , (2.2754,5.4934) , (0,5.4934) , (-1.609,3.8844), (-1.609,1.609) ]
-oct2 = [ (0,0) , (3.218,0) , (5.4934,2.2754) , (5.4934,5.4934) , (3.218,7.7689) , (0,7.7689) , (-2.2754,5.4934) , (-2.2754,2.2754) ]
-oct3 = [ (0,0) , (4.5509,0) , (7.7689,3.218) , (7.7689,7.7689) , (4.5509,10.9868) , (0,10.9869) , (-3.218,7.7689) , (-3.218,3.218) ]
-
+oct1 = [ (0,0), (-1.609,1.609),  (-1.609,3.8844),  (0,5.4934), (2.2754,5.4934), (3.8844,3.8844) ,(3.8844,1.609) ,(2.2754,0) ]
+oct2 = [ (0,0), (-2.2754,2.2754), (-2.2754,5.4934), (0,7.7689), (3.218,7.7689), (5.4934,5.4934), (5.4934,2.2754), (3.218,0) ]
+oct3 = [ (0,0), (-3.218,3.218), (-3.218,7.7689), (0,10.9869), (4.5509,10.9868), (7.7689,7.7689), (7.7689,3.218), (4.5509,0) ]
 
 fields = [square1,
           square2,
@@ -154,6 +154,7 @@ for name,field in zip(names,fields):
                 lst = run_program( drone = drone,
                                   CS_radius = mdv, 
                                   shape = field,
+                                  meshStep = step,
                                   candidate = cand,
                                   sp = start,
                                   showPlot = False)
@@ -618,238 +619,6 @@ for im in imType:
 
     fig1.savefig(file_path1)
     fig2.savefig(file_path2)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# graph_df = df[ df['isSuccessful'] > 0 ]
-
-
-
-# fig1 , ( (ax1,ax2,ax3) , (ax4,ax5,ax6) , (ax7,ax8,ax9) ) = plt.subplots(3,3)
-# fig1.set_size_inches(12.0, 10.0)
-
-# mark = 0
-# curAx1 = 0
-# curAx2 = 0
-# curAx3 = 0
-
-# ax1.get_shared_y_axes().join(ax1,ax2,ax3)
-# ax4.get_shared_y_axes().join(ax4,ax5,ax6)
-# ax7.get_shared_y_axes().join(ax7,ax8,ax9)
-
-
-# shape_areas = pd.unique(graph_df['Shape_Area'])
-
-
-# sns.set(style="darkgrid")
-
-
-# graph_df['dist_DIV_area'] = graph_df['dist_DIV_area'] / 20.0
-
-# mark = ['.','.','.']
-
-# graph_df['intrinsicLabel'] = graph_df['Shape'] + ' Intrinsic Inefficiency'
-
-# for area in shape_areas:
-    
-#     crit2 = (graph_df['Shape_Area'] == area)  
-    
-#     if( area== 25):
-#         curAx1 = ax1
-#         curAx2 = ax4
-#         curAx3 = ax7
-#     elif( area == 50):
-#         curAx1 = ax2   
-#         curAx2 = ax5
-#         curAx3 = ax8
-#     elif( area == 100):
-#         curAx1 = ax3     
-#         curAx2 = ax6
-#         curAx3 = ax9
-    
-    
-
-#     sns.pointplot(x="CS_Radius", y="cs_DIV_area", 
-#                 data= graph_df[crit2] ,
-#                 markers = mark,
-#                 hue = 'Shape', dodge = True,
-#                 join = False,
-#                 style="time",
-#                 scale = 1.1 ,
-#                 ax = curAx1)
-
-
-
-#     sns.pointplot(x="CS_Radius", y="CS_Efficiency", 
-#                 data= graph_df[crit2] ,
-#                 markers = mark,
-#                 hue = 'Shape', dodge = True,
-#                 join = False,
-#                 style="time",
-#                 scale = 1.1 ,
-#                 ax = curAx2)
-
-
-
-
-
-
-
-#     sns.lineplot(x="CS_Radius", y="Intrinsic_Inefficiency",
-#                 hue="intrinsicLabel",
-#                 data= graph_df[crit2],
-#                 ax = curAx3)
-    
-    
-#     sns.pointplot(x="CS_Radius", y="dist_DIV_area", 
-#                 data= graph_df[crit2] ,
-#                 markers = mark,
-#                 hue = 'Shape', dodge = True,
-#                 join = False,
-#                 style="time",
-#                 scale = 1.1 ,
-#                 ax = curAx3)   
-
-    
-# ax1.set_title('Field with $25 km^{2}$ area')
-# ax1.set_ylabel('Mean nCS / Area')
-# ax1.set_xlabel('CS coverage radius')
-# ax1.legend(prop={'size': 6})
-
-# ax2.set_title('Field with $50 km^{2}$ area')
-# ax2.set_ylabel('Mean nCS / Area')
-# ax2.set_xlabel('CS coverage radius')
-# ax2.legend(prop={'size': 6})
-
-# ax3.set_title('Field with $100 km^{2}$ area')
-# ax3.set_ylabel('Mean nCS / Area')
-# ax3.set_xlabel('CS coverage radius')
-# ax3.legend(prop={'size': 6})
-
-
-
-
-# ax4.set_title('Field with $25 km^{2}$ area')
-# ax4.set_ylabel('Mean CS Efficiency')
-# ax4.set_xlabel('CS coverage radius')
-# ax4.legend(prop={'size': 6})
-
-# ax5.set_title('Field with $50 km^{2}$ area')
-# ax5.set_ylabel('Mean CS Efficiency')
-# ax5.set_xlabel('CS coverage radius')
-# ax5.legend(prop={'size': 6})
-
-# ax6.set_title('Field with $100 km^{2}$ area')
-# ax6.set_ylabel('Mean CS Efficiency')
-# ax6.set_xlabel('CS coverage radius')
-# ax6.legend(prop={'size': 6})
-
-
-
-
-
-
-# ax7.set_title('Field with $25 km^{2}$ area')
-# ax7.set_ylabel('Travel distance ratio')
-# ax7.set_xlabel('CS coverage radius')
-# ax7.set( ylim = (1.0,2.0) )
-# #ax7.legend(prop={'size': 6})
-
-# ax8.set_title('Field with $50 km^{2}$ area')
-# ax8.set_ylabel('Travel distance ratio')
-# ax8.set_xlabel('CS coverage radius')
-# ax8.set( ylim = (1.0,2.0) )
-# #ax8.legend(prop={'size': 6})
-
-# ax9.set_title('Field with $100 km^{2}$ area')
-# ax9.set_ylabel('Travel distance ratio')
-# ax9.set_xlabel('CS coverage radius')
-# ax9.set( ylim = (1.0,2.0) )
-# #
-
-
-# for curAx in [ax7,ax8,ax9]:
-    
-#     handle,label = curAx.get_legend_handles_labels()
-#     curAx.legend(handles = handle[1:],
-#                  labels = label[1:],
-#                  prop={'size': 6})
-
-
-
-
-
-
-
-# plt.subplots_adjust(left=0.2, wspace =0.3, hspace = 0.5)
-
-
-# imType = ['.png','.eps','.svg']
-
-# for im in imType:
-    
-#     filename= '{}{}'.format('TestDataSummary_plot',im)
-    
-#     file_path = os.path.join('./', filename)
-    
-
-#     plt.savefig(file_path)
-
-
-
-
-
 
 
 
