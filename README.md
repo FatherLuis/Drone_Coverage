@@ -52,5 +52,5 @@
 
 
 ## Contribution
-- @SK-Thomas
-- @christhron
+- @[SK-Thomas](https://github.com/SK-Thomas)
+- @[christhron](https://github.com/christhron)
