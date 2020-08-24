@@ -1,15 +1,17 @@
 # Optimal Drone Field Coverage
 
 
+
+
 ## Required Packages 
-- Numpy
-- Scipy
-- Matplot
-- Shapely
-- Cvxopt
+- Numpy (1.18.1)
+- Scipy (1.4.1)
+- Matplotlib (3.1.3)
+- Shapely (1.7.0)
+- Cvxopt (1.2.0)
 
  
-## Program Operation
+## Program Submodules
 
 
 ### Mask of Field [(Source)](Main/Field.py)
@@ -31,7 +33,7 @@
 
 
 ### Walk [(Source)](Main/Tourfn2.py)
-- We use a linear program to minimize the edges used to traverse the CS.
+- We use a linear program to minimize the edges used to traverse the CS. The area covered by the traversal are removed from the drone mission algorithm applied to each triangular region.
 ![Walk](images/walk.png)
 
 
@@ -40,8 +42,8 @@
 ![Triangularization](images/triangularization.png)
 
 ### Drone mission algorithm [(Source)](Main/DronePath2.py)
-![Triangular Path](images/trianglePath.png)
 - Here, we show the path the drone takes in a triangular region. Each color represents a new cycle after each recharge.
+![Triangular Path](images/trianglePath.png)
 
 ### Run [(Source)](Main/Run.py)
 - This is the final product when putting the submodules together.
@@ -49,4 +51,6 @@
 
 
 
-
+## Contribution
+- @SK-Thomas
+- @christhron
