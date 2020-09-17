@@ -80,7 +80,6 @@ def linear_program(maskVec, xVec, yVec, ns, rad, droneRange, start, customCandid
 
 
     flag = 0
-    fmin = 1E20
     solMx = [ [] , [] ]
     while not(flag == -1):
        
@@ -272,70 +271,53 @@ def tour(voronoi_lst):
     start_end_lst = [ []  for i in range(nCS)]
     
    
-    # TO ENSURE THAT MY TOUR RETURNS TO THE FIRST, FIND THE PATH FROM THE LAST
-    # CS OF THE TOUR TO THE FIRST CS. THIS WILL ENSURE THE PATH HAS AN EDGE 
-    # THAT RETURNS TO THE FIRST CS
-    #######################################
-    
-    # GET THE INTERSECTED POINTS BETWEEN VORONOI CELLS
-    set1 = set(voronoi_lst[coor[-2]][0])
-    set2 = set(voronoi_lst[coor[-1]][0])
-    interPts = set1.intersection(set2)       
-
-
-    # ITERATE THROUGH THE INTERSECTED POINTS
-    for p in interPts:
-
-        # MAKE SURE YOU DID NOT ALREADY ADD THESE POINTS INTO THE EXIT/ENTRY ARRAY
-        # OR THE VERTICES ARRAY
-        if not(p in start_end_lst[coor[i]]) and not(p in start_end_lst[coor[i+1]]):
-            
-            # STORE THE INTERSECTED VERTEX INTO THE ENTRY'EXIT ARRAY
-            start_end_lst[coor[i]].append(p)
-            start_end_lst[coor[i+1]].append(p)
-            
-            # ADD THE INTERSECTED VERTEX INTO THE VERTICES LIST
-            vertices.append(voronoi_lst[coor[-2]][1])
-            vertices.append(p)
-            vertices.append(voronoi_lst[coor[-1]][1]) 
-            break
-    ######################################
     
     
-    for i in range(nTour-2):
+    
+    
+    vertices.append(voronoi_lst[coor[0]][1]) 
+    
+    for i in range(nTour-1):
 
         # GET THE INTERSECTED POINTS BETWEEN VORONOI CELLS
         set1 = set(voronoi_lst[coor[i]][0])
         set2 = set(voronoi_lst[coor[i+1]][0])
-        interPts = set1.intersection(set2)       
+        p1,p2 = set1.intersection(set2)      
     
     
-        # ITERATE THROUGH THE INTERSECTED POINTS
-        for p in interPts:
+        isUsedP1 = p1 in start_end_lst[coor[i]] or p1 in start_end_lst[coor[i+1]] 
+        isUsedP2 = p2 in start_end_lst[coor[i]] or p2 in start_end_lst[coor[i+1]]
+    
+        chosenP = None
+        
+        # IF NEITHER HAVE BEEN USED
+        if not(isUsedP1) and not(isUsedP2):
+            
+            
+            if p1[0] > p2[0]:
+                chosenP = p1
+            else:
+                chosenP = p2
+                
+        else:
+            
+            chosenP =  p1 if not(isUsedP1) else p2
+        
+    
 
-            # MAKE SURE YOU DID NOT ALREADY ADD THESE POINTS INTO THE EXIT/ENTRY ARRAY
-            # OR THE VERTICES ARRAY
-            if not(p in start_end_lst[coor[i]]) and not(p in start_end_lst[coor[i+1]]):
-                
-                # STORE THE INTERSECTED VERTEX INTO THE ENTRY'EXIT ARRAY
-                start_end_lst[coor[i]].append(p)
-                start_end_lst[coor[i+1]].append(p)
-                
-                # ADD THE INTERSECTED VERTEX INTO THE VERTICES LIST
-                
-                vertices.append(p)
-                vertices.append(voronoi_lst[coor[i+1]][1]) 
-                break
-                
-         
-    # THE FIRST TWO VERTICES ACTUALL BELONG AT THE END OF THE LIST
-    # DELETE THE LAST ELEM ( BECAUSE IT RETURNS TO THE FIRST ELEM)
-    # WE'LL SHIFT THE ARRAY BY 2
-    # THEN, WE'LL ADD THE FIRST ELEM OT THE END
-    vertices.pop(-1)       
-    for i in range(2):
-        vertices.append(vertices.pop(0))
-    vertices.append(vertices[0])
+        # STORE THE INTERSECTED VERTEX INTO THE ENTRY'EXIT ARRAY
+        start_end_lst[coor[i]].append(chosenP)
+        start_end_lst[coor[i+1]].append(chosenP)
+        
+        # ADD THE INTERSECTED VERTEX INTO THE VERTICES LIST
+        vertices.append(chosenP)
+        vertices.append(voronoi_lst[coor[i+1]][1]) 
+
+  
+    
+    
+    
+
 
     
     print('------------ locs --------------')
