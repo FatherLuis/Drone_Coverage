@@ -28,6 +28,7 @@ column_names = ['Shape',
                 'Total_Time',
                 'Total_Distance_Travel',
                 'Intrinsic_Inefficiency',
+                'Runtime',
                 'isSuccessful']
 
 
@@ -46,6 +47,7 @@ df = df.astype({'Shape':'string',
            'Total_Time':'float64',
            'Total_Distance_Travel':'float64',
            'Intrinsic_Inefficiency':'float64',
+           'Runtime':'float64',
            'isSuccessful': 'int64'})
 
 
@@ -78,7 +80,7 @@ velocity = 25
 startPoint = [0, 0]
 
 # Charging Station Coverage distance
-CS_radius = [2.0,2.5,3.0,3.5,4.0]
+CS_radius = [2.0,2.5,3.0,3.5,3.9]
 step = 0.02
 
 
@@ -134,10 +136,9 @@ names = [squareName,
 
 
 # HOW MANY TIMES DO YOU WANT TO RUN EACH CONFIGURATION
-n_trials = 50
+n_trials = 5
 
 
-t1=time.perf_counter()
 
 
       
@@ -153,17 +154,18 @@ for name,field in zip(names,fields):
         cand = shape_area 
         
         
-        
+        t1 = time.perf_counter()
+
         program = Program(field_boundary = field,
                           meshStep = step,
                           direction = 'cw')
-    
+        
+        t2 = time.perf_counter()
+        
+        generateMatrixMask = t2 - t1
+
 
         for csr in CS_radius:
-            
-            print('\n\n------------------------------')
-            print('{}:{}  CS:{}  Run:{}'.format(name,shape_area,csr,ii))
-            print('------------------------------\n\n')
             
             drone = Drone(radius=rad, max_distance = mxDist)  
             
@@ -172,6 +174,7 @@ for name,field in zip(names,fields):
             
             while( notComplete ):
                 
+                
                 # CLEARS ANY DATA THAT IT HAD STORED
                 drone.clear()
                 
@@ -179,7 +182,7 @@ for name,field in zip(names,fields):
                 
                 try:
                     
-    
+                    t3 = time.perf_counter()
                     
                     nCS, travelDist, bestVal = program.run(drone, 
                                                             startPoint, 
@@ -187,6 +190,13 @@ for name,field in zip(names,fields):
                                                             cand , 
                                                             keepGenCandidates =True)            
                     
+                    
+                    t4 = time.perf_counter()
+                    
+                    
+                    programExecTime = t4 - t3
+                    
+                    runtime = generateMatrixMask + programExecTime 
                     
                     
                     
@@ -205,10 +215,15 @@ for name,field in zip(names,fields):
                                     'Total_Time': tot_time,
                                     'Total_Distance_Travel': travelDist,
                                     'Intrinsic_Inefficiency': bestVal,
+                                    'Runtime': runtime,
                                     'isSuccessful': 1},
                                     ignore_index = True)
         
                     notComplete = False
+                    
+                    print('\n\n------------------------------')
+                    print('{}:{}  CS:{}  Run:{} Complete'.format(name,shape_area,csr,ii))
+                    print('------------------------------\n\n')
         
                 except:
         
@@ -221,18 +236,26 @@ for name,field in zip(names,fields):
                                     'Total_Time': 0,
                                     'Total_Distance_Travel': 0,
                                     'Intrinsic_Inefficiency':0,
+                                    'Runtime': 0,
                                     'isSuccessful': 0},
                                   ignore_index = True)
         
         
                       
                     print(traceback.format_exc())
+
+
+                    print('\n\n------------------------------')
+                    print('{}:{}  CS:{}  Run:{} Not Complete'.format(name,shape_area,csr,ii))
+                    print('------------------------------\n\n')                    
+                    
+                    # CLEAR'S THE CANDIDATE LIST SINCE IT CAUSED AN ERROR
+                    program.clear_customCandidates()
     
 
 t2=time.perf_counter()
 
 
-print('Execution:',t2-t1)
 
 
 
@@ -276,6 +299,20 @@ if not os.path.isdir(directory):
     os.mkdir(directory)
 
 df.to_csv(file_path)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
