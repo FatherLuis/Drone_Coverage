@@ -1,6 +1,6 @@
 import numpy as np 
 from Triangle import Triangle
-from scipy.spatial import Voronoi
+from scipy.spatial import Voronoi,voronoi_plot_2d
 from shapely.geometry import Polygon
 from matplotlib.path import Path
 
@@ -301,6 +301,13 @@ def create_voronoi_polygons(site=None,boundary = None):
     # CREATE VORONOI REGIONS USING SCIPY LIBRARY
     vor = Voronoi(site + box)
     
+    
+    # fig = voronoi_plot_2d(vor)
+    # plt.show()
+    
+    
+    
+    
     # CREATE A LIST THAT WILL STORE THE VORONOI REGIONS (LIST OF VERTICES)
     voronois = []
     
@@ -311,7 +318,7 @@ def create_voronoi_polygons(site=None,boundary = None):
         reg = np.array(vor.regions[i])
         
         if np.all(reg >= 0) and reg.size > 0:
-            voronois.append(vor.vertices[reg])
+            voronois.append(vor.vertices[reg].tolist())
         
 
     
@@ -324,8 +331,7 @@ def create_voronoi_polygons(site=None,boundary = None):
         result = boundary_poly.intersection(voronoi_poly)
     
         if result.is_empty:
-            
-            voronoi_lst.append(voronoi_poly)
+            voronoi_lst.append([(x,y) for x,y in voronoi])
     
         else:
             result_lst = list(result.exterior.coords)
