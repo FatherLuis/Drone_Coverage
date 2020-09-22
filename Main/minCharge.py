@@ -167,12 +167,14 @@ def linear_program(maskVec, xVec, yVec, ns, rad, droneRange, start, customCandid
     CS_Locs_lst = []
     bestVal_lst = []
     
+
     for ii in range(2): 
         
         if len(solMx[ii]) == 0 :
             break
         
         minDistVec = 1E50 * np.ones(len(xVec))
+        
         
         csLocs = locs[:, logicalFn(solMx[ii])] #select charging stations for current solution
         csLocs = np.append(startConjT, csLocs, axis = 1) #add starting point
@@ -192,8 +194,8 @@ def linear_program(maskVec, xVec, yVec, ns, rad, droneRange, start, customCandid
         minDistVec = np.sort(minDistVec)
         
         #Save best value so far
-        distStat[ii] = max((len(minDistVec) - nVec) / ( droneRange - minDistVec));
-        distStat[ii] = distStat[ii] * droneRange / len(minDistVec);
+        distStat[ii] = max((len(minDistVec) - nVec) / ( droneRange - minDistVec))
+        distStat[ii] = distStat[ii] * droneRange / len(minDistVec)
 
 
         CS_Locs_lst.append(csLocs)

@@ -3,6 +3,10 @@ import pandas as pd
 import os.path
 import matplotlib.pyplot as plt
 import seaborn as sns
+import numpy as  np
+
+import matplotlib.ticker as mticker
+from matplotlib.ticker import NullFormatter
 
 class Analysis():
     
@@ -26,6 +30,31 @@ class Analysis():
 
     
     def summaryByConfiguration(self, directory = './'):
+        
+        
+        
+        # self.df['cs_DIV_area'] = self.df['numChargingStation']/ self.df['Shape_Area']                                                                                            
+        # self.df['dist_DIV_area'] = ( self.df['Total_Distance_Travel'] / self.df['Shape_Area'] ) / 20.0                                                                                                 
+        # self.df['CS_Efficiency'] = 1.0 / ( (3.0*np.sqrt(2.0)/2.0)* (self.df['CS_Radius']**2) * self.df['cs_DIV_area'] )
+        
+        # self.df['TheoBestDist'] = ( self.df['Shape_Area'] / 2*0.025) * self.df['Intrinsic_Inefficiency']
+        # self.df['TheoBestTime'] = ( self.df['TheoBestDist'] / 25.0) * 3 
+        
+        
+        # self.df['coverage_efficiency'] = 1.0 / self.df['Intrinsic_Inefficiency']
+        # self.df['area_DIV_dist'] = 1.0 / self.df['dist_DIV_area']
+        # self.df['area_DIV_cs'] = 1.0 / self.df['cs_DIV_area']
+        
+        
+        # self.df['mission_efficiency'] = self.df['area_DIV_dist'] / self.df['coverage_efficiency']
+        
+        
+        
+        
+        
+        
+        
+        
         
         criteria = self.df['isSuccessful'] > 0
 
@@ -171,6 +200,9 @@ class Analysis():
         
     def create_figs(self, directory = './'):
         
+
+        
+        sns.axes_style("darkgrid")
         
         criteria = self.df['isSuccessful'] > 0
         
@@ -207,7 +239,11 @@ class Analysis():
         mark = ['.','.','.']
         
         
-        curDf['intrinsicLabel'] = curDf['Shape'] + ' Intrinsic Inefficiency'
+        curDf['intrinsicLabel'] = curDf.loc[:,'Shape'] + ' Intrinsic Inefficiency'
+        
+        curDf['Total_Time_per_area'] = curDf.loc[:,'Total_Time'] / curDf.loc[:,'Shape_Area']
+        
+        #curDf.loc[:,'Total_Time'] = curDf['Total_Time'].apply(np.log10)
         
         for area in shape_areas:
             
@@ -228,8 +264,7 @@ class Analysis():
                 curAx2 = ax6
                 curAx3 = ax9
                 curAx4 = ax12
-            
-            
+        
         
             sns.pointplot( x="CS_Radius", y="area_DIV_cs",
                         data= curDf[crit2] ,
@@ -239,6 +274,7 @@ class Analysis():
                         join = False,
                         style="time",
                         scale = 1.0 ,
+                        ci = 'sd',
                         ax = curAx1)
         
         
@@ -251,12 +287,14 @@ class Analysis():
                         join = False,
                         style="time",
                         scale = 1.0 ,
+                        ci = 'sd',
                         ax = curAx2)
         
         
         
+            
         
-            sns.pointplot(x="CS_Radius", y="Total_Time", 
+            sns.pointplot(x="CS_Radius", y="Total_Time_per_area", 
                         data= curDf[crit2] ,
                         markers = mark,
                         hue = 'Shape', 
@@ -264,6 +302,7 @@ class Analysis():
                         join = False,
                         style="time",
                         scale = 1.0 ,
+                        ci = 'sd',
                         ax = curAx3)
         
         
@@ -277,18 +316,35 @@ class Analysis():
                         dodge = 0.3,
                         join = False,
                         scale = 1.0 ,
+                        ci = 'sd',
                         ax = curAx4)  
         
         
+        #curAx3.set(yscale="log")
         
+  
+
+        ax1.grid(True, which="both")
+        ax2.grid(True, which="both")
+        ax3.grid(True, which="both")
+        ax4.grid(True, which="both")
+        ax5.grid(True, which="both")
+        ax6.grid(True, which="both")
+        ax7.grid(True, which="both")
+        ax8.grid(True, which="both")
+        ax9.grid(True, which="both")
+        ax10.grid(True, which="both")
+        ax11.grid(True, which="both")
+        ax12.grid(True, which="both")
         
-        
-        
+      
+
             
         ax1.set_title('Field with $25 km^{2}$ area')
         ax1.set_ylabel('Covered area per CS')
         ax1.set_xlabel('')
         plt.setp(ax1.get_xticklabels(), visible=False)
+
         #ax1.legend(prop={'size': 6})
         
         ax2.set_title('Field with $50 km^{2}$ area')
@@ -339,7 +395,7 @@ class Analysis():
         
         
         ax7.set_title('Field with $25 km^{2}$ area')
-        ax7.set_ylabel('Mission time')
+        ax7.set_ylabel('Mission time per area')
         ax7.set_xlabel('')
         plt.setp(ax7.get_xticklabels(), visible=False)
         #ax7.legend(prop={'size': 6})
@@ -358,6 +414,10 @@ class Analysis():
         plt.setp(ax9.get_yticklabels(), visible=False)
         #ax9.legend(prop={'size': 6})
         
+        # ax8.yaxis.set_major_formatter(NullFormatter())
+        # ax8.yaxis.set_minor_formatter(NullFormatter())
+        # ax9.yaxis.set_major_formatter(NullFormatter())
+        # ax9.yaxis.set_minor_formatter(NullFormatter())
         
         
         #ax10.set_title('Field with $25 km^{2}$ area')
@@ -411,24 +471,315 @@ class Analysis():
             fig2.savefig(file_path2)
         
         
+    def create_figs_2(self, directory = './'):
         
+        
+        
+                
+        
+        
+        criteria = self.df['isSuccessful'] > 0
+
+        curDf = self.df[ criteria ]
+        
+        # minA = min(curDf['area_DIV_cs'])
+        # maxA = max(curDf['area_DIV_cs'])
+        
+        # sns.pointplot( x="area_DIV_cs", y="Total_Time",
+        #     data= curDf,
+        #     markers = '.',
+        #     dodge = 0.3,
+        #     hue = 'Shape',
+        #     join=False,
+        #     ci = None)
+        
+        # print(minA,maxA)
+        # plt.xlim([0,maxA])
+        # plt.xticks(np.arange(0, maxA, step=2), np.arange(0, maxA, step=2))
+        
+
+        
+        
+        # g = sns.FacetGrid(curDf, col="Shape_Area" , hue = 'Shape')
+        # g.map(sns.pointplot, "area_DIV_cs", "Total_Time", style = 'Shape',markers = '.', alpha=.7, join = False, ci=None)
+        # g.fig.subplots_adjust(wspace=.02, hspace=.02)
+        
+        # plt.xlim([0,maxA])
+        # plt.xticks(np.arange(0, maxA, step=2), np.arange(0, maxA, step=2))
+        
+        sns.set_style("darkgrid")
+
+        # #scatter
+        critSQ = (curDf['Shape'] == 'Square')
+        critOC = (curDf['Shape'] == 'Octagon')
+        
+        #curDf[crit2]['area_DIV_cs'] = curDf[crit2]['area_DIV_cs'].apply(lambda x: x-1)
+        
+        #dfmi.loc[:, ('one', 'second')]
+        curDf.loc[critSQ,'area_DIV_cs'] -= 0.35
+        curDf.loc[critOC,'area_DIV_cs'] += 0.35
+
+        #curDf.loc[:,'Total_Time'] = curDf['Total_Time'].apply(np.log10)
+
+        curDf['Total_Time_per_area'] = curDf.loc[:,'Total_Time'] / curDf.loc[:,'Shape_Area']
+        
+        face = sns.relplot(
+                        data=curDf, x="area_DIV_cs", y="Total_Time_per_area",
+                        col="Shape_Area",
+                        hue="Shape",
+                        style = 'Shape',
+                        kind="scatter",
+                        facet_kws = {'legend_out':False})       
+        
+        fig = face.fig
+
+        fig.set_size_inches(14.0, 5.0)
+        
+        ax1,ax2,ax3 = face.axes[0]
+        
+        # face.set(yscale="log")        
+        
+        # ax1.grid(True, which="both")
+        # ax2.grid(True, which="both")
+        # ax3.grid(True, which="both")
+    
+        
+        
+        ax1.set_title('Field with $25 km^{2}$ area')
+        ax1.set_ylabel('Mission time per area')
+        ax1.set_xlabel('Covered area per CS')
+        
+        
+        #ax1.legend(prop={'size': 6})
+        
+        ax2.set_title('Field with $50 km^{2}$ area')
+        ax2.set_ylabel('')
+        ax2.set_xlabel('Covered area per CS')
+        #ax2.get_legend().remove()
+        
+        #ax2.legend(prop={'size': 6})
+        
+        ax3.set_title('Field with $100 km^{2}$ area')
+        ax3.set_ylabel('')
+        ax3.set_xlabel('Covered area per CS')
+        # ax3.get_legend().remove()
+        
+        
+        
+        handles, labels = ax1.get_legend_handles_labels()
+        ax1.get_legend().remove()
+        
+        
+        fig.legend(handles[1:], labels[1:], loc=7, title = 'Legend')
+        
+        #fig.legend(loc=7)
+        fig.subplots_adjust(left = 0.1, right = 0.90, wspace =0.05 , hspace = 0.05)
+        #fig.legend()
+        
+        #plt.legend('hi')
+ 
+
+
+        imType = ['.png','.eps','.svg']
+        
+        for im in imType:
+            
+            filename1= '{}{}'.format('TestDataSummary_Missiontime_CoverageArea',im)
+            file_path1 = os.path.join(directory, filename1)
+            fig.savefig(file_path1)
+       
+        
+        
+    def create_fig_3(self, directory = './'):
+        
+        
+        criteria = self.df['isSuccessful'] > 0
+
+        curDf = self.df[ criteria ]
+        
+        
+        sns.set_style("darkgrid")
+
+        # #scatter
+        critSQ = (curDf['Shape'] == 'Square')
+        critOC = (curDf['Shape'] == 'Octagon')
+        
+
+        curDf.loc[critSQ,'CS_Radius'] -= 0.05
+        curDf.loc[critOC,'CS_Radius'] += 0.05
+        
+        face = sns.relplot(
+                        data=curDf, x="CS_Radius", y="Runtime",
+                        col="Shape_Area",
+                        hue="Shape",
+                        style = 'Shape',
+                        kind="scatter",
+                        facet_kws = {'legend_out':False})       
+        
+        fig = face.fig
+
+        fig.set_size_inches(14.0, 5.0)
+        
+        ax1,ax2,ax3 = face.axes[0]
+        
+        face.set(yscale="log")        
+        
+        ax1.grid(True, which="both")
+        ax2.grid(True, which="both")
+        ax3.grid(True, which="both")
+    
+        
+        
+        ax1.set_title('Field with $25 km^{2}$ area')
+        ax1.set_ylabel('Runtime (sec)')
+        ax1.set_xlabel('CS coverage radius')
+        
+        
+        #ax1.legend(prop={'size': 6})
+        
+        ax2.set_title('Field with $50 km^{2}$ area')
+        ax2.set_ylabel('')
+        ax2.set_xlabel('CS coverage radius')
+        #ax2.get_legend().remove()
+        
+        #ax2.legend(prop={'size': 6})
+        
+        ax3.set_title('Field with $100 km^{2}$ area')
+        ax3.set_ylabel('')
+        ax3.set_xlabel('CS coverage radius')
+        # ax3.get_legend().remove()
+        
+        
+        
+        handles, labels = ax1.get_legend_handles_labels()
+        ax1.get_legend().remove()
+        
+        
+        fig.legend(handles[1:], labels[1:], loc=7, title = 'Legend')
+        
+        #fig.legend(loc=7)
+        fig.subplots_adjust(left = 0.1, right = 0.90, wspace =0.05 , hspace = 0.05)
+        
+        
+        imType = ['.png','.eps','.svg']
+        
+        for im in imType:
+            
+            filename1= '{}{}'.format('TestDataSummary_RuntimePlot',im)
+
+            
+            file_path1 = os.path.join(directory, filename1)
+        
+            fig.savefig(file_path1)
+       
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        # sns.set_style("darkgrid")
+
+
+        # #curDf.loc[:,'Total_Time'] = curDf['Total_Time'].apply(np.log10)
+        # curDf.loc[:,'Shape_w_area'] = curDf.loc[:,'Shape'] + ' ' +curDf.loc[:,'Shape_Area'].astype(str) + ' $km^2$'
+        
+        
+        # critSQ = (curDf['Shape'] == 'Square')
+        # critOC = (curDf['Shape'] == 'Octagon')
+        
+        # #curDf[crit2]['area_DIV_cs'] = curDf[crit2]['area_DIV_cs'].apply(lambda x: x-1)
+        
+        # #dfmi.loc[:, ('one', 'second')
+        # curDf.loc[critSQ,'CS_Radius'] -= 0.03
+        # curDf.loc[critOC,'CS_Radius'] += 0.03
+
+        
+        # face = sns.relplot(
+        #                 data=curDf, x="CS_Radius", y="Runtime",
+        #                 hue="Shape_w_area",
+        #                 kind="scatter",
+        #                 facet_kws = {'legend_out':False})   
+        
+        
+    
+        # fig = face.fig       
+
+
+        # fig.set_size_inches(11.0, 6.0)
+        
+        # ax1= face.ax
+        
+        # face.set(yscale="log")
+        # ax1.grid(True, which="both")       
+        
+        # ax1.set_title('Runtime vs CS coverage radius')
+        # ax1.set_ylabel('Runtime')
+        # ax1.set_xlabel('CS Coverage Radius')
+        
+        
+        # #ax1.legend(prop={'size': 6})
+        
+        
+        
+        # handles, labels = ax1.get_legend_handles_labels()
+        # ax1.get_legend().remove()
+        
+        
+        # fig.legend(handles[1:], labels[1:], loc=7, title = 'Legend')
+        
+        # #fig.legend(loc=7)
+        # fig.subplots_adjust(left = 0.1, right = 0.80, top = 0.95)    
+    
+    
+    
+    
 
 
 if __name__ == '__main__':
     
+    # directory = './data/07_09_2020__11_47_13'
+    # filename = 'TestData_nTrial_25.csv'
     
-    directory = './data/09_16_2020__19_12_29'
-    filename = 'TestData_nTrial_5.csv'
+    
+    directory = './data/09_17_2020__08_37_59'
+    filename = 'TestData_nTrial_100.csv'
     file_path = os.path.join(directory, filename)
     
-    
-    
     analysis = Analysis(filepath = file_path)
+    
+    #analysis.summaryByConfiguration(directory = directory)
+    #analysis.summaryByAreaCSRadius(directory = directory)
+    
     analysis.create_figs(directory = directory)
-    analysis.summaryByConfiguration(directory = directory)
-    analysis.summaryByAreaCSRadius(directory = directory)
-
-
+    analysis.create_figs_2(directory = directory)
+    analysis.create_fig_3(directory = directory)
 
 
 

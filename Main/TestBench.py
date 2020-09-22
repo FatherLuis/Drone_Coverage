@@ -27,7 +27,7 @@ column_names = ['Shape',
                 'numChargingStation',
                 'Total_Time',
                 'Total_Distance_Travel',
-                'Intrinsic_Inefficiency',
+                'Inv_Intrinsic_Inefficiency',
                 'Runtime',
                 'isSuccessful']
 
@@ -46,7 +46,7 @@ df = df.astype({'Shape':'string',
            'numChargingStation': 'int64',
            'Total_Time':'float64',
            'Total_Distance_Travel':'float64',
-           'Intrinsic_Inefficiency':'float64',
+           'Inv_Intrinsic_Inefficiency':'float64',
            'Runtime':'float64',
            'isSuccessful': 'int64'})
 
@@ -136,7 +136,7 @@ names = [squareName,
 
 
 # HOW MANY TIMES DO YOU WANT TO RUN EACH CONFIGURATION
-n_trials = 5
+n_trials = 100
 
 
 
@@ -214,7 +214,7 @@ for name,field in zip(names,fields):
                                     'numChargingStation': nCS,
                                     'Total_Time': tot_time,
                                     'Total_Distance_Travel': travelDist,
-                                    'Intrinsic_Inefficiency': bestVal,
+                                    'Inv_Intrinsic_Inefficiency': bestVal,
                                     'Runtime': runtime,
                                     'isSuccessful': 1},
                                     ignore_index = True)
@@ -235,7 +235,7 @@ for name,field in zip(names,fields):
                                     'numChargingStation':0,
                                     'Total_Time': 0,
                                     'Total_Distance_Travel': 0,
-                                    'Intrinsic_Inefficiency':0,
+                                    'Inv_Intrinsic_Inefficiency':0,
                                     'Runtime': 0,
                                     'isSuccessful': 0},
                                   ignore_index = True)
@@ -253,7 +253,6 @@ for name,field in zip(names,fields):
                     program.clear_customCandidates()
     
 
-t2=time.perf_counter()
 
 
 
@@ -264,13 +263,15 @@ df['cs_DIV_area'] = df['numChargingStation']/ df['Shape_Area']
 df['dist_DIV_area'] = ( df['Total_Distance_Travel'] / df['Shape_Area'] ) / 20.0                                                                                                 
 df['CS_Efficiency'] = 1.0 / ( (3.0*np.sqrt(2.0)/2.0)* (df['CS_Radius']**2) * df['cs_DIV_area'] )
 
-df['TheoBestDist'] = ( df['Shape_Area'] / 2*rad ) * df['Intrinsic_Inefficiency']
+df['TheoBestDist'] = ( df['Shape_Area'] / (2*rad) ) * df['Inv_Intrinsic_Inefficiency']
 df['TheoBestTime'] = ( df['TheoBestDist'] / 25.0) * 3 
 
 
-df['coverage_efficiency'] = 1.0 / df['Intrinsic_Inefficiency']
+df['coverage_efficiency'] = 1.0 / df['Inv_Intrinsic_Inefficiency']
 df['area_DIV_dist'] = 1.0 / df['dist_DIV_area']
 df['area_DIV_cs'] = 1.0 / df['cs_DIV_area']
+
+
 
 
 df['mission_efficiency'] = df['area_DIV_dist'] / df['coverage_efficiency']
@@ -339,7 +340,7 @@ df.to_csv(file_path)
 #                                                                 'dist_DIV_area': ['mean', 'std'],
 #                                                                 'area_DIV_dist': ['mean', 'std'],
 #                                                                 'CS_Efficiency':['mean', 'std'],
-#                                                                 'Intrinsic_Inefficiency':['mean', 'std'],
+#                                                                 'Inv_Intrinsic_Inefficiency':['mean', 'std'],
 #                                                                 'coverage_efficiency':['mean', 'std'],
 #                                                                 'mission_efficiency':['mean', 'std'],
 #                                                                 'isSuccessful': ['sum']}).round(2)
@@ -365,8 +366,8 @@ df.to_csv(file_path)
 #                   'areaDIVdist_std',
 #                   'CS_Efficiency_mean',
 #                   'CS_Efficiency_std',
-#                   'Intrinsic_Inefficiency_mean',
-#                   'Intrinsic_Inefficiency_std',
+#                   'Inv_Intrinsic_Inefficiency_mean',
+#                   'Inv_Intrinsic_Inefficiency_std',
 #                   'coverage_efficiency_mean',
 #                   'coverage_efficiency_std', 
 #                   'mission_efficiency_mean',
@@ -406,7 +407,7 @@ df.to_csv(file_path)
 #                                                                 'dist_DIV_area': ['mean', 'std'],
 #                                                                 'area_DIV_dist': ['mean', 'std'],
 #                                                                 'CS_Efficiency':['mean', 'std'],
-#                                                                 'Intrinsic_Inefficiency':['mean', 'std'],
+#                                                                 'Inv_Intrinsic_Inefficiency':['mean', 'std'],
 #                                                                 'coverage_efficiency':['mean', 'std'],
 #                                                                 'mission_efficiency':['mean', 'std'],
 #                                                                 'isSuccessful': ['sum']}).round(2)
@@ -432,8 +433,8 @@ df.to_csv(file_path)
 #                   'areaDIVdist_std',
 #                   'CS_Efficiency_mean',
 #                   'CS_Efficiency_std',
-#                   'Intrinsic_Inefficiency_mean',
-#                   'Intrinsic_Inefficiency_std',
+#                   'Inv_Intrinsic_Inefficiency_mean',
+#                   'Inv_Intrinsic_Inefficiency_std',
 #                   'coverage_efficiency_mean',
 #                   'coverage_efficiency_std',               
 #                   'mission_efficiency_mean',
