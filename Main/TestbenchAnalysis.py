@@ -202,7 +202,7 @@ class Analysis():
         
 
         
-        sns.axes_style("darkgrid")
+        
         
         criteria = self.df['isSuccessful'] > 0
         
@@ -220,6 +220,8 @@ class Analysis():
         fig1.set_size_inches(12.0, 8.0)
         fig2.set_size_inches(12.0, 8.0)
         
+        
+        sns.axes_style("darkgrid")
         mark = 0
         curAx1 = None
         curAx2 = None
@@ -341,7 +343,7 @@ class Analysis():
 
             
         ax1.set_title('Field with $25 km^{2}$ area')
-        ax1.set_ylabel('Covered area per CS')
+        ax1.set_ylabel('Covered area per CS ($km^2$)')
         ax1.set_xlabel('')
         plt.setp(ax1.get_xticklabels(), visible=False)
 
@@ -366,18 +368,18 @@ class Analysis():
         
         #ax4.set_title('Field with $25 km^{2}$ area')
         ax4.set_ylabel('CS Efficiency')
-        ax4.set_xlabel('CS coverage radius')
+        ax4.set_xlabel('CS coverage radius ($km$)')
         #ax4.legend(prop={'size': 6})
         
         #ax5.set_title('Field with $50 km^{2}$ area')
         ax5.set_ylabel('')
-        ax5.set_xlabel('CS coverage radius')
+        ax5.set_xlabel('CS coverage radius ($km$)')
         plt.setp(ax5.get_yticklabels(), visible=False)
         #ax5.legend(prop={'size': 6})
         
         #ax6.set_title('Field with $100 km^{2}$ area')
         ax6.set_ylabel('')
-        ax6.set_xlabel('CS coverage radius')
+        ax6.set_xlabel('CS coverage radius ($km$)')
         plt.setp(ax6.get_yticklabels(), visible=False)
         #ax6.legend(prop={'size': 6})
         
@@ -395,7 +397,7 @@ class Analysis():
         
         
         ax7.set_title('Field with $25 km^{2}$ area')
-        ax7.set_ylabel('Mission time per area')
+        ax7.set_ylabel('Mission time per area ($hr~/~ km^2$)')
         ax7.set_xlabel('')
         plt.setp(ax7.get_xticklabels(), visible=False)
         #ax7.legend(prop={'size': 6})
@@ -422,20 +424,20 @@ class Analysis():
         
         #ax10.set_title('Field with $25 km^{2}$ area')
         ax10.set_ylabel('Mission efficiency')
-        ax10.set_xlabel('CS coverage radius')
+        ax10.set_xlabel('CS coverage radius ($km$)')
         #ax7.set( ylim = (1.0,2.0) )
         #ax7.legend(prop={'size': 6})
         
         #ax11.set_title('Field with $50 km^{2}$ area')
         ax11.set_ylabel('')
-        ax11.set_xlabel('CS coverage radius')
+        ax11.set_xlabel('CS coverage radius ($km$)')
         plt.setp(ax11.get_yticklabels(), visible=False)
         #ax8.set( ylim = (1.0,2.0) )
         #ax8.legend(prop={'size': 6})
         
         #ax12.set_title('Field with $100 km^{2}$ area')
         ax12.set_ylabel('')
-        ax12.set_xlabel('CS coverage radius')
+        ax12.set_xlabel('CS coverage radius ($km$)')
         plt.setp(ax12.get_yticklabels(), visible=False)
         #ax9.set( ylim = (1.0,2.0) )
         #
@@ -546,22 +548,22 @@ class Analysis():
         
         
         ax1.set_title('Field with $25 km^{2}$ area')
-        ax1.set_ylabel('Mission time per area')
-        ax1.set_xlabel('Covered area per CS')
+        ax1.set_ylabel('Mission time per area ($hr ~/~ km^2$)')
+        ax1.set_xlabel('Covered area per CS ($km^2$)')
         
         
         #ax1.legend(prop={'size': 6})
         
         ax2.set_title('Field with $50 km^{2}$ area')
         ax2.set_ylabel('')
-        ax2.set_xlabel('Covered area per CS')
+        ax2.set_xlabel('Covered area per CS ($km^2$)')
         #ax2.get_legend().remove()
         
         #ax2.legend(prop={'size': 6})
         
         ax3.set_title('Field with $100 km^{2}$ area')
         ax3.set_ylabel('')
-        ax3.set_xlabel('Covered area per CS')
+        ax3.set_xlabel('Covered area per CS ($km^2$)')
         # ax3.get_legend().remove()
         
         
@@ -632,21 +634,21 @@ class Analysis():
         
         ax1.set_title('Field with $25 km^{2}$ area')
         ax1.set_ylabel('Runtime (sec)')
-        ax1.set_xlabel('CS coverage radius')
+        ax1.set_xlabel('CS coverage radius ($km$)')
         
         
         #ax1.legend(prop={'size': 6})
         
         ax2.set_title('Field with $50 km^{2}$ area')
         ax2.set_ylabel('')
-        ax2.set_xlabel('CS coverage radius')
+        ax2.set_xlabel('CS coverage radius ($km$)')
         #ax2.get_legend().remove()
         
         #ax2.legend(prop={'size': 6})
         
         ax3.set_title('Field with $100 km^{2}$ area')
         ax3.set_ylabel('')
-        ax3.set_xlabel('CS coverage radius')
+        ax3.set_xlabel('CS coverage radius ($km$)')
         # ax3.get_legend().remove()
         
         
