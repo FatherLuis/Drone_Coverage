@@ -617,6 +617,8 @@ class Drone_Path():
         
         
         if endAlg:
+            # TYPICALY HAPPENS WHEN THE TRIANGLE 
+            # IS REALLY SLIM AND THE RESERVE PATH IS IN THE SLIM TRIANGLE
             return  self.drone,[]
         
         
@@ -627,8 +629,10 @@ class Drone_Path():
         
         
         if(len(path1)==0 or path1 is None):
-            self.drone = drone_copy
-            return self.drone,[]
+            
+           raise('Drone could not Complete triangle algorithm')
+            #self.drone = drone_copy
+            #return self.drone,[]
     
     
         return self.drone,path+path1 
@@ -907,18 +911,17 @@ if __name__ == '__main__':
     drone = Drone(radius= 0.025, max_distance = 8)    
  
     
-    entryExit = [ (0,65) , (0.16,4)]
+    entryExit = [[0.       , 3.9909699]]
     
-    pp=  [ (0,0), (0,3) , (2,2) ]  
+    pp=  [0. ,0.],[0.        ,3.9909699],[2.6703409  ,2.45588654] #[ (0,0), (0,3) , (2,2) ]  
     
     plt.gca().set_aspect('equal',adjustable='box')
     triangle = Triangle(*pp)
     
-    # transform = Transformation()
-    
-    # curCS,transTriangle, primeEntryExit= transform.transform_triangle(triangle,entryExit)
+    transform = Transformation()
+    curCS,transTriangle, primeEntryExit= transform.transform_triangle(triangle,entryExit)
 
-    curCS = 'A'
+    #curCS = 'A'
     
     DP = Drone_Path(triangle,drone,entryExit)  
 

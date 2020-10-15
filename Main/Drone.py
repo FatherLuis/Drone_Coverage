@@ -28,6 +28,12 @@ class Drone:
         self.curPoint = np.array( (0,0) )
 
 
+    def clear(self):
+
+        self.total_distance_travel = 0
+        self.curMax_distance = self.MAX_DISTANCE
+        self.curPoint = np.array( (0,0) )        
+
     def copy(self):
         
         drone = Drone(self.radius,self.MAX_DISTANCE)

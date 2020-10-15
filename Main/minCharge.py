@@ -14,22 +14,30 @@ import matplotlib.pyplot as plt
 import random as r
 import tourfn2 as tf
 
-from Field import Field
-
+import Field as field
 
 
 
 # ns: Number of possible charging station positions
 # rad: coverage radius
-# solMax: Maximum number of solutions
+
 # start: Starting point for tour (point of origin) 
 # nx: Number of cells on the x-axis
 # ny: Number of cells on the y-axis
-def linear_program(maskVec,xVec,yVec,step,ns, rad, droneRange, solMax, start):
+def linear_program(maskVec, xVec, yVec, ns, rad, droneRange, start, customCandidate_coor):
 
-    #plt.pcolor(binMatrix)
-    #plt.show()
-
+    '''
+    Parameters:
+        maskVec: logical array that state what xValue is in the field
+        xVec: a x-valued mesh vector
+        yVec: a y-valued mesh vector
+        ns: Number of generated CS candidate locations
+        rad: Farthest distance drone can travel and return to charging station
+        droneRange: Half the max distance drone can travel before recharge
+        start: (x,y) coordinate of the first CS
+        customCandidate_coor: a x,y array of charging station location
+    '''
+    
     
 
     # converts numerical values in an array to boolean/logicals'''
@@ -37,7 +45,7 @@ def linear_program(maskVec,xVec,yVec,step,ns, rad, droneRange, solMax, start):
     
     
 
-    rad2 = rad**2
+    
 
     #To the edges
     power = 0.5 #Penalty for large distances
@@ -48,52 +56,68 @@ def linear_program(maskVec,xVec,yVec,step,ns, rad, droneRange, solMax, start):
     #xVec = np.repeat( np.arange(xmin,xmax,step), ny )[inclVec]
     #yVec = np.tile(np.arange(ymin,ymax,step), nx )[inclVec]
     
+    
     xVec = xVec[maskVec]
     yVec = yVec[maskVec]
-   
-
+    
     np_tot = np.sum(maskVec) # Number of points in region
-
-
-
-
-    # Locate charging stations
-    locs0 = r.sample(range(np_tot),ns) #k Random locations for charging station
-    locs = np.array([xVec[locs0], yVec[locs0]])
-
-    #Define incidence matrix: coverage area for drone is circular with radius rad
-    d2Mx = np.zeros((np_tot,ns))
-    
-    # Distance matrix and locations not covered by start
-    # DISTANCE MATRIX THAT EACH SITE MAY REACH
-    for ii in range(ns):
-        d2Mx[:, ii] =  (locs[0,ii]- xVec)**2 + (locs[1,ii]- yVec)**2 
+   
+    if len(customCandidate_coor) > 0:
         
-    # SELECT LOCATIONS THAT ARE LESS THAN THE MAX TRAVEL DISTANCE
-    iMx = d2Mx < rad2 # LOGICAL Coverage matrix
-    # LOCATE THE AREA WHERE THE FIRST CHARGING STATION CANNOT REACHES
-    iVec = ((xVec - start[0])**2 + (yVec-start[1])**2) > rad2; # points not covered by start
-    # SELECT THE AREAS THAT ARE NOT COVERED BY THE FIRST CHARGING STATION ( GIVES A BOOLEAN MATRIX)
-    iMx = iMx[logicalFn(iVec), :] #Logical coverage matrix for remaining points
-    # SELECT THE AREAS THAT ARE NOT COVERED BY THE FIRST CHARGING STATION ( GIVES A DISTANCE MATRIX)
-    d2Mx = d2Mx[logicalFn(iVec), :] #Distance matrix for remaining points
-    np_eff = iMx.shape[0]#size(iMx,1) #Number of points not covered by start
+        locs = customCandidate_coor
+        genCandidate = locs[:]
 
-    #Set up linear program which finds the minimum number of charging stations required
-    c = matrix(np.ones((ns,1), dtype = float)) # objective function
-    b = matrix(np.ones((np_eff,1), dtype = float)) #constraint vector
-    iMx = matrix(np.array(iMx, dtype = float)) #convert to matrix as reqd by cvxopt
-
-
-    fmin = 1E20 # Set large value as initial solution 
-
+    else:
+        
+        
+        # Locate charging stations
+        locs0 = r.sample(range(np_tot),ns) #k Random locations for charging station
+        locs = np.array([xVec[locs0], yVec[locs0]])
+        genCandidate = locs[:]
+        
     
-    #Minimize cx
-    # subject to Ax >= b
-    # A negative is placed in the parameter because ilp only does Ax <= B
+
+
+
+    flag = 0
+    solMx = [ [] , [] ]
+    while not(flag == -1):
+       
+        # flag = -1 : STOP THE LOOP
+        # flag = 0  : FIRST LOOP
+        # flag = 1  : A SOLUTION WAS PREVIOUSLY FOUND
+        
+        rad2 = rad**2
     
-    for ii in range(solMax):
-        fmin0 = 1*fmin
+        #Define incidence matrix: coverage area for drone is circular with radius rad
+        d2Mx = np.zeros((np_tot,ns))
+        
+        # Distance matrix and locations not covered by start
+        # DISTANCE MATRIX THAT EACH SITE MAY REACH
+        for ii in range(ns):
+            d2Mx[:, ii] =  (locs[0,ii]- xVec)**2 + (locs[1,ii]- yVec)**2 
+            
+        # SELECT LOCATIONS THAT ARE LESS THAN THE MAX TRAVEL DISTANCE
+        iMx = d2Mx < rad2 # LOGICAL Coverage matrix
+        # LOCATE THE AREA WHERE THE FIRST CHARGING STATION CANNOT REACHES
+        iVec = ((xVec - start[0])**2 + (yVec-start[1])**2) > rad2; # points not covered by start
+        # SELECT THE AREAS THAT ARE NOT COVERED BY THE FIRST CHARGING STATION ( GIVES A BOOLEAN MATRIX)
+        iMx = iMx[logicalFn(iVec), :] #Logical coverage matrix for remaining points
+        # SELECT THE AREAS THAT ARE NOT COVERED BY THE FIRST CHARGING STATION ( GIVES A DISTANCE MATRIX)
+        d2Mx = d2Mx[logicalFn(iVec), :] #Distance matrix for remaining points
+        np_eff = iMx.shape[0]#size(iMx,1) #Number of points not covered by start
+    
+        #Set up linear program which finds the minimum number of charging stations required
+        c = matrix(np.ones((ns,1), dtype = float)) # objective function
+        b = matrix(np.ones((np_eff,1), dtype = float)) #constraint vector
+        iMx = matrix(np.array(iMx, dtype = float)) #convert to matrix as reqd by cvxopt
+    
+    
+
+        #Minimize cx
+        # subject to Ax >= b
+        # A negative is placed in the parameter because ilp only does Ax <= B
+        
         status, solNew = ilp(c, 
                              -1*iMx, 
                              -1*b, 
@@ -102,46 +126,60 @@ def linear_program(maskVec,xVec,yVec,step,ns, rad, droneRange, solMax, start):
                              I = set(), 
                              B = set(range(ns)))
         
-        if not(status == 'optimal') or round(fmin) > round(fmin0):
-            break
-        else:
-            
-            fmin = dotu(c, solNew)
-            
-            # ADDITIONAL CONTRAINS
-            iMx = matrix([iMx, -1*solNew.ctrans()]) #[iMx ; -1*solNew'] #Add to LP matrix
-            # ADDED NEW BOUND 
-            b = matrix([b, -1*fmin+1])    # Constraint constant
+        if not(status == 'optimal'):
+             
+            if flag == 0:
+                raise('Charging Station Locations Not Found')
+                
+            if flag == 1:
+                
+                flag = -1 
+        
+        
 
-            if ii == 0:
-                solMx = solNew.ctrans()
+        if flag == 0:   
+            
+            solMx[0] = solNew.ctrans()  
+            rad = rad - 0.1
+            
+            flag = 1
+            
+        elif flag == 1:
+            
+            newSoln = solNew.ctrans()  
+            
+            if sum(solMx[0]) < sum(newSoln):
+                
+                flag = -1
+                solMx[1] = newSoln
+                
             else:
-                solMx = np.vstack((solMx, solNew.ctrans())) # Add to matrix of solutions
-
-    # lP relaxation is primal infeasible       
-    #print("****************************************************************************")     
-    #print("Status:", status)
-    #print("solMx:", solMx)
-    #print("****************************************************************************")
-
-
-    # CHECK IF THE NUMPY ARRAY IS NOT EMPRY
-    if solMx.size == 0:
-
-        raise('Solution Not Found')
-
-
-    #Minimize points' distance to charging stations
-
-    distStat = np.zeros(solMx.shape[0])
+                solMx[0] = newSoln
+                rad = rad - 0.1
+                
+            
+ 
+    
+    
+    distStat = np.zeros(2)
     startConjT = np.array(np.matrix(start).H) #start.conj().transpose()#conjugate transpose of start
-    for ii in range(solMx.shape[0]): 
+    
+    CS_Locs_lst = []
+    bestVal_lst = []
+    
+
+    for ii in range(2): 
+        
+        if len(solMx[ii]) == 0 :
+            break
         
         minDistVec = 1E50 * np.ones(len(xVec))
         
-        csLocs = locs[:, logicalFn(solMx[ii,:])] #select charging stations for current solution
+        
+        csLocs = locs[:, logicalFn(solMx[ii])] #select charging stations for current solution
         csLocs = np.append(startConjT, csLocs, axis = 1) #add starting point
         
+
         # Construct minDistMx and regMx
         for jj in range(csLocs.shape[1]): 
             
@@ -154,21 +192,22 @@ def linear_program(maskVec,xVec,yVec,step,ns, rad, droneRange, solMax, start):
         # Compute the best-case distance for this example
         nVec = np.arange(1,len(minDistVec)+1); # Value of n for each r
         minDistVec = np.sort(minDistVec)
+        
         #Save best value so far
-        distStat[ii] = max((len(minDistVec) - nVec) / ( droneRange - minDistVec));
-        distStat[ii] = distStat[ii] * droneRange / len(minDistVec);
-        #distStat[ii] = min(distStat[ii],distStat[ii - (ii > 0)])
+        distStat[ii] = max((len(minDistVec) - nVec) / ( droneRange - minDistVec))
+        distStat[ii] = distStat[ii] * droneRange / len(minDistVec)
 
 
-    bestVal,bestIx = min(distStat), np.argmin(distStat) #Choose best solution
-    #iBest = bestIx[0];
+        CS_Locs_lst.append(csLocs)
+        bestVal_lst.append(distStat[ii])
 
-    #select charging station locs. for best solution
-    csLocs = locs[:, np.asarray(list(map(lambda x: bool(x), solMx[bestIx,:] ))) ] 
-    csLocs = np.append(startConjT,csLocs, axis = 1) #add starting point
 
-    # print(csLocs)
-    return csLocs,bestVal
+
+
+    return CS_Locs_lst, bestVal_lst, genCandidate
+
+
+
 
 
 def tour(voronoi_lst):
@@ -234,70 +273,53 @@ def tour(voronoi_lst):
     start_end_lst = [ []  for i in range(nCS)]
     
    
-    # TO ENSURE THAT MY TOUR RETURNS TO THE FIRST, FIND THE PATH FROM THE LAST
-    # CS OF THE TOUR TO THE FIRST CS. THIS WILL ENSURE THE PATH HAS AN EDGE 
-    # THAT RETURNS TO THE FIRST CS
-    #######################################
-    
-    # GET THE INTERSECTED POINTS BETWEEN VORONOI CELLS
-    set1 = set(voronoi_lst[coor[-2]][0])
-    set2 = set(voronoi_lst[coor[-1]][0])
-    interPts = set1.intersection(set2)       
-
-
-    # ITERATE THROUGH THE INTERSECTED POINTS
-    for p in interPts:
-
-        # MAKE SURE YOU DID NOT ALREADY ADD THESE POINTS INTO THE EXIT/ENTRY ARRAY
-        # OR THE VERTICES ARRAY
-        if not(p in start_end_lst[coor[i]]) and not(p in start_end_lst[coor[i+1]]):
-            
-            # STORE THE INTERSECTED VERTEX INTO THE ENTRY'EXIT ARRAY
-            start_end_lst[coor[i]].append(p)
-            start_end_lst[coor[i+1]].append(p)
-            
-            # ADD THE INTERSECTED VERTEX INTO THE VERTICES LIST
-            vertices.append(voronoi_lst[coor[-2]][1])
-            vertices.append(p)
-            vertices.append(voronoi_lst[coor[-1]][1]) 
-            break
-    ######################################
     
     
-    for i in range(nTour-2):
+    
+    
+    vertices.append(voronoi_lst[coor[0]][1]) 
+    
+    for i in range(nTour-1):
 
         # GET THE INTERSECTED POINTS BETWEEN VORONOI CELLS
         set1 = set(voronoi_lst[coor[i]][0])
         set2 = set(voronoi_lst[coor[i+1]][0])
-        interPts = set1.intersection(set2)       
+        p1,p2 = set1.intersection(set2)      
     
     
-        # ITERATE THROUGH THE INTERSECTED POINTS
-        for p in interPts:
+        isUsedP1 = p1 in start_end_lst[coor[i]] or p1 in start_end_lst[coor[i+1]] 
+        isUsedP2 = p2 in start_end_lst[coor[i]] or p2 in start_end_lst[coor[i+1]]
+    
+        chosenP = None
+        
+        # IF NEITHER HAVE BEEN USED
+        if not(isUsedP1) and not(isUsedP2):
+            
+            
+            if p1[0] > p2[0]:
+                chosenP = p1
+            else:
+                chosenP = p2
+                
+        else:
+            
+            chosenP =  p1 if not(isUsedP1) else p2
+        
+    
 
-            # MAKE SURE YOU DID NOT ALREADY ADD THESE POINTS INTO THE EXIT/ENTRY ARRAY
-            # OR THE VERTICES ARRAY
-            if not(p in start_end_lst[coor[i]]) and not(p in start_end_lst[coor[i+1]]):
-                
-                # STORE THE INTERSECTED VERTEX INTO THE ENTRY'EXIT ARRAY
-                start_end_lst[coor[i]].append(p)
-                start_end_lst[coor[i+1]].append(p)
-                
-                # ADD THE INTERSECTED VERTEX INTO THE VERTICES LIST
-                
-                vertices.append(p)
-                vertices.append(voronoi_lst[coor[i+1]][1]) 
-                break
-                
-         
-    # THE FIRST TWO VERTICES ACTUALL BELONG AT THE END OF THE LIST
-    # DELETE THE LAST ELEM ( BECAUSE IT RETURNS TO THE FIRST ELEM)
-    # WE'LL SHIFT THE ARRAY BY 2
-    # THEN, WE'LL ADD THE FIRST ELEM OT THE END
-    vertices.pop(-1)       
-    for i in range(2):
-        vertices.append(vertices.pop(0))
-    vertices.append(vertices[0])
+        # STORE THE INTERSECTED VERTEX INTO THE ENTRY'EXIT ARRAY
+        start_end_lst[coor[i]].append(chosenP)
+        start_end_lst[coor[i+1]].append(chosenP)
+        
+        # ADD THE INTERSECTED VERTEX INTO THE VERTICES LIST
+        vertices.append(chosenP)
+        vertices.append(voronoi_lst[coor[i+1]][1]) 
+
+  
+    
+    
+    
+
 
     
     print('------------ locs --------------')

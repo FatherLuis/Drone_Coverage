@@ -10,3 +10,4 @@ Main/.DS_Store
 Main/data/.DS_Store
 Main/data/.DS_Store
 Main/data/.DS_Store
+*.pyc
