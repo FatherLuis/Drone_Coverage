@@ -58,3 +58,6 @@
 ## Contribution
 - @[SK-Thomas](https://github.com/SK-Thomas)
 - @[christhron](https://github.com/christhron)
+
+## Publication
+<a href = 'https://www.mdpi.com/869818'> Cost-Minimizing System Design for Surveillance of Large, Inaccessible Agricultural Areas Using Drones of Limited Range </a>
